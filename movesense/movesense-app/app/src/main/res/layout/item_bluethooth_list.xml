@@ -6,7 +6,6 @@
     app:cardCornerRadius="@dimen/dp_10"
     app:cardElevation="3dp"
     android:layout_margin="10dp"
-    android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground">
 
 
@@ -15,7 +14,6 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_marginBottom="@dimen/dp_3"
-        android:clickable="true"
         android:foreground="?android:attr/selectableItemBackground">
 
         <FrameLayout

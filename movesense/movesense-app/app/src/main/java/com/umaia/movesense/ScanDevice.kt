@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,7 +42,7 @@ class ScanDevice : AppCompatActivity() {
     val SCHEME_PREFIX = "suunto://"
 
     private lateinit var binding: ActivityScanDeviceBinding
-    private lateinit var bluetoothList: ArrayList<MyScanResult>
+    private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     private lateinit var mScanResArrayAdapter: BluetoothAdapter
     private lateinit var mScanResultRecyclerView : RecyclerView
 
@@ -68,13 +69,14 @@ class ScanDevice : AppCompatActivity() {
         binding = ActivityScanDeviceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        //Binding UI
         botaoScan  = binding.buttonScan
         botaoStop  = binding.buttonScanStop
-
         imagemNoDeviceFound = binding.noDeviceImage
         textNotFound1 = binding.noDevice1
         textNotFound2 = binding.noDevice2
+
+
         rxBleClient = RxBleClient.create(this)
         RxBleClient.updateLogOptions(
             LogOptions.Builder()
@@ -84,22 +86,44 @@ class ScanDevice : AppCompatActivity() {
                 .setShouldLogAttributeValues(true)
                 .build()
         )
-        bluetoothList =  ArrayList<MyScanResult>()
-        mScanResArrayAdapter = BluetoothAdapter(this,bluetoothList)
 
         mScanResultRecyclerView = binding.recyclerView
-
-//        mScanResArrayAdapter = ArrayAdapter<MyScanResult>(
-//            this,
-//            android.R.layout.simple_list_item_1, mScanResArrayList
-//        )
-
         mScanResultRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        mScanResArrayAdapter = BluetoothAdapter(bluetoothList)
         mScanResultRecyclerView.adapter = mScanResArrayAdapter
 
 
+        //listener scanner, recebe a posiçao do adapter e conecta ao device.
+        mScanResArrayAdapter.setOnItemClickListener(object : BluetoothAdapter.onItemClickListener{
+            override fun onItemClick(position: Int) {
+                if(bluetoothList.size<0)
+                    return
+                val device = bluetoothList[position]
+                if(!device.isConnected)
+                    Toast.makeText(this@ScanDevice,"A conectar a ${device.name} ${device.serial}", Toast.LENGTH_LONG).show()
+
+
+                if (!device.isConnected) {
+              // Stop scanning
+                    onScanStopClicked(null)
+               // And connect to the device
+                    connectBLEDevice(device)
+                }
+                else {
+                // Device is connected, trigger showing /Info
+                    subscribeToSensor(device.connectedSerial.toString())
+                }
+            }
+
+        })
+
         requestNeededPermissions()
         initMds()
+
+
+
+
     }
     private fun subscribeToSensor(connectedSerial: String) {
         // Clean up existing subscription (if there is one)
@@ -158,6 +182,7 @@ class ScanDevice : AppCompatActivity() {
     fun onScanClicked(view: View?) {
         botaoScan.setVisibility(View.GONE)
         botaoStop.setVisibility(View.VISIBLE)
+        textNotFound2.text = "A procura de equipamentos..."
 
         // Start with empty list
         bluetoothList.clear()
@@ -264,6 +289,9 @@ class ScanDevice : AppCompatActivity() {
         }
         botaoScan.setVisibility(View.VISIBLE)
         botaoStop.setVisibility(View.GONE)
+        if(bluetoothList.size==0){
+            textNotFound2.text = "Verifique que o equipamento está ligado,\n e por favor tente novamente"
+        }
     }
     fun showDeviceInfo(serial: String?) {
         val uri: String = SCHEME_PREFIX + serial + "/Info"
@@ -303,6 +331,8 @@ class ScanDevice : AppCompatActivity() {
                         break
                     }
                 }
+                Toast.makeText(this@ScanDevice,"Conectado.", Toast.LENGTH_SHORT).show()
+
                 mScanResArrayAdapter!!.notifyDataSetChanged()
             }
 
