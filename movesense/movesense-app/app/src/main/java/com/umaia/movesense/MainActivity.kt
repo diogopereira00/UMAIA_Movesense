@@ -20,6 +20,7 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanResult
 import com.polidea.rxandroidble2.scan.ScanSettings
+import com.umaia.movesense.responses.AccDataResponse
 import io.reactivex.disposables.Disposable
 
 class MainActivity : AppCompatActivity() {

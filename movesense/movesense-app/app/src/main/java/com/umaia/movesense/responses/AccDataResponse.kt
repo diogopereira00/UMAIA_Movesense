@@ -1,4 +1,4 @@
-package com.umaia.movesense
+package com.umaia.movesense.responses
 
 /**
  * Created by lipponep on 22.11.2017.

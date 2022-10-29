@@ -1,11 +1,12 @@
 package com.umaia.movesense
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -13,16 +14,15 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
 import com.movesense.mds.*
 import com.polidea.rxandroidble2.LogConstants
 import com.polidea.rxandroidble2.LogOptions
 import com.polidea.rxandroidble2.RxBleClient
-import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanResult
 import com.polidea.rxandroidble2.scan.ScanSettings
 import com.umaia.movesense.adapters.BluetoothAdapter
@@ -53,9 +53,10 @@ class ScanDevice : AppCompatActivity() {
     private lateinit var textNotFound2 : TextView
     lateinit var rxBleClient: RxBleClient
 
-    private val mBleClient: RxBleClient? = null
+    private var mBleClient: RxBleClient? = null
 
     // Sensor subscription
+    private val URI_MEAS_HR = "Meas/HR"
     private val URI_MEAS_ACC_13 = "/Meas/Acc/13"
     private var mdsSubscription: MdsSubscription? = null
     private var subscribedDeviceSerial: String? = null
@@ -96,76 +97,101 @@ class ScanDevice : AppCompatActivity() {
 
         //listener scanner, recebe a posiçao do adapter e conecta ao device.
         mScanResArrayAdapter.setOnItemClickListener(object : BluetoothAdapter.onItemClickListener{
+            // TODO: ON LONG CLICK
             override fun onItemClick(position: Int) {
                 if(bluetoothList.size<0)
                     return
                 val device = bluetoothList[position]
-                if(!device.isConnected)
-                    Toast.makeText(this@ScanDevice,"A conectar a ${device.name} ${device.serial}", Toast.LENGTH_LONG).show()
 
 
                 if (!device.isConnected) {
               // Stop scanning
+                    Toast.makeText(this@ScanDevice,"A conectar a ${device.name} ${device.serial}", Toast.LENGTH_LONG).show()
                     onScanStopClicked(null)
                // And connect to the device
                     connectBLEDevice(device)
                 }
-                else {
-                // Device is connected, trigger showing /Info
-                    subscribeToSensor(device.connectedSerial.toString())
-                }
+
+
+
+//                else {
+//                // Device is connected, trigger showing /Info
+//                    subscribeToSensor(device.connectedSerial.toString())
+//                }
             }
 
         })
 
         requestNeededPermissions()
         initMds()
-
-
-
-
     }
-    private fun subscribeToSensor(connectedSerial: String) {
-        // Clean up existing subscription (if there is one)
+
+    private fun getBleClient(): RxBleClient? {
+        // Init RxAndroidBle (Ble helper library) if not yet initialized
+        if (mBleClient == null) {
+            mBleClient = RxBleClient.create(this)
+        }
+        return mBleClient
+    }
+    private fun initMds() {
+        if (mMds == null) {
+            mMds = Mds.builder().build(this)
+        }
+    }
+    private fun subscribeToSensor(connectedSerial: String){
         if (mdsSubscription != null) {
             unsubscribe()
-        }
-
+    }
         // Build JSON doc that describes what resource and device to subscribe
         // Here we subscribe to 13 hertz accelerometer data
         val sb = StringBuilder()
         val strContract: String =
-            sb.append("{\"Uri\": \"").append(connectedSerial).append(URI_MEAS_ACC_13)
+            sb.append("{\"Uri\": \"").append(connectedSerial).append(URI_MEAS_HR)
                 .append("\"}").toString()
         Log.d(LOG_TAG, strContract)
-        val sensorUI: View = findViewById(R.id.sensorUI)
-        subscribedDeviceSerial = connectedSerial
-        mdsSubscription = Mds.builder().build(this).subscribe(URI_EVENTLISTENER,
-            strContract, object : MdsNotificationListener {
-                override fun onNotification(data: String) {
-                    Log.d(LOG_TAG, "onNotification(): $data")
-
-                    // If UI not enabled, do it now
-                    if (sensorUI.visibility == View.GONE) sensorUI.visibility = View.VISIBLE
-                    val accResponse: AccDataResponse =
-                        Gson().fromJson(data, AccDataResponse::class.java)
-                    if (accResponse != null && accResponse.body.array.size > 0) {
-                        val accStr = java.lang.String.format(
-                            "%.02f, %.02f, %.02f",
-                            accResponse.body.array.get(0).x,
-                            accResponse.body.array.get(0).y,
-                            accResponse.body.array.get(0).z
-                        )
-                        (findViewById(R.id.sensorMsg) as TextView).text = accStr
-                    }
-                }
-
-                override fun onError(error: MdsException) {
-                    Log.e(LOG_TAG, "subscription onError(): ", error)
-                    unsubscribe()
-                }
-            })
     }
+
+//    private fun subscribeToSensor(connectedSerial: String) {
+//        // Clean up existing subscription (if there is one)
+//        if (mdsSubscription != null) {
+//            unsubscribe()
+//        }
+//
+//        // Build JSON doc that describes what resource and device to subscribe
+//        // Here we subscribe to 13 hertz accelerometer data
+//        val sb = StringBuilder()
+//        val strContract: String =
+//            sb.append("{\"Uri\": \"").append(connectedSerial).append(URI_MEAS_ACC_13)
+//                .append("\"}").toString()
+//        Log.d(LOG_TAG, strContract)
+//        val sensorUI: View = findViewById(R.id.sensorUI)
+//        subscribedDeviceSerial = connectedSerial
+//        mdsSubscription = Mds.builder().build(this).subscribe(URI_EVENTLISTENER,
+//            strContract, object : MdsNotificationListener {
+//                override fun onNotification(data: String) {
+//                    Log.d(LOG_TAG, "onNotification(): $data")
+//
+//                    // If UI not enabled, do it now
+//                    if (sensorUI.visibility == View.GONE) sensorUI.visibility = View.VISIBLE
+//                    val accResponse: AccDataResponse =
+//                        Gson().fromJson(data, AccDataResponse::class.java)
+//                    if (accResponse != null && accResponse.body.array.size > 0) {
+//                        val accStr = java.lang.String.format(
+//                            "%.02f, %.02f, %.02f",
+//                            accResponse.body.array.get(0).x,
+//                            accResponse.body.array.get(0).y,
+//                            accResponse.body.array.get(0).z
+//                        )
+//                        (findViewById(R.id.sensorMsg) as TextView).text = accStr
+//                    }
+//                }
+//
+//                override fun onError(error: MdsException) {
+//                    Log.e(LOG_TAG, "subscription onError(): ", error)
+//                    unsubscribe()
+//                }
+//            })
+//    }
     private fun unsubscribe() {
         if (mdsSubscription != null) {
             mdsSubscription!!.unsubscribe()
@@ -180,21 +206,22 @@ class ScanDevice : AppCompatActivity() {
     var mScanSubscription: Disposable? = null
 
     fun onScanClicked(view: View?) {
-        botaoScan.setVisibility(View.GONE)
-        botaoStop.setVisibility(View.VISIBLE)
+        botaoScan.visibility =View.GONE
+        botaoStop.visibility = View.VISIBLE
         textNotFound2.text = "A procura de equipamentos..."
 
         // Start with empty list
         bluetoothList.clear()
         mScanResArrayAdapter!!.notifyDataSetChanged()
-        mScanSubscription = rxBleClient.scanBleDevices(
-            ScanSettings.Builder() // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
+        mScanSubscription = getBleClient()!!.scanBleDevices(
+            ScanSettings.Builder()
+                // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
                 // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
                 .build() // add filters if needed
         )
             .subscribe(
                 { scanResult: ScanResult ->
-                    Log.d( "Main Activity", "scanResult: $scanResult")
+                    Log.d( "ScanDevice", "scanResult: $scanResult")
 
                     // Process scan result here. filter movesense devices.
                     if (scanResult.bleDevice != null && scanResult.bleDevice.name != null &&
@@ -231,9 +258,6 @@ class ScanDevice : AppCompatActivity() {
             )
     }
 
-    private fun initMds() {
-        mMds = Mds.builder().build(this)
-    }
 
 
     fun requestNeededPermissions() {
@@ -287,10 +311,10 @@ class ScanDevice : AppCompatActivity() {
             mScanSubscription!!.dispose()
             mScanSubscription = null
         }
-        botaoScan.setVisibility(View.VISIBLE)
-        botaoStop.setVisibility(View.GONE)
+        botaoScan.visibility = View.VISIBLE
+        botaoStop.visibility= View.GONE
         if(bluetoothList.size==0){
-            textNotFound2.text = "Verifique que o equipamento está ligado,\n e por favor tente novamente"
+            textNotFound2.text = "Verifique se o equipamento está ligado,\n e por favor tente novamente"
         }
     }
     fun showDeviceInfo(serial: String?) {
@@ -313,11 +337,9 @@ class ScanDevice : AppCompatActivity() {
     }
 
 
-
-
     private fun connectBLEDevice(device: MyScanResult) {
-
-        val bleDevice: RxBleDevice = rxBleClient.getBleDevice(device.macAddress)
+        val bleDevice = getBleClient()!!.getBleDevice(device.macAddress)
+        val me: Activity = this
         Log.i(LOG_TAG, "Connecting to BLE device: " + bleDevice.macAddress)
         mMds!!.connect(bleDevice.macAddress, object : MdsConnectionListener {
             override fun onConnect(s: String) {
@@ -326,14 +348,19 @@ class ScanDevice : AppCompatActivity() {
 
             override fun onConnectionComplete(macAddress: String, serial: String) {
                 for (sr in bluetoothList) {
-                    if (sr.macAddress.equals(macAddress)) {
+                    if (sr.macAddress.equals(macAddress,true)) {
                         sr.markConnected(serial)
                         break
                     }
                 }
+                mScanResArrayAdapter.notifyDataSetChanged()
+
                 Toast.makeText(this@ScanDevice,"Conectado.", Toast.LENGTH_SHORT).show()
 
-                mScanResArrayAdapter!!.notifyDataSetChanged()
+                // Open the ECGActivity
+                val intent = Intent(me, ECGActivity::class.java)
+                intent.putExtra(ECGActivity().SERIAL, serial)
+                startActivity(intent)
             }
 
             override fun onError(e: MdsException) {
@@ -343,13 +370,62 @@ class ScanDevice : AppCompatActivity() {
 
             override fun onDisconnect(bleAddress: String) {
                 Log.d(LOG_TAG, "onDisconnect: $bleAddress")
+                Toast.makeText(this@ScanDevice,"DESCONECTADO.", Toast.LENGTH_SHORT).show()
+
                 for (sr in bluetoothList) {
-                    if (bleAddress == sr.macAddress) sr.markDisconnected()
+                    if (bleAddress == sr.macAddress) {
+                        Toast.makeText(this@ScanDevice,"DESCONECTADO2.", Toast.LENGTH_SHORT).show()
+
+                        // Unsubscribe all from possible
+                        if (sr.connectedSerial != null && ECGActivity.s_INSTANCE != null &&
+                            sr.connectedSerial.equals(ECGActivity.s_INSTANCE!!.connectedSerial)
+                        ) {
+                            ECGActivity.s_INSTANCE!!.unsubscribeAll()
+                            ECGActivity.s_INSTANCE!!.finish()
+                        }
+                        sr.markDisconnected()
+                    }
                 }
-                mScanResArrayAdapter!!.notifyDataSetChanged()
+                mScanResArrayAdapter.notifyDataSetChanged()
             }
         })
     }
+
+//    private fun connectBLEDevice(device: MyScanResult) {
+//
+//        val bleDevice: RxBleDevice = rxBleClient.getBleDevice(device.macAddress)
+//        Log.i(LOG_TAG, "Connecting to BLE device: " + bleDevice.macAddress)
+//        mMds!!.connect(bleDevice.macAddress, object : MdsConnectionListener {
+//            override fun onConnect(s: String) {
+//                Log.d(LOG_TAG, "onConnect:$s")
+//            }
+//
+//            override fun onConnectionComplete(macAddress: String, serial: String) {
+//                for (sr in bluetoothList) {
+//                    if (sr.macAddress.equals(macAddress)) {
+//                        sr.markConnected(serial)
+//                        break
+//                    }
+//                }
+//                Toast.makeText(this@ScanDevice,"Conectado.", Toast.LENGTH_SHORT).show()
+//
+//                mScanResArrayAdapter!!.notifyDataSetChanged()
+//            }
+//
+//            override fun onError(e: MdsException) {
+//                Log.e(LOG_TAG, "onError:$e")
+//                showConnectionError(e)
+//            }
+//
+//            override fun onDisconnect(bleAddress: String) {
+//                Log.d(LOG_TAG, "onDisconnect: $bleAddress")
+//                for (sr in bluetoothList) {
+//                    if (bleAddress == sr.macAddress) sr.markDisconnected()
+//                }
+//                mScanResArrayAdapter!!.notifyDataSetChanged()
+//            }
+//        })
+//    }
     private fun showConnectionError(e: MdsException) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
             .setTitle("Connection Error:")

@@ -49,7 +49,7 @@ class BluetoothAdapter// construtor
         else
             holder.nomeSettings.setTypeface(null,Typeface.NORMAL)
 
-        holder.nomeSettings.text = currentItem.name
+        holder.nomeSettings.text = "UMAIA ${currentItem.name}"
         holder.macAddress.text = currentItem.macAddress
         holder.rssi.text ="[" + currentItem.rssi.toString() + "]"
         holder.serial.text = currentItem.serial
