@@ -3,12 +3,16 @@ package com.umaia.movesense
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
 import com.movesense.mds.Mds
 import com.movesense.mds.MdsException
 import com.movesense.mds.MdsNotificationListener
 import com.movesense.mds.MdsSubscription
+import com.umaia.movesense.data.Hr
+import com.umaia.movesense.data.HrViewModel
 import com.umaia.movesense.databinding.ActivityEcgactivityBinding
 import com.umaia.movesense.responses.HRResponse
 
@@ -25,18 +29,25 @@ class ECGActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEcgactivityBinding
 
     private val LOG_TAG = ECGActivity::class.java.simpleName
+
+    private lateinit var mHrViewModel: HrViewModel
+
     companion object Foo {
         var s_INSTANCE: ECGActivity? = null
 
     }
 
-     fun gets_INSTANCE(): ECGActivity? {
+    fun gets_INSTANCE(): ECGActivity? {
         return s_INSTANCE
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEcgactivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        mHrViewModel = ViewModelProvider(this)[HrViewModel::class.java]
+
         s_INSTANCE = this
 
         // Find serial in opening intent
@@ -62,6 +73,17 @@ class ECGActivity : AppCompatActivity() {
                     val hrResponse: HRResponse = Gson().fromJson(
                         data, HRResponse::class.java
                     )
+                    //Adicionar a base de dados Room
+                    mHrViewModel.addHr(
+                        Hr(
+                            id = 0,
+                            userID = 1,
+                            average = hrResponse.body.average,
+                            rrData = hrResponse.body.rrData[0]
+                        )
+                    )
+                    Toast.makeText(this@ECGActivity, "Guardado.", Toast.LENGTH_LONG).show()
+
                     if (hrResponse != null) {
                         val hr = hrResponse.body.average as Float
                         (findViewById(R.id.textViewHR) as TextView).text = "" + hr
@@ -76,6 +98,7 @@ class ECGActivity : AppCompatActivity() {
                 }
             })
     }
+
     private fun unsubscribeHR() {
         if (mHRSubscription != null) {
             mHRSubscription!!.unsubscribe()
@@ -87,6 +110,6 @@ class ECGActivity : AppCompatActivity() {
         Log.d(LOG_TAG, "unsubscribeAll()")
         // TODO: asdasd
 //        unsubscribeECG()
-//        unsubscribeHR()
+        unsubscribeHR()
     }
 }
