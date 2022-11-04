@@ -2,8 +2,9 @@ package com.umaia.movesense
 
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanResult
+import java.io.Serializable
 
-class MyScanResult(scanResult: ScanResult) {
+class MyScanResult(scanResult: ScanResult)  : Serializable {
     var rssi: Int
     var macAddress: String
     var name: String?

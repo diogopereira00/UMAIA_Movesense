@@ -1,5 +1,7 @@
 package com.umaia.movesense
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -15,6 +17,7 @@ import com.umaia.movesense.data.Hr
 import com.umaia.movesense.data.HrViewModel
 import com.umaia.movesense.databinding.ActivityEcgactivityBinding
 import com.umaia.movesense.responses.HRResponse
+import com.umaia.movesense.services.MyService2
 
 class ECGActivity : AppCompatActivity() {
 
@@ -83,7 +86,14 @@ class ECGActivity : AppCompatActivity() {
                         )
                     )
                     Toast.makeText(this@ECGActivity, "Guardado.", Toast.LENGTH_LONG).show()
-
+                    if(Build.VERSION.SDK_INT >=0){
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                            startForegroundService(Intent(this@ECGActivity, MyService2::class.java).putExtra("connected", "${hrResponse.body.average}"))
+                        }
+                    }
+                    else{
+                        stopService(Intent(this@ECGActivity, MyService2::class.java))
+                    }
                     if (hrResponse != null) {
                         val hr = hrResponse.body.average as Float
                         (findViewById(R.id.textViewHR) as TextView).text = "" + hr
