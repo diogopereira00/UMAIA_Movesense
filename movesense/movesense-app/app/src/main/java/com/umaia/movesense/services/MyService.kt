@@ -57,6 +57,8 @@ class MyService : Service() {
             if (isConnected) {
                 val intent1 = Intent(this, ECGActivity::class.java)
                 //TODO IF ACTIVITY IS OPEN DONT OPEN AGAIN
+                //TODO erro, quando se fecha a app abre activity em branco
+                //TODO enableHRSubscription num serviço
                 var pendingIntent: PendingIntent? = null
                 pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
