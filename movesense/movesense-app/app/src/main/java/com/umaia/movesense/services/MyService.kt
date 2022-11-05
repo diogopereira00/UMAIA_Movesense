@@ -52,7 +52,20 @@ class MyService : Service() {
         return START_STICKY
     }
 
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannel =
+                NotificationChannel("Channel1", "ASD", NotificationManager.IMPORTANCE_DEFAULT)
+            val manager = getSystemService(
+                NotificationManager::class.java
+            )
+            manager.createNotificationChannel(notificationChannel)
+        }
+    }
+
+
     fun createNotification(isConnected: Boolean) {
+        createNotificationChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (isConnected) {
                 val intent1 = Intent(this, ECGActivity::class.java)
