@@ -1,14 +1,12 @@
 package com.umaia.movesense
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.ContactsContract.Data
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -18,26 +16,16 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.PackageManagerCompat.LOG_TAG
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.movesense.mds.*
-import com.polidea.rxandroidble2.LogConstants
-import com.polidea.rxandroidble2.LogOptions
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.scan.ScanResult
 import com.polidea.rxandroidble2.scan.ScanSettings
 import com.umaia.movesense.adapters.BluetoothAdapter
 import com.umaia.movesense.databinding.ActivityScanDeviceBinding
-import com.umaia.movesense.datastore.DataStoreManager
-import com.umaia.movesense.datastore.DataStoreViewModel
 import com.umaia.movesense.services.MyService
-import com.umaia.movesense.services.MyService2
 import io.reactivex.disposables.Disposable
-import kotlinx.coroutines.launch
 
 class ScanDevice : AppCompatActivity() {
 
@@ -52,7 +40,7 @@ class ScanDevice : AppCompatActivity() {
     val SCHEME_PREFIX = "suunto://"
 
     private lateinit var binding: ActivityScanDeviceBinding
-    private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
+//    private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     private lateinit var mScanResArrayAdapter: BluetoothAdapter
     private lateinit var mScanResultRecyclerView : RecyclerView
 
@@ -66,21 +54,23 @@ class ScanDevice : AppCompatActivity() {
     private var mBleClient: RxBleClient? = null
 
     // Sensor subscription
-    private val URI_MEAS_HR = "Meas/HR"
-    private val URI_MEAS_ACC_13 = "/Meas/Acc/13"
+
     private var mdsSubscription: MdsSubscription? = null
     private var subscribedDeviceSerial: String? = null
 
     private lateinit var botaoScan : Button
     private lateinit var botaoStop: Button
 
+    lateinit var gv : GlobalClass
 
-    private lateinit var dataStore : DataStoreManager
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityScanDeviceBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        gv = application as GlobalClass
         //Binding UI
         botaoScan  = binding.buttonScan
         botaoStop  = binding.buttonScanStop
@@ -89,22 +79,10 @@ class ScanDevice : AppCompatActivity() {
         textNotFound2 = binding.noDevice2
 
 
-//        rxBleClient = RxBleClient.create(this)
-//        RxBleClient.updateLogOptions(
-//            LogOptions.Builder()
-//                .setLogLevel(LogConstants.INFO)
-//                .setMacAddressLogSetting(LogConstants.MAC_ADDRESS_FULL)
-//                .setUuidsLogSetting(LogConstants.UUIDS_FULL)
-//                .setShouldLogAttributeValues(true)
-//                .build()
-//        )
-
-//        dataStore = DataStoreManager(this@ScanDevice)
-
         mScanResultRecyclerView = binding.recyclerView
         mScanResultRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        mScanResArrayAdapter = BluetoothAdapter(bluetoothList)
+        mScanResArrayAdapter = BluetoothAdapter(gv.bluetoothList)
         mScanResultRecyclerView.adapter = mScanResArrayAdapter
 
 
@@ -112,14 +90,14 @@ class ScanDevice : AppCompatActivity() {
         mScanResArrayAdapter.setOnItemClickListener(object : BluetoothAdapter.onItemClickListener{
             // TODO: ON LONG CLICK
             override fun onItemClick(position: Int) {
-                if(bluetoothList.size<0)
+                if(gv.bluetoothList.size<0)
                     return
-                val device = bluetoothList[position]
+                gv.currentDevice = gv.bluetoothList[position]
 
 
-                if (!device.isConnected) {
+                if (!gv.currentDevice.isConnected) {
               // Stop scanning
-                    Toast.makeText(this@ScanDevice,"A conectar a ${device.name} ${device.serial}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ScanDevice,"A conectar a ${gv.currentDevice.name} ${gv.currentDevice.serial}", Toast.LENGTH_LONG).show()
                     onScanStopClicked(null)
                // And connect to the device
 
@@ -127,8 +105,6 @@ class ScanDevice : AppCompatActivity() {
                     if(Build.VERSION.SDK_INT >=0){
                         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                             var intent = Intent(this@ScanDevice,MyService::class.java)
-                            intent.putExtra("device",device)
-                            intent.putExtra("bluetoothList",bluetoothList )
 
                             startForegroundService(intent)
                         }
@@ -189,7 +165,7 @@ class ScanDevice : AppCompatActivity() {
         textNotFound2.text = "A procura de equipamentos..."
 
         // Start with empty list
-        bluetoothList.clear()
+        gv.bluetoothList.clear()
         mScanResArrayAdapter!!.notifyDataSetChanged()
         mScanSubscription = getBleClient()!!.scanBleDevices(
             ScanSettings.Builder()
@@ -208,12 +184,12 @@ class ScanDevice : AppCompatActivity() {
 
                         // replace if exists already, add otherwise
                         val msr = MyScanResult(scanResult)
-                        if (bluetoothList.contains(msr)) bluetoothList[bluetoothList.indexOf(
+                        if (gv.bluetoothList.contains(msr)) gv.bluetoothList[gv.bluetoothList.indexOf(
                             msr
-                        )] = msr else bluetoothList.add(0, msr)
+                        )] = msr else gv.bluetoothList.add(0, msr)
                         mScanResArrayAdapter!!.notifyDataSetChanged()
                         //TODO if bluetooth is off
-                        if(bluetoothList.size > 0){
+                        if(gv.bluetoothList.size > 0){
                             imagemNoDeviceFound.visibility = View.GONE
                             textNotFound1.visibility = View.GONE
                             textNotFound2.visibility = View.GONE
@@ -290,7 +266,7 @@ class ScanDevice : AppCompatActivity() {
         }
         botaoScan.visibility = View.VISIBLE
         botaoStop.visibility= View.GONE
-        if(bluetoothList.size==0){
+        if(gv.bluetoothList.size==0){
             textNotFound2.text = "Verifique se o equipamento está ligado,\n e por favor tente novamente"
         }
     }
@@ -393,17 +369,6 @@ class ScanDevice : AppCompatActivity() {
 //    }
 
 
-    private fun saveConnectionStatus(isConnected : Boolean){
-        Log.d(LOG_TAG, "tou: $isConnected")
-
-        lifecycleScope.launch{
-            dataStore  = DataStoreManager(this@ScanDevice)
-
-            dataStore.setStatus(isConnected)
-
-        }
-
-    }
 
 
     private fun showConnectionError(e: MdsException) {

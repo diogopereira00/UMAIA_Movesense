@@ -31,11 +31,13 @@ class MyService : Service() {
     private var mBleClient: RxBleClient? = null
     private var mMds: Mds? = null
     private lateinit var notification: Notification
-    private var status: String = ""
 
-
+    lateinit var gv: GlobalClass
     override fun onStartCommand(init: Intent, flag: Int, startId: Int): Int {
+        gv = this.applicationContext as GlobalClass
 
+        createNotificationChannel()
+        gv.teste = "ola"
         initMds()
 //        mScanResArrayAdapter = init.getSerializableExtra("mScanResArrayAdapter") as BluetoothAdapter
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -44,10 +46,9 @@ class MyService : Service() {
         mScanResArrayAdapter = BluetoothAdapter(bluetoothList)
         mScanResultRecyclerView.adapter = mScanResArrayAdapter
 
-        bluetoothList = init.getSerializableExtra("bluetoothList") as ArrayList<MyScanResult>
+        bluetoothList = gv.bluetoothList
 
-        var device = init.getSerializableExtra("device") as MyScanResult
-        connectBLEDevice(device)
+        connectBLEDevice(gv.currentDevice)
 
         return START_STICKY
     }
@@ -65,46 +66,36 @@ class MyService : Service() {
 
 
     fun createNotification(isConnected: Boolean) {
-        createNotificationChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (isConnected) {
-                val intent1 = Intent(this, ECGActivity::class.java)
-                //TODO IF ACTIVITY IS OPEN DONT OPEN AGAIN
-                //TODO erro, quando se fecha a app abre activity em branco
-                //TODO enableHRSubscription num serviço
-                var pendingIntent: PendingIntent? = null
-                pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
-                } else {
-                    PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
-                }
-                notification = NotificationCompat.Builder(this, "Channel1")
-
-                    .setContentTitle("UMAIA Movesense")
-                    .setContentText("Sensor conectado, a recolher dados.")
-                    .setSmallIcon(R.mipmap.ic_umaia_logo)
-                    .setContentIntent(pendingIntent).build()
-                startForeground(1, notification)
-            } else {
-                val intent1 = Intent(this, ScanDevice::class.java)
-
-                var pendingIntent: PendingIntent? = null
-                pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
-                } else {
-                    PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
-                }
-                notification = NotificationCompat.Builder(this, "Channel1")
-
-                    .setContentTitle("UMAIA Movesense")
-                    .setContentText("Sensor desconectado, por favor conecte-se")
-                    .setSmallIcon(R.mipmap.ic_umaia_red_logo)
-                    .setContentIntent(pendingIntent).build()
-                startForeground(1, notification)
+            var intent1 = Intent(this, ECGActivity::class.java)
+            var title = "Sensor conectado"
+            var description = "Recolhendo dados..."
+            var icon = R.mipmap.ic_umaia_logo
+            if (!isConnected) {
+                intent1 = Intent(this, ScanDevice::class.java)
+                title = "Sensor desconectado"
+                description = "Por favor verifique a conexão..."
+                icon = R.mipmap.ic_umaia_red_logo
             }
-        }
 
+            var pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
+            } else {
+                PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
+            }
+            notification = NotificationCompat.Builder(this, "Channel1")
+                .setContentTitle(title)
+                .setContentText(description)
+                .setSmallIcon(icon)
+                .setPriority(128)
+                .setContentIntent(pendingIntent).build()
+
+            startForeground(1, notification)
+
+        }
     }
+
+
 
     private fun connectBLEDevice(device: MyScanResult) {
         val bleDevice = getBleClient()!!.getBleDevice(device.macAddress)
@@ -115,7 +106,7 @@ class MyService : Service() {
             }
 
             override fun onConnectionComplete(macAddress: String, serial: String) {
-//                saveConnectionStatus(true)
+                //Cria notificação, sensor conectado.
                 createNotification(true)
                 for (sr in bluetoothList) {
                     if (sr.macAddress.equals(macAddress, true)) {
@@ -125,19 +116,8 @@ class MyService : Service() {
                 }
 //                mScanResArrayAdapter.notifyDataSetChanged()
 
-                Toast.makeText(this@MyService, "Conectado.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MyService, "Conectado ao sensor ${serial}.", Toast.LENGTH_SHORT).show()
 
-//                if (Build.VERSION.SDK_INT >= 0) {
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                        startForegroundService(Intent(this@MyService, MyService2::class.java))
-//                    }
-//                } else {
-//                    stopService(Intent(this@MyService, MyService2::class.java))
-//                }
-
-//                startService(Intent(this@ScanDevice,MyService::class.java))
-
-                // Open the ECGActivity
                 val intent = Intent(this@MyService, ECGActivity::class.java)
                 intent.putExtra(ECGActivity().SERIAL, serial)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -164,7 +144,6 @@ class MyService : Service() {
 
                 for (sr in bluetoothList) {
                     if (bleAddress == sr.macAddress) {
-                        Toast.makeText(this@MyService, "DESCONECTADO2.", Toast.LENGTH_SHORT).show()
 //                        saveConnectionStatus(false)
 
                         // Unsubscribe all from possible
@@ -183,17 +162,6 @@ class MyService : Service() {
         })
     }
 
-//    private fun saveConnectionStatus(isConnected : Boolean){
-//        Log.d(LOG_TAG, "tou: $isConnected")
-//
-//        lifecycleScope.launch{
-//            dataStore  = DataStoreManager(this@ScanDevice)
-//
-//            dataStore.setStatus(isConnected)
-//
-//        }
-//
-//    }
 
     private fun showConnectionError(e: MdsException) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
@@ -201,6 +169,7 @@ class MyService : Service() {
             .setMessage(e.message)
         builder.create().show()
     }
+
     private fun getBleClient(): RxBleClient? {
         // Init RxAndroidBle (Ble helper library) if not yet initialized
         if (mBleClient == null) {
@@ -215,6 +184,7 @@ class MyService : Service() {
             mMds = Mds.builder().build(this)
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
     }

@@ -11,6 +11,7 @@ class HrViewModel(application: Application) : AndroidViewModel(application) {
     private val readAllData : LiveData<List<Hr>>
     private val repository : HrRepository
 
+
     init {
         val hrDao = AppDataBase.getDatabase(application).hrDao()
         repository = HrRepository(hrDao)

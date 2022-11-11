@@ -17,7 +17,7 @@ import com.umaia.movesense.data.Hr
 import com.umaia.movesense.data.HrViewModel
 import com.umaia.movesense.databinding.ActivityEcgactivityBinding
 import com.umaia.movesense.responses.HRResponse
-import com.umaia.movesense.services.MyService2
+import com.umaia.movesense.services.MoveSenseSensor
 
 class ECGActivity : AppCompatActivity() {
 
@@ -35,6 +35,9 @@ class ECGActivity : AppCompatActivity() {
 
     private lateinit var mHrViewModel: HrViewModel
 
+    lateinit var gv : GlobalClass
+
+
     companion object Foo {
         var s_INSTANCE: ECGActivity? = null
 
@@ -48,7 +51,10 @@ class ECGActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEcgactivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        gv = application as GlobalClass
 
+
+        binding.textViewHRLabel.text  = gv.teste
         mHrViewModel = ViewModelProvider(this)[HrViewModel::class.java]
 
         s_INSTANCE = this
@@ -88,11 +94,11 @@ class ECGActivity : AppCompatActivity() {
                     Toast.makeText(this@ECGActivity, "Guardado.", Toast.LENGTH_LONG).show()
                     if(Build.VERSION.SDK_INT >=0){
                         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                            startForegroundService(Intent(this@ECGActivity, MyService2::class.java).putExtra("connected", "${hrResponse.body.average}"))
+                            startForegroundService(Intent(this@ECGActivity, MoveSenseSensor::class.java).putExtra("connected", "${hrResponse.body.average}"))
                         }
                     }
                     else{
-                        stopService(Intent(this@ECGActivity, MyService2::class.java))
+                        stopService(Intent(this@ECGActivity, MoveSenseSensor::class.java))
                     }
                     if (hrResponse != null) {
                         val hr = hrResponse.body.average as Float
