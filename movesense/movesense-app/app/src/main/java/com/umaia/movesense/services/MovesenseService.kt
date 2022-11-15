@@ -5,22 +5,36 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
-import com.movesense.mds.Mds
-import com.movesense.mds.MdsConnectionListener
-import com.movesense.mds.MdsException
+import com.google.gson.Gson
+import com.movesense.mds.*
 import com.polidea.rxandroidble2.RxBleClient
 import com.umaia.movesense.*
+import com.umaia.movesense.R
+import com.umaia.movesense.data.AppDataBase
+import com.umaia.movesense.data.Hr
+import com.umaia.movesense.data.HrRepository
+import com.umaia.movesense.data.HrViewModel
 import com.umaia.movesense.model.MoveSenseEvent
+import com.umaia.movesense.responses.HRResponse
 import com.umaia.movesense.util.Constants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class MoveSenseSensor : LifecycleService() {
+class MovesenseService : LifecycleService() {
 
     companion object {
         val moveSenseEvent = MutableLiveData<MoveSenseEvent>()
+        val movesenseHeartRate = MutableLiveData<Hr>()
+
     }
+
+    lateinit private var readAllData: LiveData<List<Hr>>
+    lateinit private var repository: HrRepository
+
 
     private var isServiceStopped = false
     private var isConnected = false
@@ -28,17 +42,27 @@ class MoveSenseSensor : LifecycleService() {
     lateinit var notificationManager: NotificationManager
     private lateinit var notification: Notification
 
+    private var mHRSubscription: MdsSubscription? = null
+    private lateinit var mHrViewModel: HrViewModel
+
     private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     private var mBleClient: RxBleClient? = null
     private var mMds: Mds? = null
     lateinit var gv: GlobalClass
 
+    init {
+
+    }
+
     override fun onCreate() {
         super.onCreate()
 
+        initValues()
         gv = this.applicationContext as GlobalClass
         bluetoothList = gv.bluetoothList
-
+        val hrDao = AppDataBase.getDatabase(this).hrDao()
+        repository = HrRepository(hrDao)
+        readAllData = repository.readAllData
 
     }
 
@@ -73,13 +97,29 @@ class MoveSenseSensor : LifecycleService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                Constants.NOTIFICATION_CHANNEL_ID,
+                Constants.NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager = getSystemService(
+                NotificationManager::class.java
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+
     private fun initValues() {
         moveSenseEvent.postValue(MoveSenseEvent.STOP)
     }
 
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
-
+        enableHRSubscription()
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            createNotificationChannel()
 //        }
@@ -95,6 +135,7 @@ class MoveSenseSensor : LifecycleService() {
             Constants.NOTIFICATION_ID
         )
         stopForeground(true)
+        unsubscribeAll()
 //        stopSelf()
 
     }
@@ -134,24 +175,20 @@ class MoveSenseSensor : LifecycleService() {
                     }
                 }
 //                mScanResArrayAdapter.notifyDataSetChanged()
-
                 Toast.makeText(
-                    this@MoveSenseSensor,
+                    this@MovesenseService,
                     "Conectado ao sensor ${serial}.",
                     Toast.LENGTH_SHORT
                 ).show()
 
-                val intent = Intent(this@MoveSenseSensor, Main::class.java)
-                intent.putExtra(ECGActivity().SERIAL, serial)
+                val intent = Intent(this@MovesenseService, HomeActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-
-
             }
-
 
             override fun onError(e: MdsException) {
                 Timber.e("onError:$e")
+                isConnected = false
 
                 showConnectionError(e)
             }
@@ -160,18 +197,19 @@ class MoveSenseSensor : LifecycleService() {
                 Timber.e("onDisconnect: $bleAddress")
                 isConnected = false
                 createNotification2()
-                Toast.makeText(this@MoveSenseSensor, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
+                    .show()
 
                 for (sr in bluetoothList) {
                     if (bleAddress == sr.macAddress) {
 //                        saveConnectionStatus(false)
 
                         // Unsubscribe all from possible
-                        if (sr.connectedSerial != null && Main.s_INSTANCE != null &&
+                        if (sr.connectedSerial != null && HomeActivity.s_INSTANCE != null &&
                             sr.connectedSerial.equals(gv.currentDevice.connectedSerial)
                         ) {
                             unsubscribeAll()
-                            Main.s_INSTANCE!!.finish()
+                            HomeActivity.s_INSTANCE!!.finish()
 //                            stopService(Intent(this@ScanDevice,MyService::class.java))
                         }
                         sr.markDisconnected()
@@ -182,19 +220,70 @@ class MoveSenseSensor : LifecycleService() {
         })
     }
 
+    private fun enableHRSubscription() {
+        // Make sure there is no subscription
+        unsubscribeHR()
 
-//    private fun unsubscribeHR() {
-//        if (mHRSubscription != null) {
-//            mHRSubscription!!.unsubscribe()
-//            mHRSubscription = null
-//        }
-//    }
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial).append(Constants.URI_MEAS_HR)
+                .append("\"}").toString()
+        Timber.e(strContract)
+        mHRSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+                    val hrResponse: HRResponse = Gson().fromJson(
+                        data, HRResponse::class.java
+                    )
+                    //Adicionar a base de dados Room
+                    var teste = Hr(
+                        id = 0,
+                        userID = 1,
+                        average = hrResponse.body.average,
+                        rrData = hrResponse.body.rrData[0]
+                    )
+                    addHr(teste)
+
+
+                    Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
+
+                    if (hrResponse != null) {
+                        gv.hrAvarage = hrResponse.body.average.toString()
+                        movesenseHeartRate.postValue(teste)
+                        gv.hrRRdata =
+                            hrResponse.body.rrData[hrResponse.body.rrData.size - 1].toString()
+                        Timber.e(gv.hrAvarage + "<-  adasdasdasdas")
+                    }
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("HRSubscription onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
+
+    fun addHr(hr: Hr) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            repository.addHr(hr)
+        }
+    }
+
+    private fun unsubscribeHR() {
+        if (mHRSubscription != null) {
+            mHRSubscription!!.unsubscribe()
+            mHRSubscription = null
+        }
+    }
 
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
         // TODO: asdasd
 //        unsubscribeECG()
-//        unsubscribeHR()
+        unsubscribeHR()
     }
 
     private fun showConnectionError(e: MdsException) {
@@ -210,7 +299,7 @@ class MoveSenseSensor : LifecycleService() {
                 when (it) {
                     is MoveSenseEvent.START -> {
 
-                        var intent1 = Intent(this, Main::class.java)
+                        var intent1 = Intent(this, HomeActivity::class.java)
                         var title = "Sensor conectado"
                         var description = "Recolhendo dados..."
                         var icon = R.mipmap.ic_umaia_logo

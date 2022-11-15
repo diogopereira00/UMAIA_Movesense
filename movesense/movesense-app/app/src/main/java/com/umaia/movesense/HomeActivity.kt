@@ -6,34 +6,47 @@ import android.view.View
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import com.umaia.movesense.databinding.ActivityTesteBinding
+import com.umaia.movesense.databinding.ActivityHomeBinding
 import com.umaia.movesense.model.MoveSenseEvent
-import com.umaia.movesense.services.MoveSenseSensor
+import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
 
-class Main : AppCompatActivity() {
+class HomeActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityTesteBinding
+    private lateinit var binding: ActivityHomeBinding
     private var isServiceRunning = false
+    lateinit var gv : GlobalClass
 
     companion object Foo {
-        var s_INSTANCE: Main? = null
+        var s_INSTANCE: HomeActivity? = null
 
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityTesteBinding.inflate(layoutInflater)
+        binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        gv = application as GlobalClass
+
         setObservers()
         s_INSTANCE=this
+        updateHR()
+    }
+
+    private fun updateHR() {
+        binding.textViewHR.text = gv.hrAvarage.toString()
+        binding.textViewIBI.text = gv.hrRRdata
+
     }
 
     private fun setObservers() {
-        MoveSenseSensor.moveSenseEvent.observe(this, Observer {
+        MovesenseService.moveSenseEvent.observe(this, Observer {
             updateUi(it)
+        })
+        MovesenseService.movesenseHeartRate.observe(this,Observer{
+            updateHR()
         })
 
 
@@ -74,7 +87,7 @@ class Main : AppCompatActivity() {
     }
 
     private fun sendCommandToService(action: String) {
-        startService(Intent(this, MoveSenseSensor::class.java).apply {
+        startService(Intent(this, MovesenseService::class.java).apply {
             this.action = action
         })
     }

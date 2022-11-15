@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.umaia.movesense.data.Hr
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
@@ -12,7 +13,12 @@ class GlobalClass : Application() {
     var teste = ""
     var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     lateinit var currentDevice : MyScanResult
+    var hrAvarage  =""
+    var hrRRdata  =""
     lateinit var notificationManager: NotificationManager
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -34,5 +40,6 @@ class GlobalClass : Application() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
-        }    }
+        }
+            }
 }

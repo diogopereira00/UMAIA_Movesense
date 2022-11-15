@@ -17,7 +17,7 @@ import com.polidea.rxandroidble2.scan.ScanResult
 import com.polidea.rxandroidble2.scan.ScanSettings
 import com.umaia.movesense.adapters.BluetoothAdapter
 import com.umaia.movesense.databinding.ActivityScanBinding
-import com.umaia.movesense.services.MoveSenseSensor
+import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.Functions.requestNeededPermissions
 import io.reactivex.disposables.Disposable
@@ -83,7 +83,7 @@ class ScanActivity : AppCompatActivity() {
     }
 
     private fun sendCommandToService(action: String) {
-        startService(Intent(this, MoveSenseSensor::class.java).apply {
+        startService(Intent(this, MovesenseService::class.java).apply {
             this.action = action
         })
     }

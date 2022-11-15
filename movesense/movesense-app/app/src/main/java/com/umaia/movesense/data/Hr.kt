@@ -10,12 +10,12 @@ import java.text.DateFormat
 data class Hr(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val average : Float,
-    val rrData : Int,
+    var average : Float? = 0f,
+    var rrData : Int? = 0,
     val userID : Int = 1,
     val created  : Long = System.currentTimeMillis(),
 
-) : Parcelable{
+    ) : Parcelable{
     val createdDateFormated : String
         get() = DateFormat.getDateTimeInstance().format(created)
 }
