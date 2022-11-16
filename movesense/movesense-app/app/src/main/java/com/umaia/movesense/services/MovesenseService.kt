@@ -10,13 +10,11 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
+import com.movesense.showcaseapp.model.ECGResponse
 import com.polidea.rxandroidble2.RxBleClient
 import com.umaia.movesense.*
 import com.umaia.movesense.R
-import com.umaia.movesense.data.AppDataBase
-import com.umaia.movesense.data.Hr
-import com.umaia.movesense.data.HrRepository
-import com.umaia.movesense.data.HrViewModel
+import com.umaia.movesense.data.*
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.responses.HRResponse
 import com.umaia.movesense.util.Constants
@@ -32,9 +30,9 @@ class MovesenseService : LifecycleService() {
 
     }
 
-    lateinit private var readAllData: LiveData<List<Hr>>
-    lateinit private var repository: HrRepository
-
+    private lateinit var readAllData: LiveData<List<Hr>>
+    private lateinit  var hrRepository: HrRepository
+    private lateinit var ecgRepository: ECGRepository
 
     private var isServiceStopped = false
     private var isConnected = false
@@ -43,7 +41,8 @@ class MovesenseService : LifecycleService() {
     private lateinit var notification: Notification
 
     private var mHRSubscription: MdsSubscription? = null
-    private lateinit var mHrViewModel: HrViewModel
+    private var mECGSubscription: MdsSubscription? = null
+
 
     private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     private var mBleClient: RxBleClient? = null
@@ -60,9 +59,14 @@ class MovesenseService : LifecycleService() {
         initValues()
         gv = this.applicationContext as GlobalClass
         bluetoothList = gv.bluetoothList
+
         val hrDao = AppDataBase.getDatabase(this).hrDao()
-        repository = HrRepository(hrDao)
-        readAllData = repository.readAllData
+        val ecgDao = AppDataBase.getDatabase(this).ecgDao()
+
+        hrRepository = HrRepository(hrDao)
+        ecgRepository = ECGRepository(ecgDao)
+
+        readAllData = hrRepository.readAllData
 
     }
 
@@ -120,6 +124,7 @@ class MovesenseService : LifecycleService() {
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
         enableHRSubscription()
+        enableECGSubscription()
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            createNotificationChannel()
 //        }
@@ -166,7 +171,7 @@ class MovesenseService : LifecycleService() {
             override fun onConnectionComplete(macAddress: String, serial: String) {
                 //Cria notificação, sensor conectado.
                 isConnected = true
-                createNotification2()
+                createNotification()
 
                 for (sr in bluetoothList) {
                     if (sr.macAddress.equals(macAddress, true)) {
@@ -196,7 +201,7 @@ class MovesenseService : LifecycleService() {
             override fun onDisconnect(bleAddress: String) {
                 Timber.e("onDisconnect: $bleAddress")
                 isConnected = false
-                createNotification2()
+                createNotification()
                 Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
                     .show()
 
@@ -264,11 +269,15 @@ class MovesenseService : LifecycleService() {
                 }
             })
     }
-
+    private fun addECG(ecg: ECG){
+        lifecycleScope.launch(Dispatchers.IO){
+            ecgRepository.addEcg(ecg)
+        }
+    }
 
     fun addHr(hr: Hr) {
         lifecycleScope.launch(Dispatchers.IO) {
-            repository.addHr(hr)
+            hrRepository.addHr(hr)
         }
     }
 
@@ -278,6 +287,83 @@ class MovesenseService : LifecycleService() {
             mHRSubscription = null
         }
     }
+
+    private fun enableECGSubscription() {
+        // Make sure there is no subscription
+        unsubscribeECG()
+
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = java.lang.StringBuilder()
+//        val sampleRate = ("" + mSpinnerSampleRates.getSelectedItem()).toInt()
+        val sampleRate = 125
+        val GRAPH_WINDOW_WIDTH = sampleRate * 3
+        val strContract: String = sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+            .append(Constants.URI_ECG_ROOT).append(sampleRate)
+            .append("\"}").toString()
+        Timber.e(strContract)
+        // Clear graph
+
+//        mSeriesECG.resetData(arrayOfNulls<DataPoint>(0))
+//        val graph: GraphView = findViewById(R.id.graphECG) as GraphView
+//        graph.getViewport().setMaxX(GRAPH_WINDOW_WIDTH)
+//        mDataPointsAppended = 0
+
+        mECGSubscription = Mds.builder().build(this)
+            .subscribe(Constants.URI_EVENTLISTENER,
+                strContract, object : MdsNotificationListener {
+                    override fun onNotification(data: String) {
+                        Timber.e("onNotification(): $data")
+
+                        val ecgResponse: ECGResponse = Gson().fromJson(
+                            data, ECGResponse::class.java
+                        )
+                        if (ecgResponse != null) {
+
+                            var teste = ECG(
+                                id = 0,
+                                userID = 1,
+                                data = Gson().toJson(ecgResponse.body.data),
+                                timestamp = ecgResponse.body.timestamp
+                            )
+                            addECG(teste)
+
+
+                            for (sample in ecgResponse.body.data) {
+                                try {
+
+//                                    mSeriesECG.appendData(
+//                                        DataPoint(mDataPointsAppended, sample), true,
+//                                        GRAPH_WINDOW_WIDTH
+//                                    )
+                                } catch (e: IllegalArgumentException) {
+                                    Timber.e("Erro $e")
+//                                    Log.e(
+//                                        com.movesense.samples.ecgsample.ECGActivity.LOG_TAG,
+//                                        "GraphView error ",
+//                                        e
+//                                    )
+                                }
+//                                mDataPointsAppended++
+                            }
+                        }
+                    }
+
+                    override fun onError(error: MdsException) {
+                        Timber.e("onError(): $error")
+
+                        unsubscribeECG()
+                    }
+                })
+    }
+
+    private fun unsubscribeECG() {
+        if (mECGSubscription != null) {
+            mECGSubscription!!.unsubscribe()
+            mECGSubscription = null
+        }
+    }
+
+
 
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
@@ -293,7 +379,7 @@ class MovesenseService : LifecycleService() {
         builder.create().show()
     }
 
-    private fun createNotification2() {
+    private fun createNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             moveSenseEvent.observe(this, Observer {
                 when (it) {

@@ -6,4 +6,6 @@
         - Clicking on connected device will show device info.\n
         - Long click on connected device will disconnect.</string>
     <string name="service">Service</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

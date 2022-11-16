@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
     id 'kotlin-kapt'
+
 }
 
 android {
@@ -40,6 +41,9 @@ android {
 
 dependencies {
 
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+
     //DataStore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
@@ -59,6 +63,9 @@ dependencies {
 
     // Gson
     implementation 'com.google.code.gson:gson:2.8.7'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
+
+
 
     //Lifecycle
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"

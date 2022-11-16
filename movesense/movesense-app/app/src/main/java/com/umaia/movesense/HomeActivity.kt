@@ -16,7 +16,6 @@ import timber.log.Timber
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private var isServiceRunning = false
     lateinit var gv : GlobalClass
 
     companion object Foo {
@@ -54,16 +53,10 @@ class HomeActivity : AppCompatActivity() {
     private fun updateUi(event: MoveSenseEvent) {
         when (event) {
             is MoveSenseEvent.START -> {
-                isServiceRunning = true
-                binding.buttonStart.visibility=View.GONE
-                binding.buttonStop.visibility=View.VISIBLE
-                Timber.e("on")
+                switchService(true)
             }
             is MoveSenseEvent.STOP -> {
-                isServiceRunning = false
-                binding.buttonStart.visibility=View.VISIBLE
-                binding.buttonStop.visibility=View.GONE
-                Timber.e("off")
+                switchService(false)
             }
         }
     }
