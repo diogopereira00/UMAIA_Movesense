@@ -15,6 +15,7 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.umaia.movesense.*
 import com.umaia.movesense.R
 import com.umaia.movesense.data.*
+import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.responses.HRResponse
 import com.umaia.movesense.util.Constants
@@ -186,7 +187,7 @@ class MovesenseService : LifecycleService() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                val intent = Intent(this@MovesenseService, HomeActivity::class.java)
+                val intent = Intent(this@MovesenseService, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
             }
@@ -210,11 +211,11 @@ class MovesenseService : LifecycleService() {
 //                        saveConnectionStatus(false)
 
                         // Unsubscribe all from possible
-                        if (sr.connectedSerial != null && HomeActivity.s_INSTANCE != null &&
+                        if (sr.connectedSerial != null && Home.s_INSTANCE != null &&
                             sr.connectedSerial.equals(gv.currentDevice.connectedSerial)
                         ) {
                             unsubscribeAll()
-                            HomeActivity.s_INSTANCE!!.finish()
+                            Home.s_INSTANCE!!.requireActivity().finish()
 //                            stopService(Intent(this@ScanDevice,MyService::class.java))
                         }
                         sr.markDisconnected()
@@ -385,7 +386,7 @@ class MovesenseService : LifecycleService() {
                 when (it) {
                     is MoveSenseEvent.START -> {
 
-                        var intent1 = Intent(this, HomeActivity::class.java)
+                        var intent1 = Intent(this, MainActivity::class.java)
                         var title = "Sensor conectado"
                         var description = "Recolhendo dados..."
                         var icon = R.mipmap.ic_umaia_logo
