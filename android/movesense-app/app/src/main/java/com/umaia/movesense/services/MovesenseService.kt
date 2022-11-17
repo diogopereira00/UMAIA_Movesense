@@ -32,10 +32,10 @@ class MovesenseService : LifecycleService() {
     }
 
     private lateinit var readAllData: LiveData<List<Hr>>
-    private lateinit  var hrRepository: HrRepository
+    private lateinit var hrRepository: HrRepository
     private lateinit var ecgRepository: ECGRepository
 
-    private var isServiceStopped = false
+    private var isServiceStopped = true
     private var isConnected = false
 
     lateinit var notificationManager: NotificationManager
@@ -124,6 +124,8 @@ class MovesenseService : LifecycleService() {
 
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
+        isServiceStopped = false
+
         enableHRSubscription()
         enableECGSubscription()
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -190,237 +192,256 @@ class MovesenseService : LifecycleService() {
                 val intent = Intent(this@MovesenseService, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-            }
+                if (!isServiceStopped) {
+                    startForegroundService()
+                }
+                else {
+                    stopService()
+                }
+//                val x = moveSenseEvent.observe(this@MovesenseService, Observer {
+//                    when (it) {
+//                        is MoveSenseEvent.START -> {
+//                            startForegroundService()
+//                        }
+//                        is MoveSenseEvent.STOP -> {
+//                            stopService()
+//                        }
+//
+//                    }
+//                    moveSenseEvent.removeObservers(this@MovesenseService)
 
-            override fun onError(e: MdsException) {
-                Timber.e("onError:$e")
-                isConnected = false
+//            })
+        }
 
-                showConnectionError(e)
-            }
+                override fun onError(e: MdsException) {
+            Timber.e("onError:$e")
+            isConnected = false
 
-            override fun onDisconnect(bleAddress: String) {
-                Timber.e("onDisconnect: $bleAddress")
-                isConnected = false
-                createNotification()
-                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
-                    .show()
+            showConnectionError(e)
+        }
 
-                for (sr in bluetoothList) {
-                    if (bleAddress == sr.macAddress) {
+                override fun onDisconnect(bleAddress: String) {
+            Timber.e("onDisconnect: $bleAddress")
+            isConnected = false
+            createNotification()
+            Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
+                .show()
+
+            for (sr in bluetoothList) {
+                if (bleAddress == sr.macAddress) {
 //                        saveConnectionStatus(false)
 
-                        // Unsubscribe all from possible
-                        if (sr.connectedSerial != null && Home.s_INSTANCE != null &&
-                            sr.connectedSerial.equals(gv.currentDevice.connectedSerial)
-                        ) {
-                            unsubscribeAll()
-                            Home.s_INSTANCE!!.requireActivity().finish()
+                    // Unsubscribe all from possible
+                    if (sr.connectedSerial != null && Home.s_INSTANCE != null &&
+                        sr.connectedSerial.equals(gv.currentDevice.connectedSerial)
+                    ) {
+                        unsubscribeAll()
+                        Home.s_INSTANCE!!.activity?.finish()
 //                            stopService(Intent(this@ScanDevice,MyService::class.java))
-                        }
-                        sr.markDisconnected()
                     }
+                    sr.markDisconnected()
                 }
+            }
 //                mScanResArrayAdapter.notifyDataSetChanged()
+        }
+    })
+}
+
+private fun enableHRSubscription() {
+    // Make sure there is no subscription
+    unsubscribeHR()
+
+    // Build JSON doc that describes what resource and device to subscribe
+    val sb = StringBuilder()
+    val strContract: String =
+        sb.append("{\"Uri\": \"").append(gv.currentDevice.serial).append(Constants.URI_MEAS_HR)
+            .append("\"}").toString()
+    Timber.e(strContract)
+    mHRSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+        strContract, object : MdsNotificationListener {
+            override fun onNotification(data: String) {
+                Timber.e("onNotification(): $data")
+                val hrResponse: HRResponse = Gson().fromJson(
+                    data, HRResponse::class.java
+                )
+                //Adicionar a base de dados Room
+                var teste = Hr(
+                    id = 0,
+                    userID = 1,
+                    average = hrResponse.body.average,
+                    rrData = hrResponse.body.rrData[0]
+                )
+                addHr(teste)
+
+
+                Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
+
+                if (hrResponse != null) {
+                    gv.hrAvarage = hrResponse.body.average.toString()
+                    movesenseHeartRate.postValue(teste)
+                    gv.hrRRdata =
+                        hrResponse.body.rrData[hrResponse.body.rrData.size - 1].toString()
+                    Timber.e(gv.hrAvarage + "<-  adasdasdasdas")
+                }
+            }
+
+            override fun onError(error: MdsException) {
+                Timber.e("HRSubscription onError(): $error")
+                unsubscribeHR()
             }
         })
+}
+
+private fun addECG(ecg: ECG) {
+    lifecycleScope.launch(Dispatchers.IO) {
+        ecgRepository.addEcg(ecg)
     }
+}
 
-    private fun enableHRSubscription() {
-        // Make sure there is no subscription
-        unsubscribeHR()
-
-        // Build JSON doc that describes what resource and device to subscribe
-        val sb = StringBuilder()
-        val strContract: String =
-            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial).append(Constants.URI_MEAS_HR)
-                .append("\"}").toString()
-        Timber.e(strContract)
-        mHRSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
-            strContract, object : MdsNotificationListener {
-                override fun onNotification(data: String) {
-                    Timber.e("onNotification(): $data")
-                    val hrResponse: HRResponse = Gson().fromJson(
-                        data, HRResponse::class.java
-                    )
-                    //Adicionar a base de dados Room
-                    var teste = Hr(
-                        id = 0,
-                        userID = 1,
-                        average = hrResponse.body.average,
-                        rrData = hrResponse.body.rrData[0]
-                    )
-                    addHr(teste)
-
-
-                    Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
-
-                    if (hrResponse != null) {
-                        gv.hrAvarage = hrResponse.body.average.toString()
-                        movesenseHeartRate.postValue(teste)
-                        gv.hrRRdata =
-                            hrResponse.body.rrData[hrResponse.body.rrData.size - 1].toString()
-                        Timber.e(gv.hrAvarage + "<-  adasdasdasdas")
-                    }
-                }
-
-                override fun onError(error: MdsException) {
-                    Timber.e("HRSubscription onError(): $error")
-                    unsubscribeHR()
-                }
-            })
+fun addHr(hr: Hr) {
+    lifecycleScope.launch(Dispatchers.IO) {
+        hrRepository.addHr(hr)
     }
-    private fun addECG(ecg: ECG){
-        lifecycleScope.launch(Dispatchers.IO){
-            ecgRepository.addEcg(ecg)
-        }
+}
+
+private fun unsubscribeHR() {
+    if (mHRSubscription != null) {
+        mHRSubscription!!.unsubscribe()
+        mHRSubscription = null
     }
+}
 
-    fun addHr(hr: Hr) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            hrRepository.addHr(hr)
-        }
-    }
+private fun enableECGSubscription() {
+    // Make sure there is no subscription
+    unsubscribeECG()
 
-    private fun unsubscribeHR() {
-        if (mHRSubscription != null) {
-            mHRSubscription!!.unsubscribe()
-            mHRSubscription = null
-        }
-    }
-
-    private fun enableECGSubscription() {
-        // Make sure there is no subscription
-        unsubscribeECG()
-
-        // Build JSON doc that describes what resource and device to subscribe
-        val sb = java.lang.StringBuilder()
+    // Build JSON doc that describes what resource and device to subscribe
+    val sb = java.lang.StringBuilder()
 //        val sampleRate = ("" + mSpinnerSampleRates.getSelectedItem()).toInt()
-        val sampleRate = 125
-        val GRAPH_WINDOW_WIDTH = sampleRate * 3
-        val strContract: String = sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
-            .append(Constants.URI_ECG_ROOT).append(sampleRate)
-            .append("\"}").toString()
-        Timber.e(strContract)
-        // Clear graph
+    val sampleRate = 125
+    val GRAPH_WINDOW_WIDTH = sampleRate * 3
+    val strContract: String = sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+        .append(Constants.URI_ECG_ROOT).append(sampleRate)
+        .append("\"}").toString()
+    Timber.e(strContract)
+    // Clear graph
 
 //        mSeriesECG.resetData(arrayOfNulls<DataPoint>(0))
 //        val graph: GraphView = findViewById(R.id.graphECG) as GraphView
 //        graph.getViewport().setMaxX(GRAPH_WINDOW_WIDTH)
 //        mDataPointsAppended = 0
 
-        mECGSubscription = Mds.builder().build(this)
-            .subscribe(Constants.URI_EVENTLISTENER,
-                strContract, object : MdsNotificationListener {
-                    override fun onNotification(data: String) {
-                        Timber.e("onNotification(): $data")
+    mECGSubscription = Mds.builder().build(this)
+        .subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
 
-                        val ecgResponse: ECGResponse = Gson().fromJson(
-                            data, ECGResponse::class.java
+                    val ecgResponse: ECGResponse = Gson().fromJson(
+                        data, ECGResponse::class.java
+                    )
+                    if (ecgResponse != null) {
+
+                        var teste = ECG(
+                            id = 0,
+                            userID = 1,
+                            data = Gson().toJson(ecgResponse.body.data),
+                            timestamp = ecgResponse.body.timestamp
                         )
-                        if (ecgResponse != null) {
-
-                            var teste = ECG(
-                                id = 0,
-                                userID = 1,
-                                data = Gson().toJson(ecgResponse.body.data),
-                                timestamp = ecgResponse.body.timestamp
-                            )
-                            addECG(teste)
+                        addECG(teste)
 
 
-                            for (sample in ecgResponse.body.data) {
-                                try {
+                        for (sample in ecgResponse.body.data) {
+                            try {
 
 //                                    mSeriesECG.appendData(
 //                                        DataPoint(mDataPointsAppended, sample), true,
 //                                        GRAPH_WINDOW_WIDTH
 //                                    )
-                                } catch (e: IllegalArgumentException) {
-                                    Timber.e("Erro $e")
+                            } catch (e: IllegalArgumentException) {
+                                Timber.e("Erro $e")
 //                                    Log.e(
 //                                        com.movesense.samples.ecgsample.ECGActivity.LOG_TAG,
 //                                        "GraphView error ",
 //                                        e
 //                                    )
-                                }
-//                                mDataPointsAppended++
                             }
+//                                mDataPointsAppended++
                         }
-                    }
-
-                    override fun onError(error: MdsException) {
-                        Timber.e("onError(): $error")
-
-                        unsubscribeECG()
-                    }
-                })
-    }
-
-    private fun unsubscribeECG() {
-        if (mECGSubscription != null) {
-            mECGSubscription!!.unsubscribe()
-            mECGSubscription = null
-        }
-    }
-
-
-
-    fun unsubscribeAll() {
-        Timber.e("unsubscribeAll()")
-        // TODO: asdasd
-//        unsubscribeECG()
-        unsubscribeHR()
-    }
-
-    private fun showConnectionError(e: MdsException) {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-            .setTitle("Connection Error:")
-            .setMessage(e.message)
-        builder.create().show()
-    }
-
-    private fun createNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            moveSenseEvent.observe(this, Observer {
-                when (it) {
-                    is MoveSenseEvent.START -> {
-
-                        var intent1 = Intent(this, MainActivity::class.java)
-                        var title = "Sensor conectado"
-                        var description = "Recolhendo dados..."
-                        var icon = R.mipmap.ic_umaia_logo
-                        if (!isConnected) {
-                            intent1 = Intent(this, ScanActivity::class.java)
-                            title = "Sensor desconectado"
-                            description = "Por favor verifique a conexão..."
-                            icon = R.mipmap.ic_umaia_red_logo
-                        }
-
-                        var pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
-                        } else {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
-                        }
-                        notification =
-                            NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
-                                .setContentTitle(title)
-                                .setContentText(description)
-                                .setSmallIcon(icon)
-                                .setPriority(128)
-                                .setContentIntent(pendingIntent).build()
-
-                        startForeground(Constants.NOTIFICATION_ID, notification)
-
-                    }
-
-                    is MoveSenseEvent.STOP -> {
-
                     }
                 }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("onError(): $error")
+
+                    unsubscribeECG()
+                }
             })
-        }
+}
+
+private fun unsubscribeECG() {
+    if (mECGSubscription != null) {
+        mECGSubscription!!.unsubscribe()
+        mECGSubscription = null
     }
+}
+
+
+fun unsubscribeAll() {
+    Timber.e("unsubscribeAll()")
+    // TODO: asdasd
+    unsubscribeECG()
+    unsubscribeHR()
+}
+
+private fun showConnectionError(e: MdsException) {
+    val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        .setTitle("Connection Error:")
+        .setMessage(e.message)
+    builder.create().show()
+}
+
+private fun createNotification() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        moveSenseEvent.observe(this, Observer {
+            when (it) {
+                is MoveSenseEvent.START -> {
+
+                    var intent1 = Intent(this, MainActivity::class.java)
+                    var title = "Sensor conectado"
+                    var description = "Recolhendo dados..."
+                    var icon = R.mipmap.ic_umaia_logo
+                    if (!isConnected) {
+                        intent1 = Intent(this, ScanActivity::class.java)
+                        title = "Sensor desconectado"
+                        description = "Por favor verifique a conexão..."
+                        icon = R.mipmap.ic_umaia_red_logo
+                    }
+
+                    var pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
+                    } else {
+                        PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
+                    }
+                    notification =
+                        NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
+                            .setContentTitle(title)
+                            .setContentText(description)
+                            .setSmallIcon(icon)
+                            .setPriority(128)
+                            .setContentIntent(pendingIntent).build()
+
+                    startForeground(Constants.NOTIFICATION_ID, notification)
+
+                }
+
+                is MoveSenseEvent.STOP -> {
+
+                }
+            }
+        })
+    }
+}
 
 
 }
