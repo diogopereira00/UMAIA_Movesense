@@ -4,23 +4,30 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import androidx.annotation.RequiresApi
-import com.umaia.movesense.data.Hr
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
 class GlobalClass : Application() {
-    var teste = ""
+
+
+
+
     var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
-    lateinit var currentDevice : MyScanResult
-    var hrAvarage  =""
-    var hrRRdata  =""
+    lateinit var currentDevice: MyScanResult
+    var hrAvarage = ""
+    var hrRRdata = ""
     lateinit var notificationManager: NotificationManager
 
 
+    private var scannerECG: Boolean ? = null
+    fun getscannerECG(): Boolean? {
+        return scannerECG
+    }
 
+    fun setscannerECG(scannerECG: Boolean) {
+        this.scannerECG = scannerECG
+    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -34,6 +41,7 @@ class GlobalClass : Application() {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
@@ -41,5 +49,5 @@ class GlobalClass : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
-            }
+    }
 }

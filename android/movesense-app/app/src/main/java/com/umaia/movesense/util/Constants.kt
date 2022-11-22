@@ -18,4 +18,7 @@ object Constants {
     const val URI_ECG_ROOT = "/Meas/ECG/"
 
 
+    val PREFERENCES = "preferences"
+    val ECG_SCANNER_STATUS = "ecg_scanner_status"
+
 }

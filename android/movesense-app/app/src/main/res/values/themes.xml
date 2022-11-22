@@ -16,6 +16,7 @@
 
         <item name="android:textColorPrimary">@color/defaultText</item>
 
+
     </style>
 
     <style name="MyTabLayoutTextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse">
