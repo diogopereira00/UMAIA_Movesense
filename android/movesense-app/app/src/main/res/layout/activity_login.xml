@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.umaia.movesense.LoginActivity">
+
+    <TextView
+        android:id="@+id/loginText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Iniciar Sessão"
+        android:textColor="@color/defaultText"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15" />
+
+
+    <EditText
+        android:id="@+id/editTextEmail"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:background="@drawable/edit_text_background"
+        android:drawableEnd="@drawable/user_icon"
+        android:drawableTint="@color/colorTextBlack"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:hint="Introduza o seu email"
+        android:inputType="textEmailAddress"
+        android:paddingLeft="26dp"
+        android:paddingRight="26dp"
+        android:textColor="@color/defaultText"
+        android:textColorHint="@color/colorPlaceholder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.62"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginText"
+        app:layout_constraintVertical_bias="0.11"
+        tools:ignore="Autofill,UnusedAttribute" />
+
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:background="@drawable/edit_text_background"
+        android:drawableEnd="@drawable/locker_icon"
+        android:drawableTint="@color/colorTextBlack"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:hint="Introduza a sua password"
+        android:inputType="textPassword"
+        android:paddingLeft="26dp"
+        android:paddingRight="26dp"
+        android:textColor="@color/defaultText"
+        android:textColorHint="@color/colorPlaceholder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextEmail"
+        app:layout_constraintVertical_bias="0.071"
+        tools:ignore="Autofill"
+        tools:targetApi="m" />
+
+    <CheckBox
+        android:id="@+id/rememberMe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/primary"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:text="Mantenha-me conectado"
+        android:textColor="@color/defaultText"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.115"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
+        app:layout_constraintVertical_bias="0.041" />
+
+
+    <TextView
+
+        android:id="@+id/codBarrasText"
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:text="Email"
+        app:layout_constraintBottom_toTopOf="@+id/editTextEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.069"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginText"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+
+        android:id="@+id/precoCompraText"
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:text="Password"
+        app:layout_constraintBottom_toTopOf="@+id/editTextPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.075"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextEmail"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:fontFamily="@font/seg_ui_semibold"
+
+        android:background="@drawable/button_primary_background"
+        android:backgroundTint="@color/primary"
+        android:text="Iniciar Sessão"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.275"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
+        app:layout_constraintVertical_bias="0.27" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.95">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:text="Ainda não tens uma conta?"
+            android:textColor="@color/colorTextBlack"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/registHereTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="@font/segoe_ui_bold"
+            android:text="Cria aqui"
+            android:textColor="@color/primary"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
