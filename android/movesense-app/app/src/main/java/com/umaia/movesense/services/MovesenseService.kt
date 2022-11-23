@@ -198,19 +198,6 @@ class MovesenseService : LifecycleService() {
                 else {
                     stopService()
                 }
-//                val x = moveSenseEvent.observe(this@MovesenseService, Observer {
-//                    when (it) {
-//                        is MoveSenseEvent.START -> {
-//                            startForegroundService()
-//                        }
-//                        is MoveSenseEvent.STOP -> {
-//                            stopService()
-//                        }
-//
-//                    }
-//                    moveSenseEvent.removeObservers(this@MovesenseService)
-
-//            })
         }
 
                 override fun onError(e: MdsException) {
@@ -229,7 +216,6 @@ class MovesenseService : LifecycleService() {
 
             for (sr in bluetoothList) {
                 if (bleAddress == sr.macAddress) {
-//                        saveConnectionStatus(false)
 
                     // Unsubscribe all from possible
                     if (sr.connectedSerial != null && Home.s_INSTANCE != null &&
@@ -242,7 +228,6 @@ class MovesenseService : LifecycleService() {
                     sr.markDisconnected()
                 }
             }
-//                mScanResArrayAdapter.notifyDataSetChanged()
         }
     })
 }

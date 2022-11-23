@@ -25,7 +25,10 @@ class Home : Fragment() {
         var s_INSTANCE: Home? = null
 
     }
-
+    override fun onResume() {
+        super.onResume()
+        Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,7 +37,7 @@ class Home : Fragment() {
 
         binding = FragmentHomeBinding.inflate(layoutInflater)
         gv = activity?.application as GlobalClass
-
+        Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
         setObservers()
         s_INSTANCE = this
         updateHR()
