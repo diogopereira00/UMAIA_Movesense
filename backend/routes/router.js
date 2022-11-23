@@ -6,6 +6,7 @@ const userMiddleware = require("../middleware/users.js");
 
 const router = require("express").Router();
 
+
 router.post("/sign-up", userMiddleware.validateRegister, (req, res, next) => {
 	db.query(`SELECT * FROM users WHERE LOWER(username) = LOWER(${db.escape(req.body.username)});`, (err, result) => {
 		if (result.length) {
@@ -44,6 +45,7 @@ router.post("/sign-up", userMiddleware.validateRegister, (req, res, next) => {
 });
 
 router.post("/login", (req, res, next) => {
+	console.log(req)
 	db.query(`SELECT * FROM users WHERE username = ${db.escape(req.body.username)};`, (err, result) => {
 		// user does not exists
 		if (err) {
@@ -53,6 +55,7 @@ router.post("/login", (req, res, next) => {
 			});
 		}
 		if (!result.length) {
+			console.log("aqi")
 			return res.status(401).send({
 				msg: "Username or password is incorrect!",
 			});
@@ -80,12 +83,12 @@ router.post("/login", (req, res, next) => {
 				db.query(`UPDATE users SET last_login = now() WHERE id = '${result[0].id}'`);
 				return res.status(200).send({
 					msg: "Logged in!",
-					token,
 					user: {
 						id: result[0].id,
 						username: result[0].username,
 						created_at: result[0].created_at,
 						last_login: result[0].last_login,
+						access_token : token,
 					},
 				});
 			}
@@ -100,4 +103,14 @@ router.get('/secret-route', userMiddleware.isLoggedIn, (req, res, next) => {
 	console.log(req.userData);
 	res.send('This is the secret content. Only logged in users can see that!');
   });
+
+
+  router.post("/teste", (req, res, next) => {
+	
+
+
+	return res.status(401).send({
+		msg: "Username or password is incorrect!",
+	});
+});
 module.exports = router;
