@@ -24,7 +24,7 @@
 
 
     <EditText
-        android:id="@+id/editTextEmail"
+        android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginLeft="25dp"
@@ -33,8 +33,8 @@
         android:drawableEnd="@drawable/user_icon"
         android:drawableTint="@color/colorTextBlack"
         android:fontFamily="@font/seg_ui_semibold"
-        android:hint="Introduza o seu email"
-        android:inputType="textEmailAddress"
+        android:hint="Introduza o seu username"
+        android:inputType="text"
         android:paddingLeft="26dp"
         android:paddingRight="26dp"
         android:textColor="@color/defaultText"
@@ -66,7 +66,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextEmail"
+        app:layout_constraintTop_toBottomOf="@+id/editTextUsername"
         app:layout_constraintVertical_bias="0.071"
         tools:ignore="Autofill"
         tools:targetApi="m" />
@@ -97,7 +97,7 @@
         android:layout_marginTop="28dp"
         android:fontFamily="@font/seg_ui_semibold"
         android:text="Email"
-        app:layout_constraintBottom_toTopOf="@+id/editTextEmail"
+        app:layout_constraintBottom_toTopOf="@+id/editTextUsername"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.069"
         app:layout_constraintStart_toStartOf="parent"
@@ -116,7 +116,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.075"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextEmail"
+        app:layout_constraintTop_toBottomOf="@+id/editTextUsername"
         app:layout_constraintVertical_bias="1.0" />
 
     <Button
