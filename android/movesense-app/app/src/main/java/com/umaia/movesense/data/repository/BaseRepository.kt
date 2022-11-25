@@ -1,6 +1,6 @@
-package com.umaia.movesense.repository
+package com.umaia.movesense.data.repository
 
-import com.umaia.movesense.network.Resource
+import com.umaia.movesense.data.network.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException

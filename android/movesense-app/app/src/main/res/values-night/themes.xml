@@ -13,11 +13,15 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
         <item name="android:textColorPrimary">@color/WhiteGray</item>
-
+        <item name="android:editTextColor">#52424242</item>
 
 
     </style>
+
     <style name="MyTabLayoutTextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse">
         <item name="android:textSize">11sp</item>
     </style>
+
+
+
 </resources>

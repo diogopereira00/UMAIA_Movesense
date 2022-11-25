@@ -1,4 +1,4 @@
-package com.umaia.movesense.data
+package com.umaia.movesense.data.ecg
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -7,10 +7,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
-interface HrDao {
+interface ECGDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addHr(hr: Hr)
+    suspend fun addHr(ecg: ECG)
 
-    @Query("SELECT * FROM hr_table ORDER BY id ASC")
-    fun readAllHr(): LiveData<List<Hr>>
+    @Query("SELECT * FROM ecg_table ORDER BY id ASC")
+    fun readAllECG(): LiveData<List<ECG>>
 }

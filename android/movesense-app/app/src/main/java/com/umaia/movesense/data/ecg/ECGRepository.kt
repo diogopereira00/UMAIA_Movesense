@@ -1,4 +1,4 @@
-package com.umaia.movesense.data
+package com.umaia.movesense.data.ecg
 
 import androidx.lifecycle.LiveData
 

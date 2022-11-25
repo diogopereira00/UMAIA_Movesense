@@ -1,4 +1,4 @@
-package com.umaia.movesense.responses
+package com.umaia.movesense.data.responses
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName

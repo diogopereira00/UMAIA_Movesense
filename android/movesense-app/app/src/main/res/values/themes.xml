@@ -16,10 +16,14 @@
 
         <item name="android:textColorPrimary">@color/defaultText</item>
 
+        <item name="android:editTextColor">#14000000</item>
 
     </style>
 
     <style name="MyTabLayoutTextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse">
         <item name="android:textSize">11sp</item>
     </style>
+
+
+
 </resources>

@@ -1,4 +1,4 @@
-package com.umaia.movesense.network
+package com.umaia.movesense.data.network
 
 import okhttp3.ResponseBody
 

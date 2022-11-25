@@ -1,4 +1,4 @@
-package com.umaia.movesense.responses
+package com.umaia.movesense.data.responses
 
 data class LoginResponse(
     val msg: String,

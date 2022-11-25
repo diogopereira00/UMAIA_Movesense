@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import android.text.BoringLayout
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
@@ -14,6 +15,7 @@ class GlobalClass : Application() {
 
     var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     lateinit var currentDevice: MyScanResult
+    var connected : Boolean = false
     var hrAvarage = ""
     var hrRRdata = ""
     lateinit var notificationManager: NotificationManager

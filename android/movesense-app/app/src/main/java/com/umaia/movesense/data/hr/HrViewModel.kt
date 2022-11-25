@@ -1,9 +1,10 @@
-package com.umaia.movesense.data
+package com.umaia.movesense.data.hr
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import com.umaia.movesense.data.AppDataBase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

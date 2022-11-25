@@ -1,6 +1,6 @@
-package com.umaia.movesense.network
+package com.umaia.movesense.data.network
 
-import com.umaia.movesense.responses.LoginResponse
+import com.umaia.movesense.data.responses.LoginResponse
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
