@@ -18,4 +18,9 @@ class AuthRepository(
     suspend fun saveAuthToken(token : String){
         preferences.saveAuthToken(token)
     }
+
+    // TODO: Fazer logout na api
+    suspend fun clearAuthToken(){
+        preferences.clearAuthToken()
+    }
 }

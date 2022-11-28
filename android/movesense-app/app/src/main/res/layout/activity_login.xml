@@ -170,7 +170,6 @@
             android:layout_marginStart="12dp"
             android:fontFamily="@font/seg_ui_semibold"
             android:text="Ainda não tens uma conta?"
-            android:textColor="@color/colorTextBlack"
             android:textSize="18sp" />
 
         <TextView

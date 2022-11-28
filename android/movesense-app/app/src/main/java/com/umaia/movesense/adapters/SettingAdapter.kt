@@ -1,14 +1,20 @@
 package com.diogopereira.rackit.adapters
 
+import android.R
+import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-
+import com.umaia.movesense.AuthViewModel
+import com.umaia.movesense.DialogLogout
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.databinding.ItemDefinicoesBinding
 import com.umaia.movesense.model.SettingsClass
+import com.umaia.movesense.util.Constants
 
 
 class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
@@ -17,19 +23,31 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
     private var context: Context
     private var gv = GlobalClass()
     private var settingsList: ArrayList<SettingsClass>
+    private var authViewModel: AuthViewModel
+    private var activity: Activity
 
     //viewbinding RowReviewsBinding.xml
     private lateinit var binding: ItemDefinicoesBinding
 
     // construtor
-    constructor(context: Context, reviewArrayList: ArrayList<SettingsClass>) {
+    constructor(
+        context: Context,
+        reviewArrayList: ArrayList<SettingsClass>,
+        authViewModel: AuthViewModel,
+        activity: Activity
+    ) {
         this.context = context
         this.settingsList = reviewArrayList
+        this.authViewModel = authViewModel
+        this.activity = activity
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HolderDefinicoes {
         binding = ItemDefinicoesBinding.inflate(LayoutInflater.from(context), parent, false)
         gv = parent.context.applicationContext as GlobalClass
+
+
+
         return HolderDefinicoes(binding.root)
     }
 
@@ -54,10 +72,16 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
 //        holder.nomeSettings.text = currentItem.nomeSetting
 
         binding.layout.setOnClickListener {
-//            if(currentItem.id=="Logout") {
-//            // TODO: Logout
+            if (currentItem.id == Constants.SETTINGS_SENSORS) {
 
-//            }
+                // TODO: Quando clicar no sensores abrir activity com a lista de sensores.
+
+            } else if (currentItem.id == Constants.SETTINGS_LOGOUT) {
+                // TODO: DIALOG tem a certeza?
+                var dialog = DialogLogout(authViewModel, activity)
+                dialog.show((context as FragmentActivity).supportFragmentManager, ContentValues.TAG)
+
+            }
         }
     }
 

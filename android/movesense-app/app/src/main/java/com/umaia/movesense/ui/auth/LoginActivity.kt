@@ -45,12 +45,10 @@ open class LoginActivity : AppCompatActivity() {
 
 
         binding.progressBar.visible(false)
-        binding.loginButton.enable(false)
 
 // TODO: corrigir este metodo de validação
         binding.editTextPassword.addTextChangedListener {
             val username = binding.editTextUsername.text.toString().trim()
-            binding.loginButton.enable(username.isNotEmpty() && it.toString().isNotEmpty())
         }
 
         viewModel.loginResponse.observe(this, Observer {

@@ -32,7 +32,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
         userPreferences.token.asLiveData().observe(this, Observer {
             val activity =
-                if (it == null)
+                if (it == null || it =="")
                     startNewActivityFromSplash(LoginActivity::class.java)
                 else if (!gv.connected)
                     startNewActivityFromSplash(ScanActivity::class.java)
