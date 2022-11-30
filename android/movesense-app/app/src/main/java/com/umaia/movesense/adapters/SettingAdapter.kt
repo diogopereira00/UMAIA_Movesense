@@ -1,9 +1,10 @@
-package com.diogopereira.rackit.adapters
+package com.umaia.movesense.adapters
 
 import android.R
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.umaia.movesense.AuthViewModel
 import com.umaia.movesense.DialogLogout
 import com.umaia.movesense.GlobalClass
+import com.umaia.movesense.SensorSettingsActivity
 import com.umaia.movesense.databinding.ItemDefinicoesBinding
 import com.umaia.movesense.model.SettingsClass
+import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.util.Constants
 
 
@@ -74,6 +77,7 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
         binding.layout.setOnClickListener {
             if (currentItem.id == Constants.SETTINGS_SENSORS) {
 
+                (context as Activity).startActivity(Intent(context,SensorSettingsActivity::class.java))
                 // TODO: Quando clicar no sensores abrir activity com a lista de sensores.
 
             } else if (currentItem.id == Constants.SETTINGS_LOGOUT) {

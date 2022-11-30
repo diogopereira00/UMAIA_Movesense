@@ -12,10 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.diogopereira.rackit.adapters.SettingsAdapter
 import com.umaia.movesense.AuthViewModel
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.R
+import com.umaia.movesense.adapters.SettingsAdapter
 import com.umaia.movesense.data.network.AuthApi
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.repository.AuthRepository
