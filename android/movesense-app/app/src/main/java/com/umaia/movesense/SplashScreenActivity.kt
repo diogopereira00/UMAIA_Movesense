@@ -32,7 +32,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
         userPreferences.token.asLiveData().observe(this, Observer {
             val activity =
-                if (it == null || it =="")
+                if (it.isNullOrEmpty())
                     startNewActivityFromSplash(LoginActivity::class.java)
                 else if (!gv.connected)
                     startNewActivityFromSplash(ScanActivity::class.java)
@@ -40,5 +40,17 @@ class SplashScreenActivity : AppCompatActivity() {
                     startNewActivityFromSplash(MainActivity::class.java)
             Toast.makeText(this, it ?: "Empty", Toast.LENGTH_SHORT).show()
         })
+
+        userPreferences.accStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isAccActivated = isActivated
+            }
+        }
+        //TODO ADICIONAR O RESTO DOS SENSORES
+        userPreferences.ecgStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isECGActivated = isActivated
+            }
+        }
     }
 }

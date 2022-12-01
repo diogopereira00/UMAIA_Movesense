@@ -22,6 +22,7 @@ import com.umaia.movesense.data.hr.HrRepository
 import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.data.responses.HRResponse
+import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,6 +60,7 @@ class MovesenseService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        val datastore = UserPreferences(this)
 
         initValues()
         gv = this.applicationContext as GlobalClass
@@ -71,6 +73,7 @@ class MovesenseService : LifecycleService() {
         ecgRepository = ECGRepository(ecgDao)
 
         readAllData = hrRepository.readAllData
+
 
     }
 
@@ -95,6 +98,10 @@ class MovesenseService : LifecycleService() {
                     initMds()
                     connectBLEDevice(gv.currentDevice)
 
+                }
+                Constants.ACTION_REFRESH_SERVICE -> {
+                    stopService()
+                    startForegroundService()
                 }
             }
 
@@ -128,9 +135,21 @@ class MovesenseService : LifecycleService() {
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
         isServiceStopped = false
+        gv.isServiceRunning = true
 
+        Toast.makeText(
+            this@MovesenseService,
+            "${gv.isAccActivated}",
+            Toast.LENGTH_SHORT
+        ).show()
+        //TODO ADICIONAR O RESTO DOS SENSORES
+
+        if(gv.isECGActivated){
+            enableECGSubscription()
+
+        }
         enableHRSubscription()
-        enableECGSubscription()
+
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            createNotificationChannel()
 //        }
@@ -142,6 +161,8 @@ class MovesenseService : LifecycleService() {
     private fun stopService() {
         moveSenseEvent.postValue(MoveSenseEvent.STOP)
         isServiceStopped = true
+        gv.isServiceRunning = false
+
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
             Constants.NOTIFICATION_ID
         )
@@ -322,7 +343,6 @@ class MovesenseService : LifecycleService() {
                 strContract, object : MdsNotificationListener {
                     override fun onNotification(data: String) {
                         Timber.e("onNotification(): $data")
-
                         val ecgResponse: ECGResponse = Gson().fromJson(
                             data, ECGResponse::class.java
                         )

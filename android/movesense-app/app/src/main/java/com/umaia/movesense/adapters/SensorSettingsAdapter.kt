@@ -2,6 +2,7 @@ package com.umaia.movesense.adapters
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.text.LineBreaker
 import android.os.Build
 import android.view.LayoutInflater
@@ -13,7 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.umaia.movesense.*
 import com.umaia.movesense.databinding.ItemSensorSettingsBinding
 import com.umaia.movesense.model.SensorSettingsClass
+import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.ui.home.visible
+import com.umaia.movesense.util.Constants
 
 
 class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderDefinicoes> {
@@ -59,7 +62,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
         val currentItem = settingsList[position]
 
         checkIfIsActivated(currentItem, holder)
-        hideDropdown(currentItem,holder)
+        hideDropdown(currentItem, holder)
 
 
 //        holder.frequency.inputType = 0
@@ -95,7 +98,10 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
 
     }
 
-    private fun hideDropdown(currentItem: SensorSettingsClass, holder: SensorSettingsAdapter.HolderDefinicoes) {
+    private fun hideDropdown(
+        currentItem: SensorSettingsClass,
+        holder: SensorSettingsAdapter.HolderDefinicoes
+    ) {
         //TODO trocar para as frequencias
         val tamanhos = activity.resources.getStringArray(R.array.Tamanho)
         if (currentItem.id == "HR" || currentItem.id == "Temperatura") {
@@ -106,6 +112,14 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
             holder.frequency.setAdapter(arrayAdapter)
         }
     }
+
+    private fun sendCommandToService(action: String) {
+        activity.startService(Intent(context, MovesenseService::class.java).apply {
+            this.action = action
+        })
+    }
+
+    //TODO ADICIONAR O RESTO DOS SENSORES
 
     private fun checkIfIsActivated(currentItem: SensorSettingsClass, holder: HolderDefinicoes) {
         when (currentItem.id) {
@@ -119,14 +133,16 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setAccStatus(true)
-                        }
-                        false -> {
-                            viewModel.setAccStatus(false)
+                    viewModel.setAccStatus(isChecked)
+
+                    if (isChecked != gv.isAccActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isAccActivated = isChecked
+
+
                 }
             }
             "Giroscopio" -> {
@@ -181,14 +197,15 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setECGStatus(true)
-                        }
-                        false -> {
-                            viewModel.setECGStatus(false)
+                    viewModel.setECGStatus(isChecked)
+
+
+                    if (isChecked != gv.isECGActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isECGActivated = isChecked
                 }
             }
             "HR" -> {
@@ -202,14 +219,16 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setHRStatus(true)
-                        }
-                        false -> {
-                            viewModel.setHRStatus(false)
+
+                    viewModel.setHRStatus(isChecked)
+
+
+                    if (isChecked != gv.isHRActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isHRActivated = isChecked
                 }
             }
             "Temperatura" -> {

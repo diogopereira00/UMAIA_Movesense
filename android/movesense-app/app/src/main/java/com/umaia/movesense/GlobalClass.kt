@@ -21,6 +21,18 @@ class GlobalClass : Application() {
     lateinit var notificationManager: NotificationManager
 
 
+    var isServiceRunning : Boolean = false
+    var isAccActivated : Boolean = false
+    var isGyroActivated : Boolean = false
+    var isMagnActivated : Boolean = false
+    var isECGActivated : Boolean = false
+    var isHRActivated : Boolean = false
+    var isTempActivated : Boolean = false
+    var isImuActivated : Boolean = false
+
+
+
+
     private var scannerECG: Boolean ? = null
     fun getscannerECG(): Boolean? {
         return scannerECG
