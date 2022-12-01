@@ -4,6 +4,9 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -15,14 +18,17 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.umaia.movesense.*
 import com.umaia.movesense.R
 import com.umaia.movesense.data.*
+import com.umaia.movesense.data.acc.ACC
+import com.umaia.movesense.data.acc.ACCRepository
 import com.umaia.movesense.data.ecg.ECG
 import com.umaia.movesense.data.ecg.ECGRepository
 import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrRepository
-import com.umaia.movesense.fragments.Home
-import com.umaia.movesense.model.MoveSenseEvent
+import com.umaia.movesense.data.responses.AccDataResponse
 import com.umaia.movesense.data.responses.HRResponse
 import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.fragments.Home
+import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,6 +43,7 @@ class MovesenseService : LifecycleService() {
     }
 
     private lateinit var readAllData: LiveData<List<Hr>>
+    private lateinit var accRepository: ACCRepository
     private lateinit var hrRepository: HrRepository
     private lateinit var ecgRepository: ECGRepository
 
@@ -47,6 +54,7 @@ class MovesenseService : LifecycleService() {
 
     private var mHRSubscription: MdsSubscription? = null
     private var mECGSubscription: MdsSubscription? = null
+    private var mACCSubscription: MdsSubscription? = null
 
 
     private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
@@ -68,9 +76,11 @@ class MovesenseService : LifecycleService() {
 
         val hrDao = AppDataBase.getDatabase(this).hrDao()
         val ecgDao = AppDataBase.getDatabase(this).ecgDao()
+        val accDao = AppDataBase.getDatabase(this).accDao()
 
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
+        accRepository = ACCRepository(accDao)
 
         readAllData = hrRepository.readAllData
 
@@ -137,26 +147,141 @@ class MovesenseService : LifecycleService() {
         isServiceStopped = false
         gv.isServiceRunning = true
 
-        Toast.makeText(
-            this@MovesenseService,
-            "${gv.isAccActivated}",
-            Toast.LENGTH_SHORT
-        ).show()
+
         //TODO ADICIONAR O RESTO DOS SENSORES
 
-        if(gv.isECGActivated){
-            enableECGSubscription()
-
+        if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
+            // /Meas/IMU9: Combined Acc, Gyro & Magn
+            Toast.makeText(
+                this@MovesenseService,
+                "ACC GYRO MAGN",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else if (gv.isAccActivated && gv.isMagnActivated) {
+            Toast.makeText(
+                this@MovesenseService,
+                "ACC MAGN",
+                Toast.LENGTH_SHORT
+            ).show()
+            // /Meas/IMU6m: Combined Acc & Magn
+        } else if (gv.isAccActivated && gv.isGyroActivated) {
+            Toast.makeText(
+                this@MovesenseService,
+                "ACC GYRO",
+                Toast.LENGTH_SHORT
+            ).show()
+            //  /Meas/IMU6: Combined Acc & Gyro
+        } else if (gv.isAccActivated) {
+            enableAccSubscription()
         }
-        enableHRSubscription()
+        if (gv.isGyroActivated && !gv.isAccActivated) {
+            Toast.makeText(
+                this@MovesenseService,
+                "GYRO",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        if (gv.isMagnActivated && !gv.isAccActivated) {
+            Toast.makeText(
+                this@MovesenseService,
+                "MAGN",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            createNotificationChannel()
-//        }
+        if (gv.isECGActivated) {
+//            enableECGSubscription()
+            Toast.makeText(
+                this@MovesenseService,
+                "ECG",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        if (gv.isHRActivated) {
+//            enableHRSubscription()
+            Toast.makeText(
+                this@MovesenseService,
+                "HR",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        if (gv.isTempActivated) {
+            Toast.makeText(
+                this@MovesenseService,
+                "TEMP",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
 
-//        startForeground(Constants.NOTIFICATION_ID, notification)
 
     }
+
+    private fun enableAccSubscription() {
+        Toast.makeText(
+            this@MovesenseService,
+            "ACC",
+            Toast.LENGTH_SHORT
+        ).show()
+        // Clean up existing subscription (if there is one)
+
+        // Clean up existing subscription (if there is one)
+        if (mACCSubscription != null) {
+            unsubscribeAcc()
+        }
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+        val sb = java.lang.StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_ACC_13)
+                .append("\"}").toString()
+        Timber.e(strContract)
+//        val sensorUI: View = findViewById(R.id.sensorUI)
+
+
+        mACCSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+
+                    // If UI not enabled, do it now
+//                    if (sensorUI.visibility == View.GONE) sensorUI.visibility = View.VISIBLE
+                    val accResponse: AccDataResponse =
+                        Gson().fromJson(data, AccDataResponse::class.java)
+                    if (accResponse != null) {
+                        val accStr = java.lang.String.format(
+                            "%.02f, %.02f, %.02f",
+                            accResponse.body.array.get(0).x,
+                            accResponse.body.array.get(0).y,
+                            accResponse.body.array.get(0).z
+                        )
+                        Timber.e(accResponse.body.timestamp.toString() + " " + accStr.toString())
+                        addACC(
+                            ACC(
+                                id = 0,
+                                userID = 1,
+                                x = accResponse.body.array[0].x.toString(),
+                                y = accResponse.body.array[0].y.toString(),
+                                z = accResponse.body.array[0].z.toString(),
+                                timestamp = accResponse.body.timestamp
+                            )
+                        )
+                    }
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("ACC onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+
+
+    }
+
 
     private fun stopService() {
         moveSenseEvent.postValue(MoveSenseEvent.STOP)
@@ -299,6 +424,12 @@ class MovesenseService : LifecycleService() {
             })
     }
 
+    private fun addACC(acc: ACC) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            accRepository.addACC(acc)
+        }
+    }
+
     private fun addECG(ecg: ECG) {
         lifecycleScope.launch(Dispatchers.IO) {
             ecgRepository.addEcg(ecg)
@@ -308,6 +439,13 @@ class MovesenseService : LifecycleService() {
     fun addHr(hr: Hr) {
         lifecycleScope.launch(Dispatchers.IO) {
             hrRepository.addHr(hr)
+        }
+    }
+
+    private fun unsubscribeAcc() {
+        if (mACCSubscription != null) {
+            mACCSubscription!!.unsubscribe()
+            mACCSubscription = null
         }
     }
 
@@ -396,6 +534,7 @@ class MovesenseService : LifecycleService() {
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
         // TODO: asdasd
+        unsubscribeAcc()
         unsubscribeECG()
         unsubscribeHR()
     }

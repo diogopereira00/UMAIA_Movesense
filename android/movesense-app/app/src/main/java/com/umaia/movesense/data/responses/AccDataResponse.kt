@@ -24,9 +24,12 @@ class AccDataResponse(@field:SerializedName("Body") val body: Body) {
     }
 
     class Array(
-        @field:SerializedName("x") val x: Double, @field:SerializedName(
-            "y"
-        ) val y: Double, @field:SerializedName("z") val z: Double
+        @field:SerializedName("x")
+        val x: Double,
+        @field:SerializedName("y")
+        val y: Double,
+        @field:SerializedName("z")
+        val z: Double
     )
 
     class Headers(@field:SerializedName("Param0") val param0: Int)

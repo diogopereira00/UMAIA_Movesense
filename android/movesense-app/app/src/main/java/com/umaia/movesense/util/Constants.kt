@@ -15,6 +15,7 @@ object Constants {
     const val URI_MEAS_ACC_13 = "/Meas/Acc/13"
     const val URI_EVENTLISTENER = "suunto://MDS/EventListener"
     const val URI_MEAS_HR = "/Meas/HR"
+
     const val MY_PERMISSIONS_REQUEST_LOCATION = 1
     const val URI_ECG_INFO = "/Meas/ECG/Info"
     const val URI_ECG_ROOT = "/Meas/ECG/"

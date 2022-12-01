@@ -4,16 +4,19 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.umaia.movesense.data.acc.ACC
+import com.umaia.movesense.data.acc.ACCDao
 import com.umaia.movesense.data.ecg.ECG
 import com.umaia.movesense.data.ecg.ECGDao
 import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrDao
 
-@Database(entities = [Hr::class, ECG::class], version = 3, exportSchema = false)
+@Database(entities = [Hr::class, ECG::class, ACC::class], version = 4, exportSchema = false)
 abstract class AppDataBase : RoomDatabase() {
 
     abstract fun hrDao(): HrDao
     abstract fun ecgDao(): ECGDao
+    abstract fun accDao() : ACCDao
 
     companion object {
 

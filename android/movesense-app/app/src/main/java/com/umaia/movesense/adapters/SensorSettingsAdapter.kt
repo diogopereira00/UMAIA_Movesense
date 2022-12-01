@@ -131,20 +131,18 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                         holder.switchIsActive.isChecked = false
                     }
                 }
-
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
                     viewModel.setAccStatus(isChecked)
-
                     if (isChecked != gv.isAccActivated) {
                         if (gv.isServiceRunning) {
                             sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
                     gv.isAccActivated = isChecked
-
-
                 }
             }
+
+
             "Giroscopio" -> {
                 viewModel.getGyroStatus.observe((context as LifecycleOwner)) { isActivated ->
                     if (isActivated != null) {
@@ -153,16 +151,14 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                         holder.switchIsActive.isChecked = false
                     }
                 }
-
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setGyroStatus(true)
-                        }
-                        false -> {
-                            viewModel.setGyroStatus(false)
+                    viewModel.setGyroStatus(isChecked)
+                    if (isChecked != gv.isGyroActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isGyroActivated = isChecked
                 }
             }
             "Magnetometro" -> {
@@ -172,18 +168,16 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     } else {
                         holder.switchIsActive.isChecked = false
                     }
-
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setMagnStatus(true)
-                        }
-                        false -> {
-                            viewModel.setMagnStatus(false)
+                    viewModel.setMagnStatus(isChecked)
+                    if (isChecked != gv.isMagnActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isMagnActivated = isChecked
                 }
             }
             "ECG" -> {
@@ -198,8 +192,6 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
                     viewModel.setECGStatus(isChecked)
-
-
                     if (isChecked != gv.isECGActivated) {
                         if (gv.isServiceRunning) {
                             sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
@@ -215,14 +207,10 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     } else {
                         holder.switchIsActive.isChecked = false
                     }
-
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-
                     viewModel.setHRStatus(isChecked)
-
-
                     if (isChecked != gv.isHRActivated) {
                         if (gv.isServiceRunning) {
                             sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
@@ -242,14 +230,13 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                 }
 
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
-                    when (isChecked) {
-                        true -> {
-                            viewModel.setTempStatus(true)
-                        }
-                        false -> {
-                            viewModel.setTempStatus(false)
+                    viewModel.setTempStatus(isChecked)
+                    if (isChecked != gv.isTempActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
                         }
                     }
+                    gv.isTempActivated = isChecked
                 }
             }
         }
