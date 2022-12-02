@@ -6,7 +6,7 @@ class ECGRepository(private val ecgDao: ECGDao) {
 
     val readAllData: LiveData<List<ECG>> = ecgDao.readAllECG()
 
-    suspend fun addEcg(ecg: ECG){
+    suspend fun add(ecg: ECG){
         ecgDao.addHr(ecg)
     }
 }

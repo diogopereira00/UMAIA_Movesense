@@ -10,7 +10,7 @@ import com.umaia.movesense.data.acc.ACC
 @Dao
 interface ACCDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addHr(acc: ACC)
+    suspend fun addACC(acc: ACC)
 
     @Query("SELECT * FROM acc_table ORDER BY id ASC")
     fun readAllACC(): LiveData<List<ACC>>

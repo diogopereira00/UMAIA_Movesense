@@ -8,15 +8,21 @@ import com.umaia.movesense.data.acc.ACC
 import com.umaia.movesense.data.acc.ACCDao
 import com.umaia.movesense.data.ecg.ECG
 import com.umaia.movesense.data.ecg.ECGDao
+import com.umaia.movesense.data.gyro.GYRO
+import com.umaia.movesense.data.gyro.GYRODao
 import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrDao
+import com.umaia.movesense.data.magn.MAGN
+import com.umaia.movesense.data.magn.MAGNDao
 
-@Database(entities = [Hr::class, ECG::class, ACC::class], version = 4, exportSchema = false)
+@Database(entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class], version = 6, exportSchema = false)
 abstract class AppDataBase : RoomDatabase() {
 
     abstract fun hrDao(): HrDao
     abstract fun ecgDao(): ECGDao
     abstract fun accDao() : ACCDao
+    abstract fun gyroDao(): GYRODao
+    abstract fun magnDao(): MAGNDao
 
     companion object {
 

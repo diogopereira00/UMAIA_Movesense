@@ -6,7 +6,7 @@ class HrRepository(private val hrDao: HrDao) {
 
     val readAllData: LiveData<List<Hr>> = hrDao.readAllHr()
 
-    suspend fun addHr(hr: Hr){
+    suspend fun add(hr: Hr){
         hrDao.addHr(hr)
     }
 }

@@ -22,11 +22,13 @@ import com.umaia.movesense.data.acc.ACC
 import com.umaia.movesense.data.acc.ACCRepository
 import com.umaia.movesense.data.ecg.ECG
 import com.umaia.movesense.data.ecg.ECGRepository
+import com.umaia.movesense.data.gyro.GYRO
+import com.umaia.movesense.data.gyro.GYRORepository
 import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrRepository
-import com.umaia.movesense.data.responses.AccDataResponse
-import com.umaia.movesense.data.responses.HRResponse
-import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.data.magn.MAGN
+import com.umaia.movesense.data.magn.MAGNRepository
+import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.util.Constants
@@ -46,6 +48,8 @@ class MovesenseService : LifecycleService() {
     private lateinit var accRepository: ACCRepository
     private lateinit var hrRepository: HrRepository
     private lateinit var ecgRepository: ECGRepository
+    private lateinit var gyroRepository: GYRORepository
+    private lateinit var magnRepository: MAGNRepository
 
     private var isServiceStopped = true
 
@@ -55,6 +59,8 @@ class MovesenseService : LifecycleService() {
     private var mHRSubscription: MdsSubscription? = null
     private var mECGSubscription: MdsSubscription? = null
     private var mACCSubscription: MdsSubscription? = null
+    private var mGYROSubscription: MdsSubscription? = null
+    private var mMAGNSubscription: MdsSubscription? = null
 
 
     private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
@@ -77,14 +83,32 @@ class MovesenseService : LifecycleService() {
         val hrDao = AppDataBase.getDatabase(this).hrDao()
         val ecgDao = AppDataBase.getDatabase(this).ecgDao()
         val accDao = AppDataBase.getDatabase(this).accDao()
+        val gyroDao = AppDataBase.getDatabase(this).gyroDao()
+        val magnDao = AppDataBase.getDatabase(this).magnDao()
 
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
         accRepository = ACCRepository(accDao)
+        gyroRepository  = GYRORepository(gyroDao)
+        magnRepository  = MAGNRepository(magnDao)
 
         readAllData = hrRepository.readAllData
 
 
+    }
+
+    private fun getBleClient(): RxBleClient? {
+        // Init RxAndroidBle (Ble helper library) if not yet initialized
+        if (mBleClient == null) {
+            mBleClient = RxBleClient.create(this)
+        }
+        return mBleClient
+    }
+
+    private fun initMds() {
+        if (mMds == null) {
+            mMds = Mds.builder().build(this)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -107,35 +131,30 @@ class MovesenseService : LifecycleService() {
                 Constants.ACTION_BLUETOOTH_CONNECTED -> {
                     initMds()
                     connectBLEDevice(gv.currentDevice)
-
                 }
                 Constants.ACTION_REFRESH_SERVICE -> {
                     stopService()
                     startForegroundService()
                 }
             }
-
-
         }
-
-
         return super.onStartCommand(intent, flags, startId)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                Constants.NOTIFICATION_CHANNEL_ID,
-                Constants.NOTIFICATION_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager = getSystemService(
-                NotificationManager::class.java
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun createNotificationChannel() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val channel = NotificationChannel(
+//                Constants.NOTIFICATION_CHANNEL_ID,
+//                Constants.NOTIFICATION_CHANNEL_NAME,
+//                NotificationManager.IMPORTANCE_DEFAULT
+//            )
+//            notificationManager = getSystemService(
+//                NotificationManager::class.java
+//            )
+//            notificationManager.createNotificationChannel(channel)
+//        }
+//    }
 
 
     private fun initValues() {
@@ -148,7 +167,10 @@ class MovesenseService : LifecycleService() {
         gv.isServiceRunning = true
 
 
-        //TODO ADICIONAR O RESTO DOS SENSORES
+        //TODO ADICIONAR O IMU9, IMU6m, IMU GYRO, e TEMP, adicionar tambem frequencias
+
+//        verificarSensoresAtivados()
+
 
         if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
             // /Meas/IMU9: Combined Acc, Gyro & Magn
@@ -180,6 +202,9 @@ class MovesenseService : LifecycleService() {
                 "GYRO",
                 Toast.LENGTH_SHORT
             ).show()
+
+            enableGyroSubscription()
+
         }
         if (gv.isMagnActivated && !gv.isAccActivated) {
             Toast.makeText(
@@ -187,10 +212,12 @@ class MovesenseService : LifecycleService() {
                 "MAGN",
                 Toast.LENGTH_SHORT
             ).show()
+
+            enableMagnSubscription()
         }
 
         if (gv.isECGActivated) {
-//            enableECGSubscription()
+            enableECGSubscription()
             Toast.makeText(
                 this@MovesenseService,
                 "ECG",
@@ -198,7 +225,7 @@ class MovesenseService : LifecycleService() {
             ).show()
         }
         if (gv.isHRActivated) {
-//            enableHRSubscription()
+            enableHRSubscription()
             Toast.makeText(
                 this@MovesenseService,
                 "HR",
@@ -216,13 +243,126 @@ class MovesenseService : LifecycleService() {
 
     }
 
+
+    private fun enableMagnSubscription() {
+        // Clean up existing subscription (if there is one)
+        if (mMAGNSubscription != null) {
+            unsubscribeMagn()
+        }
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+        val sb = java.lang.StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_MAGN_13)
+                .append("\"}").toString()
+        Timber.e(strContract)
+//        val sensorUI: View = findViewById(R.id.sensorUI)
+
+        mMAGNSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+
+                    // If UI not enabled, do it now
+//                    if (sensorUI.visibility == View.GONE) sensorUI.visibility = View.VISIBLE
+                    val magnResponse: MagnResponse =
+                        Gson().fromJson(data, MagnResponse::class.java)
+                    if (magnResponse != null) {
+                        val accStr = java.lang.String.format(
+                            "%.02f, %.02f, %.02f",
+                            magnResponse.body.array.get(0).x,
+                            magnResponse.body.array.get(0).y,
+                            magnResponse.body.array.get(0).z
+                        )
+                        Timber.e(magnResponse.body.timestamp.toString() + " " + accStr.toString())
+                        addMagn(
+                            MAGN(
+                                id = 0,
+                                userID = 1,
+                                x = magnResponse.body.array[0].x.toString(),
+                                y = magnResponse.body.array[0].y.toString(),
+                                z = magnResponse.body.array[0].z.toString(),
+                                timestamp = magnResponse.body.timestamp
+                            )
+                        )
+                    }
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("ACC onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
+
+    private fun enableGyroSubscription() {
+        // Clean up existing subscription (if there is one)
+        if (mGYROSubscription != null) {
+            unsubscribeGYRO()
+        }
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+
+        // Build JSON doc that describes what resource and device to subscribe
+        // Here we subscribe to 13 hertz accelerometer data
+        val sb = java.lang.StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_GYRO_13)
+                .append("\"}").toString()
+        Timber.e(strContract)
+//        val sensorUI: View = findViewById(R.id.sensorUI)
+
+        mGYROSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+
+                    // If UI not enabled, do it now
+//                    if (sensorUI.visibility == View.GONE) sensorUI.visibility = View.VISIBLE
+                    val gyroResponse: GyroResponse =
+                        Gson().fromJson(data, GyroResponse::class.java)
+                    if (gyroResponse != null) {
+                        val accStr = java.lang.String.format(
+                            "%.02f, %.02f, %.02f",
+                            gyroResponse.body.array.get(0).x,
+                            gyroResponse.body.array.get(0).y,
+                            gyroResponse.body.array.get(0).z
+                        )
+                        Timber.e(gyroResponse.body.timestamp.toString() + " " + accStr.toString())
+                        addGYRO(
+                            GYRO(
+                                id = 0,
+                                userID = 1,
+                                x = gyroResponse.body.array[0].x.toString(),
+                                y = gyroResponse.body.array[0].y.toString(),
+                                z = gyroResponse.body.array[0].z.toString(),
+                                timestamp = gyroResponse.body.timestamp
+                            )
+                        )
+                    }
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("ACC onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
     private fun enableAccSubscription() {
         Toast.makeText(
             this@MovesenseService,
             "ACC",
             Toast.LENGTH_SHORT
         ).show()
-        // Clean up existing subscription (if there is one)
 
         // Clean up existing subscription (if there is one)
         if (mACCSubscription != null) {
@@ -297,19 +437,7 @@ class MovesenseService : LifecycleService() {
 
     }
 
-    private fun getBleClient(): RxBleClient? {
-        // Init RxAndroidBle (Ble helper library) if not yet initialized
-        if (mBleClient == null) {
-            mBleClient = RxBleClient.create(this)
-        }
-        return mBleClient
-    }
 
-    private fun initMds() {
-        if (mMds == null) {
-            mMds = Mds.builder().build(this)
-        }
-    }
 
     private fun connectBLEDevice(device: MyScanResult) {
         val bleDevice = getBleClient()!!.getBleDevice(device.macAddress)
@@ -424,37 +552,8 @@ class MovesenseService : LifecycleService() {
             })
     }
 
-    private fun addACC(acc: ACC) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            accRepository.addACC(acc)
-        }
-    }
 
-    private fun addECG(ecg: ECG) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            ecgRepository.addEcg(ecg)
-        }
-    }
 
-    fun addHr(hr: Hr) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            hrRepository.addHr(hr)
-        }
-    }
-
-    private fun unsubscribeAcc() {
-        if (mACCSubscription != null) {
-            mACCSubscription!!.unsubscribe()
-            mACCSubscription = null
-        }
-    }
-
-    private fun unsubscribeHR() {
-        if (mHRSubscription != null) {
-            mHRSubscription!!.unsubscribe()
-            mHRSubscription = null
-        }
-    }
 
     private fun enableECGSubscription() {
         // Make sure there is no subscription
@@ -523,20 +622,75 @@ class MovesenseService : LifecycleService() {
                 })
     }
 
-    private fun unsubscribeECG() {
-        if (mECGSubscription != null) {
-            mECGSubscription!!.unsubscribe()
-            mECGSubscription = null
-        }
-    }
+
 
 
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
         // TODO: asdasd
         unsubscribeAcc()
+        unsubscribeGYRO()
         unsubscribeECG()
         unsubscribeHR()
+        unsubscribeMagn()
+    }
+
+    private fun unsubscribeAcc() {
+        if (mACCSubscription != null) {
+            mACCSubscription!!.unsubscribe()
+            mACCSubscription = null
+        }
+    }
+    private fun unsubscribeGYRO() {
+        if (mGYROSubscription != null) {
+            mGYROSubscription!!.unsubscribe()
+            mGYROSubscription = null
+        }    }
+    private fun unsubscribeMagn() {
+        if (mMAGNSubscription != null) {
+            mMAGNSubscription!!.unsubscribe()
+            mMAGNSubscription = null
+        }
+    }
+
+    private fun unsubscribeHR() {
+        if (mHRSubscription != null) {
+            mHRSubscription!!.unsubscribe()
+            mHRSubscription = null
+        }
+    }
+    private fun unsubscribeECG() {
+        if (mECGSubscription != null) {
+            mECGSubscription!!.unsubscribe()
+            mECGSubscription = null
+        }
+    }
+    private fun addMagn(magn: MAGN) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            magnRepository.add(magn)
+        }
+    }
+    private fun addGYRO(gyro: GYRO) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            gyroRepository.add(gyro)
+        }
+    }
+    private fun addACC(acc: ACC) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            accRepository.add(acc)
+        }
+    }
+
+    private fun addECG(ecg: ECG) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            ecgRepository.add(ecg)
+        }
+    }
+
+    fun addHr(hr: Hr) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            hrRepository.add(hr)
+        }
     }
 
     private fun showConnectionError(e: MdsException) {

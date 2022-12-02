@@ -21,7 +21,7 @@ class HrViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addHr(hr: Hr){
         viewModelScope.launch(Dispatchers.IO){
-            repository.addHr(hr)
+            repository.add(hr)
         }
     }
 }

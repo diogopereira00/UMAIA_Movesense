@@ -8,7 +8,7 @@ class ACCRepository(private val accDao: ACCDao) {
 
     val readAllACC: LiveData<List<ACC>> = accDao.readAllACC()
 
-    suspend fun addACC(acc: ACC){
-        accDao.addHr(acc)
+    suspend fun add(acc: ACC){
+        accDao.addACC(acc)
     }
 }

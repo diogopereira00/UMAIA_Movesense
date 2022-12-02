@@ -46,10 +46,30 @@ class SplashScreenActivity : AppCompatActivity() {
                 gv.isAccActivated = isActivated
             }
         }
+        userPreferences.gyroStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isGyroActivated = isActivated
+            }
+        }
+        userPreferences.magnStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isMagnActivated = isActivated
+            }
+        }
         //TODO ADICIONAR O RESTO DOS SENSORES
         userPreferences.ecgStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isECGActivated = isActivated
+            }
+        }
+        userPreferences.hrStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isHRActivated = isActivated
+            }
+        }
+        userPreferences.tempStatus.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isTempActivated = isActivated
             }
         }
     }
