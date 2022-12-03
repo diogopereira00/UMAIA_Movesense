@@ -15,6 +15,10 @@ class AuthRepository(
         api.login(username, password)
     }
 
+    suspend fun saveUserID(id: String){
+        preferences.saveUserID(id)
+    }
+
     suspend fun saveAuthToken(token : String){
         preferences.saveAuthToken(token)
     }

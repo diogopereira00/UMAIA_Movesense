@@ -57,6 +57,8 @@ open class LoginActivity : AppCompatActivity() {
                 is Resource.Success -> {
                     Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
                     viewModel.saveAuthToken(it.value.user.access_token)
+                    viewModel.saveUserID(it.value.user.id)
+
                     this@LoginActivity.startNewActivity(ScanActivity::class.java)
 
 

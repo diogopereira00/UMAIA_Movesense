@@ -30,7 +30,7 @@ class GlobalClass : Application() {
     var isTempActivated : Boolean = false
     var isImuActivated : Boolean = false
 
-
+    var userID = ""
 
 
     private var scannerECG: Boolean ? = null

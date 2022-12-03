@@ -13,7 +13,7 @@ data class ECG(
     val id: Long = 0,
     var data : String,
     var timestamp : Long? = 0,
-    val userID : Int = 1,
+    val userID : String = "1",
     val created  : Long = System.currentTimeMillis(),
     ) : Parcelable{
     val createdDateFormated : String

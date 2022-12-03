@@ -15,7 +15,7 @@ import com.umaia.movesense.data.hr.HrDao
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNDao
 
-@Database(entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class], version = 6, exportSchema = false)
+@Database(entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class], version = 7, exportSchema = false)
 abstract class AppDataBase : RoomDatabase() {
 
     abstract fun hrDao(): HrDao

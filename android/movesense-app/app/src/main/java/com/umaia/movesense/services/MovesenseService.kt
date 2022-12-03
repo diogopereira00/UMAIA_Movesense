@@ -283,7 +283,7 @@ class MovesenseService : LifecycleService() {
                         addMagn(
                             MAGN(
                                 id = 0,
-                                userID = 1,
+                                userID = gv.userID,
                                 x = magnResponse.body.array[0].x.toString(),
                                 y = magnResponse.body.array[0].y.toString(),
                                 z = magnResponse.body.array[0].z.toString(),
@@ -340,7 +340,7 @@ class MovesenseService : LifecycleService() {
                         addGYRO(
                             GYRO(
                                 id = 0,
-                                userID = 1,
+                                userID = gv.userID,
                                 x = gyroResponse.body.array[0].x.toString(),
                                 y = gyroResponse.body.array[0].y.toString(),
                                 z = gyroResponse.body.array[0].z.toString(),
@@ -403,7 +403,7 @@ class MovesenseService : LifecycleService() {
                         addACC(
                             ACC(
                                 id = 0,
-                                userID = 1,
+                                userID = gv.userID,
                                 x = accResponse.body.array[0].x.toString(),
                                 y = accResponse.body.array[0].y.toString(),
                                 z = accResponse.body.array[0].z.toString(),
@@ -527,7 +527,7 @@ class MovesenseService : LifecycleService() {
                     //Adicionar a base de dados Room
                     var teste = Hr(
                         id = 0,
-                        userID = 1,
+                        userID = gv.userID,
                         average = hrResponse.body.average,
                         rrData = hrResponse.body.rrData[0]
                     )
@@ -587,7 +587,7 @@ class MovesenseService : LifecycleService() {
 
                             var teste = ECG(
                                 id = 0,
-                                userID = 1,
+                                userID = gv.userID,
                                 data = Gson().toJson(ecgResponse.body.data),
                                 timestamp = ecgResponse.body.timestamp
                             )

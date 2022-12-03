@@ -35,7 +35,23 @@ class UserPreferences(
             preferences[KEY_AUTH] = ""
         }
     }
+    //User ID
+    val userid: Flow<String?>
+        get() = applicationContext.dataStore.data.map { preferences ->
+            preferences[USER_ID]
+        }
 
+    suspend fun saveUserID(id: String) {
+        applicationContext.dataStore.edit { preferences ->
+            preferences[USER_ID] = id
+        }
+    }
+
+    suspend fun clearUserID() {
+        applicationContext.dataStore.edit { preferences ->
+            preferences[USER_ID] = ""
+        }
+    }
 
     //Acc status
     val accStatus: Flow<Boolean?>
@@ -117,6 +133,7 @@ class UserPreferences(
         }
     }
     companion object {
+        private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_AUTH = stringPreferencesKey("key_auth")
         private val KEY_ACC_STATUS = booleanPreferencesKey("key_acc_status")
         private val KEY_GYRO_STATUS = booleanPreferencesKey("key_gyro_status")

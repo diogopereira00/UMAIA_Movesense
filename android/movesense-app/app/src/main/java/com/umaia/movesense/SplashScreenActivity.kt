@@ -40,6 +40,11 @@ class SplashScreenActivity : AppCompatActivity() {
                     startNewActivityFromSplash(MainActivity::class.java)
             Toast.makeText(this, it ?: "Empty", Toast.LENGTH_SHORT).show()
         })
+        userPreferences.userid.asLiveData().observe(this) { userID ->
+            if (!userID.isNullOrEmpty()) {
+                gv.userID = userID
+            }
+        }
 
         userPreferences.accStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {

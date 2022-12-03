@@ -12,7 +12,7 @@ data class Hr(
     val id: Long = 0,
     var average : Float? = 0f,
     var rrData : Int? = 0,
-    val userID : Int = 1,
+    val userID : String = "1",
     val created  : Long = System.currentTimeMillis(),
 
     ) : Parcelable{
