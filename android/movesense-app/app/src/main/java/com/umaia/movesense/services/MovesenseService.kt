@@ -3,13 +3,13 @@ package com.umaia.movesense.services
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Build
-import android.util.Log
-import android.view.View
-import android.widget.TextView
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
@@ -28,9 +28,11 @@ import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrRepository
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNRepository
+import com.umaia.movesense.data.network.NetworkChecker
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
+import com.umaia.movesense.model.MovesenseWifi
 import com.umaia.movesense.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,6 +43,7 @@ class MovesenseService : LifecycleService() {
     companion object {
         val moveSenseEvent = MutableLiveData<MoveSenseEvent>()
         val movesenseHeartRate = MutableLiveData<Hr>()
+        val movesenseWifi = MutableLiveData<MovesenseWifi>()
 
     }
 
@@ -62,6 +65,8 @@ class MovesenseService : LifecycleService() {
     private var mGYROSubscription: MdsSubscription? = null
     private var mMAGNSubscription: MdsSubscription? = null
 
+    private lateinit var networkChecker: NetworkChecker
+
 
     private var bluetoothList: ArrayList<MyScanResult> = ArrayList<MyScanResult>()
     private var mBleClient: RxBleClient? = null
@@ -75,8 +80,11 @@ class MovesenseService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         val datastore = UserPreferences(this)
+        networkChecker = NetworkChecker(this)
+
 
         initValues()
+        createTimer()
         gv = this.applicationContext as GlobalClass
         bluetoothList = gv.bluetoothList
 
@@ -89,12 +97,42 @@ class MovesenseService : LifecycleService() {
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
         accRepository = ACCRepository(accDao)
-        gyroRepository  = GYRORepository(gyroDao)
-        magnRepository  = MAGNRepository(magnDao)
+        gyroRepository = GYRORepository(gyroDao)
+        magnRepository = MAGNRepository(magnDao)
 
         readAllData = hrRepository.readAllData
 
 
+    }
+
+
+    //Esta função serve para verificar, de x em x tempo, se o wifi está conectado.
+    //TODO Se o wifi tiver conectado efetuar um push de todos os dados para o servidor.
+    private fun createTimer() {
+        val mainHandler = Handler(Looper.getMainLooper())
+
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                if (networkChecker.hasInternet()) {
+                    movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+//                    Timber.e("Wifi conectado")
+//                    Toast.makeText(
+//                        this@MovesenseService,
+//                        "Wifi conectado",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+                } else {
+                    movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+//                    Timber.e("Wifi desconectado")
+//                    Toast.makeText(
+//                        this@MovesenseService,
+//                        "Wifi desconectado",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+                }
+                mainHandler.postDelayed(this, 5000)
+            }
+        })
     }
 
     private fun getBleClient(): RxBleClient? {
@@ -438,7 +476,6 @@ class MovesenseService : LifecycleService() {
     }
 
 
-
     private fun connectBLEDevice(device: MyScanResult) {
         val bleDevice = getBleClient()!!.getBleDevice(device.macAddress)
         Timber.e("Connecting to BLE device: " + bleDevice.macAddress)
@@ -553,8 +590,6 @@ class MovesenseService : LifecycleService() {
     }
 
 
-
-
     private fun enableECGSubscription() {
         // Make sure there is no subscription
         unsubscribeECG()
@@ -623,8 +658,6 @@ class MovesenseService : LifecycleService() {
     }
 
 
-
-
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
         // TODO: asdasd
@@ -641,11 +674,14 @@ class MovesenseService : LifecycleService() {
             mACCSubscription = null
         }
     }
+
     private fun unsubscribeGYRO() {
         if (mGYROSubscription != null) {
             mGYROSubscription!!.unsubscribe()
             mGYROSubscription = null
-        }    }
+        }
+    }
+
     private fun unsubscribeMagn() {
         if (mMAGNSubscription != null) {
             mMAGNSubscription!!.unsubscribe()
@@ -659,22 +695,26 @@ class MovesenseService : LifecycleService() {
             mHRSubscription = null
         }
     }
+
     private fun unsubscribeECG() {
         if (mECGSubscription != null) {
             mECGSubscription!!.unsubscribe()
             mECGSubscription = null
         }
     }
+
     private fun addMagn(magn: MAGN) {
         lifecycleScope.launch(Dispatchers.IO) {
             magnRepository.add(magn)
         }
     }
+
     private fun addGYRO(gyro: GYRO) {
         lifecycleScope.launch(Dispatchers.IO) {
             gyroRepository.add(gyro)
         }
     }
+
     private fun addACC(acc: ACC) {
         lifecycleScope.launch(Dispatchers.IO) {
             accRepository.add(acc)
