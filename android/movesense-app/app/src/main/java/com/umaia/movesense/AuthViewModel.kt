@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.umaia.movesense.network.Resource
-import com.umaia.movesense.repository.AuthRepository
-import com.umaia.movesense.responses.LoginResponse
+import com.umaia.movesense.data.network.Resource
+import com.umaia.movesense.data.repository.AuthRepository
+import com.umaia.movesense.data.responses.LoginResponse
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -21,6 +21,20 @@ class AuthViewModel(
         password: String
     ) = viewModelScope.launch {
         _loginResponse.value = repository.login(username,password)
+    }
+
+    fun saveUserID(id:String) = viewModelScope.launch {
+        repository.saveUserID(id)
+        if (!id.isNullOrEmpty()) {
+            gv.userID = id
+        }
+    }
+
+    fun saveAuthToken(token : String) = viewModelScope.launch {
+        repository.saveAuthToken(token)
+    }
+    fun clearAuthToken() = viewModelScope.launch {
+        repository.clearAuthToken()
     }
 
 }

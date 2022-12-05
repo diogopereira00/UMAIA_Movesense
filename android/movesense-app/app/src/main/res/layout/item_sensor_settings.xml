@@ -1,95 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:backgroundTint="@android:color/transparent"
     app:cardElevation="0dp">
 
+    <!--    <LinearLayout-->
+    <!--        android:id="@+id/layout"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginLeft="10dp"-->
+    <!--        android:layout_marginRight="10dp"-->
+    <!--        android:layout_marginTop="5dp"-->
+    <!--        android:clickable="true"-->
+    <!--        android:focusable="true"-->
+    <!--        android:foreground="?android:attr/selectableItemBackground"-->
+    <!--        android:paddingBottom="10dp">-->
+
+
     <RelativeLayout
-        android:id="@+id/layout"
+        android:id="@+id/constraint_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:paddingBottom="10dp">
+        android:layout_marginBottom="15dp"
+        android:layout_marginRight="10dp">
 
-
-        <RelativeLayout
-            android:id="@+id/constraint_text"
-            android:layout_width="280dp"
+        <TextView
+            android:id="@+id/nomeSetting"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="0dp">
+            android:text="Acelarometro"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/nomeSetting"
-                android:layout_width="wrap_content"
+        <Switch
+            android:id="@+id/switch1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/nomeSetting"
+            android:paddingRight="20dp"
+            android:scaleX="1.2"
+            android:scaleY="1.2"
+            android:theme="@style/SCBSwitch"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+
+        <TextView
+            android:id="@+id/descricao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/nomeSetting"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/textInputLayout"
+            android:layout_alignParentStart="true"
+            android:paddingEnd="7dp"
+            android:text="O acelarometro é capaz de fornecer muitos dados úteis sobre movimento, aceleração e choques. Os dados do sensor também podem ser usados ​​para cálculo de posição usando algoritmos AHRS. "
+            android:textColor="?android:textColorSecondary"
+            android:textSize="12sp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_height="60dp"
+            android:layout_below="@id/switch1"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="7dp"
+            android:hint="Frequencia"
+            android:inputType="none">
+
+            <AutoCompleteTextView
+                android:id="@+id/AutoCompleteText"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Acelarometro"
+                android:inputType="none"
+                android:text="560hz"
                 android:textColor="?android:textColorPrimary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/descricao"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/nomeSetting"
-                android:text="O acelarometro é capaz de fornecer muitos dados úteis sobre movimento, aceleração e choques. Os dados do sensor também podem ser usados ​​para cálculo de posição usando algoritmos AHRS. "
-                android:textColor="?android:textColorSecondary"
-                android:textSize="12sp" />
-
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/switych"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_toEndOf="@id/constraint_text">
-
-            <Switch
-                android:id="@+id/switch1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scaleX="1.2"
-                android:scaleY="1.2" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/switych2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/switych"
-            android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/constraint_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="110dp"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:hint="Frequencia"
-                android:inputType="none">
-
-                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
-                    android:id="@+id/AutoCompleteText"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:inputType="none"
-                    android:text="125hz"
-                    android:textSize="13sp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-
-        </RelativeLayout>
+        </com.google.android.material.textfield.TextInputLayout>
     </RelativeLayout>
+
+
+    <!--        <RelativeLayout-->
+    <!--            android:id="@+id/freq"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="60dp"-->
+    <!--            android:layout_below="@id/switych"-->
+    <!--            android:layout_toRightOf="@id/constraint_text"-->
+    <!--            android:layout_marginTop="5dp"-->
+    <!--            android:layout_marginRight="5dp"-->
+    <!--            android:layout_toEndOf="@id/constraint_text">-->
+
+    <!--            -->
+
+
+    <!--        </RelativeLayout>-->
 </androidx.cardview.widget.CardView>

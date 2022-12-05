@@ -4,14 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.umaia.movesense.LoginActivity">
+    tools:context="com.umaia.movesense.ui.auth.LoginActivity">
 
     <TextView
         android:id="@+id/loginText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Iniciar Sessão"
-        android:textColor="@color/defaultText"
         android:textSize="40sp"
         android:textStyle="bold"
         android:layout_marginLeft="50dp"
@@ -31,13 +30,13 @@
         android:layout_marginRight="25dp"
         android:background="@drawable/edit_text_background"
         android:drawableEnd="@drawable/user_icon"
-        android:drawableTint="@color/colorTextBlack"
+        app:drawableTint="?android:textColorPrimary"
         android:fontFamily="@font/seg_ui_semibold"
         android:hint="Introduza o seu username"
         android:inputType="text"
         android:paddingLeft="26dp"
         android:paddingRight="26dp"
-        android:textColor="@color/defaultText"
+        android:textColor="?android:textColorPrimary"
         android:textColorHint="@color/colorPlaceholder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,13 +54,13 @@
         android:layout_marginRight="25dp"
         android:background="@drawable/edit_text_background"
         android:drawableEnd="@drawable/locker_icon"
-        android:drawableTint="@color/colorTextBlack"
+        android:drawableTint="?android:textColorPrimary"
         android:fontFamily="@font/seg_ui_semibold"
         android:hint="Introduza a sua password"
         android:inputType="textPassword"
         android:paddingLeft="26dp"
         android:paddingRight="26dp"
-        android:textColor="@color/defaultText"
+        android:textColor="?android:textColorPrimary"
         android:textColorHint="@color/colorPlaceholder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -78,8 +77,7 @@
         android:buttonTint="@color/primary"
         android:fontFamily="@font/seg_ui_semibold"
         android:text="Mantenha-me conectado"
-        android:textColor="@color/defaultText"
-        android:textSize="18sp"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.115"
@@ -92,6 +90,8 @@
 
         android:id="@+id/codBarrasText"
         android:layout_width="wrap_content"
+        android:textColor="?android:textColorPrimary"
+        android:textSize="16sp"
 
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
@@ -108,6 +108,8 @@
 
         android:id="@+id/precoCompraText"
         android:layout_width="wrap_content"
+        android:textColor="?android:textColorPrimary"
+        android:textSize="16sp"
 
         android:layout_height="wrap_content"
         android:fontFamily="@font/seg_ui_semibold"
@@ -139,7 +141,18 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
         app:layout_constraintVertical_bias="0.27" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
+
+
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -157,7 +170,6 @@
             android:layout_marginStart="12dp"
             android:fontFamily="@font/seg_ui_semibold"
             android:text="Ainda não tens uma conta?"
-            android:textColor="@color/colorTextBlack"
             android:textSize="18sp" />
 
         <TextView
@@ -170,5 +182,6 @@
             android:textColor="@color/primary"
             android:textSize="18sp" />
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

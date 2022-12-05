@@ -4,9 +4,16 @@ package com.umaia.movesense
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.asLiveData
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
+import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.ActivityMainBinding
+import com.umaia.movesense.ui.auth.LoginActivity
+import com.umaia.movesense.ui.home.startNewActivity
+
 
 private lateinit var binding: ActivityMainBinding
 
@@ -16,6 +23,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setUpBar()
+
+
     }
 
     override fun onResume() {
@@ -49,7 +58,6 @@ class MainActivity : AppCompatActivity() {
 
         })
     }
-
 
 
 }

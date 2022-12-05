@@ -1,16 +1,20 @@
 package com.umaia.movesense.fragments
 
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.umaia.movesense.GlobalClass
+import com.umaia.movesense.data.network.NetworkChecker
 import com.umaia.movesense.databinding.FragmentHomeBinding
 import com.umaia.movesense.model.MoveSenseEvent
+import com.umaia.movesense.model.MovesenseWifi
 import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
@@ -23,12 +27,15 @@ class Home : Fragment() {
 
     companion object Foo {
         var s_INSTANCE: Home? = null
-
     }
+
     override fun onResume() {
         super.onResume()
         Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
+        Timber.e("->>>>>>>>>>>>>>>>>> ${gv.isAccActivated}")
+
     }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,13 +51,10 @@ class Home : Fragment() {
 
         binding.buttonStart.setOnClickListener {
             sendCommandToService(Constants.ACTION_START_SERVICE)
-
         }
-        binding.buttonStop.setOnClickListener{
+        binding.buttonStop.setOnClickListener {
             sendCommandToService(Constants.ACTION_STOP_SERVICE)
-
         }
-
 
         return binding.root
     }
@@ -63,9 +67,23 @@ class Home : Fragment() {
     }
 
     private fun setObservers() {
+
         MovesenseService.moveSenseEvent.observe(viewLifecycleOwner, Observer {
             updateUi(it)
         })
+        MovesenseService.movesenseWifi.observe(viewLifecycleOwner, Observer {
+            when (it) {
+                is MovesenseWifi.AVAILABLE -> {
+                    binding.textviewConnectiviy.text = "Status is available"
+
+                }
+
+                is MovesenseWifi.UNAVAILABLE -> {
+                    binding.textviewConnectiviy.text = "Status is unavailable"
+                }
+            }
+        })
+
         MovesenseService.movesenseHeartRate.observe(viewLifecycleOwner, Observer {
             updateHR()
         })
@@ -87,9 +105,6 @@ class Home : Fragment() {
     fun executeOnStatusChanged(switch: CompoundButton, isChecked: Boolean) {
         Timber.e("Status changed")
     }
-
-
-
 
 
     fun onStopClicked(view: View?) {
@@ -120,7 +135,6 @@ class Home : Fragment() {
         }
 
     }
-
 
 
 }

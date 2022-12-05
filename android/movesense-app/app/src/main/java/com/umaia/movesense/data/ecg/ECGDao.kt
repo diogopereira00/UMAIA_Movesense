@@ -1,0 +1,16 @@
+package com.umaia.movesense.data.ecg
+
+import androidx.lifecycle.LiveData
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+
+@Dao
+interface ECGDao {
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addHr(ecg: ECG)
+
+    @Query("SELECT * FROM ecg_table ORDER BY id ASC")
+    fun readAllECG(): LiveData<List<ECG>>
+}

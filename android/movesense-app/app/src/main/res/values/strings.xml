@@ -8,4 +8,16 @@
     <string name="service">Service</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <string-array name="Tamanho">
+        <item>37</item>
+        <item>37.5</item>
+        <item>38</item>
+        <item>38.5</item>
+        <item>39</item>
+        <item>39.5</item>
+        <item>40</item>
+
+    </string-array>
 </resources>

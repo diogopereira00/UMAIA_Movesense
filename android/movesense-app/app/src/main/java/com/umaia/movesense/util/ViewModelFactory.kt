@@ -4,8 +4,8 @@ import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.umaia.movesense.AuthViewModel
-import com.umaia.movesense.repository.AuthRepository
-import com.umaia.movesense.repository.BaseRepository
+import com.umaia.movesense.data.repository.AuthRepository
+import com.umaia.movesense.data.repository.BaseRepository
 
 class ViewModelFactory(
     private val repository: BaseRepository

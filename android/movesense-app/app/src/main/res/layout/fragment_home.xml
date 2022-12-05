@@ -93,7 +93,17 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewHR"
             tools:layout_constraintTop_creator="1" />
 
-
+    <TextView
+        android:id="@+id/textviewConnectiviy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:layout_marginEnd="15dp"
+        android:text="Beat interval [ms]"
+        app:layout_constraintRight_toLeftOf="@+id/textViewHR"
+        app:layout_constraintTop_toBottomOf="@+id/textViewIBILabel"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintTop_creator="1" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
