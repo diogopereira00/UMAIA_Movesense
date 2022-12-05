@@ -88,7 +88,7 @@ router.post("/login", (req, res, next) => {
 						username: result[0].username,
 						created_at: result[0].created_at,
 						last_login: result[0].last_login,
-						access_token : token,
+						access_token: token,
 					},
 				});
 			}
@@ -102,15 +102,32 @@ router.post("/login", (req, res, next) => {
 router.get('/secret-route', userMiddleware.isLoggedIn, (req, res, next) => {
 	console.log(req.userData);
 	res.send('This is the secret content. Only logged in users can see that!');
-  });
+});
 
 
-  router.post("/teste", (req, res, next) => {
-	
+router.post("/addAccData", userMiddleware.isLoggedIn, (req, res, next) => {
+	console.log(req.body);
+	let accs = Object.values(req.body);
+
+	db.query(`INSERT INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+		[accs.map(acc => [acc.id, acc.userID, acc.x, acc.y, acc.z, acc.timestamp, acc.created])],
+		(err, ress) => {
+			if (err) {
+				res.status(400).send({
+					msg: err,
+				});
+				throw err;
+
+			}
+
+			console.log("success: ", res);
+			res.send('This is the secret content. Only logged in users can see that!');
+		}
+	);
 
 
-	return res.status(401).send({
-		msg: "Username or password is incorrect!",
-	});
+	// return res.status(401).send({
+	// 	msg: "Username or password is incorrect!",
+	// });
 });
 module.exports = router;
