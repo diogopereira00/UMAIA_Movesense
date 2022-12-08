@@ -31,7 +31,7 @@ class GlobalClass : Application() {
     var isImuActivated : Boolean = false
 
     var userID = ""
-
+    var authToken = ""
 
     private var scannerECG: Boolean ? = null
     fun getscannerECG(): Boolean? {

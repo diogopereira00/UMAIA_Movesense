@@ -115,20 +115,10 @@ class MovesenseService : LifecycleService() {
             override fun run() {
                 if (networkChecker.hasInternet()) {
                     movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
-//                    Timber.e("Wifi conectado")
-//                    Toast.makeText(
-//                        this@MovesenseService,
-//                        "Wifi conectado",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
+
                 } else {
                     movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
-//                    Timber.e("Wifi desconectado")
-//                    Toast.makeText(
-//                        this@MovesenseService,
-//                        "Wifi desconectado",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
+
                 }
                 mainHandler.postDelayed(this, 5000)
             }
@@ -178,21 +168,6 @@ class MovesenseService : LifecycleService() {
         }
         return super.onStartCommand(intent, flags, startId)
     }
-
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private fun createNotificationChannel() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channel = NotificationChannel(
-//                Constants.NOTIFICATION_CHANNEL_ID,
-//                Constants.NOTIFICATION_CHANNEL_NAME,
-//                NotificationManager.IMPORTANCE_DEFAULT
-//            )
-//            notificationManager = getSystemService(
-//                NotificationManager::class.java
-//            )
-//            notificationManager.createNotificationChannel(channel)
-//        }
-//    }
 
 
     private fun initValues() {

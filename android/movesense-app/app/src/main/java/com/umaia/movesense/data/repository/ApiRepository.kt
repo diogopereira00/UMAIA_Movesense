@@ -1,12 +1,17 @@
 package com.umaia.movesense.data.repository
 
-import com.umaia.movesense.data.network.AuthApi
+import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.responses.UserPreferences
 
-class AuthRepository(
-    private val api: AuthApi,
-    private val preferences: UserPreferences
+class ApiRepository(
+    private val api: ServerApi,
+    private val preferences: UserPreferences?
 ) : BaseRepository() {
+
+
+    suspend fun addAccData(jsonString: String, authToken : String) = safeApiCall{
+        api.addAccData(jsonString, authToken)
+    }
 
     suspend fun login(
         username: String,
@@ -16,15 +21,15 @@ class AuthRepository(
     }
 
     suspend fun saveUserID(id: String){
-        preferences.saveUserID(id)
+        preferences!!.saveUserID(id)
     }
 
     suspend fun saveAuthToken(token : String){
-        preferences.saveAuthToken(token)
+        preferences!!.saveAuthToken(token)
     }
 
     // TODO: Fazer logout na api
     suspend fun clearAuthToken(){
-        preferences.clearAuthToken()
+        preferences!!.clearAuthToken()
     }
 }

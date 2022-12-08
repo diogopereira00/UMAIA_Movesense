@@ -1,24 +1,20 @@
 package com.umaia.movesense.fragments
 
-import android.content.Context.MODE_PRIVATE
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.umaia.movesense.AuthViewModel
+import com.umaia.movesense.ApiViewModel
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.R
 import com.umaia.movesense.adapters.SettingsAdapter
-import com.umaia.movesense.data.network.AuthApi
+import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
-import com.umaia.movesense.data.repository.AuthRepository
+import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.FragmentSettingsBinding
 import com.umaia.movesense.model.SettingsClass
@@ -34,7 +30,7 @@ class Settings : Fragment() {
     private  var settingsList: ArrayList<SettingsClass> = ArrayList()
     private lateinit var definicoesAdapter: SettingsAdapter
     private lateinit var definicoesRecyclerView: RecyclerView
-    private lateinit var viewModel: AuthViewModel
+    private lateinit var viewModel: ApiViewModel
     private val remoteDataSource = RemoteDataSource()
     private lateinit var userPreferences: UserPreferences
 
@@ -58,13 +54,13 @@ class Settings : Fragment() {
 
         val factory =
             ViewModelFactory(
-                AuthRepository(
-                    remoteDataSource.buildApi(AuthApi::class.java),
+                ApiRepository(
+                    remoteDataSource.buildApi(ServerApi::class.java),
                     userPreferences
                 )
             )
 
-        viewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
+        viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
 //        loadSharedPreferences()
 //        initSwitchListener();
 

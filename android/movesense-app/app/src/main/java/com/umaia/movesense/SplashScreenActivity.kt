@@ -30,16 +30,19 @@ class SplashScreenActivity : AppCompatActivity() {
 
         userPreferences = UserPreferences(this)
 
-        userPreferences.token.asLiveData().observe(this, Observer {
+        userPreferences.token.asLiveData().observe(this) { token ->
             val activity =
-                if (it.isNullOrEmpty())
+                if (token.isNullOrEmpty())
                     startNewActivityFromSplash(LoginActivity::class.java)
-                else if (!gv.connected)
+                else if (!gv.connected) {
                     startNewActivityFromSplash(ScanActivity::class.java)
-                else
+                    gv.authToken = token
+                } else {
                     startNewActivityFromSplash(MainActivity::class.java)
-            Toast.makeText(this, it ?: "Empty", Toast.LENGTH_SHORT).show()
-        })
+                    gv.authToken = token
+                }
+            Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
+        }
         userPreferences.userid.asLiveData().observe(this) { userID ->
             if (!userID.isNullOrEmpty()) {
                 gv.userID = userID
