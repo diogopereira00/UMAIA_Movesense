@@ -1,6 +1,5 @@
 package com.umaia.movesense.adapters
 
-import android.R
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -10,13 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.umaia.movesense.AuthViewModel
+import com.umaia.movesense.ApiViewModel
 import com.umaia.movesense.DialogLogout
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.SensorSettingsActivity
 import com.umaia.movesense.databinding.ItemDefinicoesBinding
 import com.umaia.movesense.model.SettingsClass
-import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.util.Constants
 
 
@@ -26,7 +24,7 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
     private var context: Context
     private var gv = GlobalClass()
     private var settingsList: ArrayList<SettingsClass>
-    private var authViewModel: AuthViewModel
+    private var authViewModel: ApiViewModel
     private var activity: Activity
 
     //viewbinding RowReviewsBinding.xml
@@ -36,7 +34,7 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
     constructor(
         context: Context,
         reviewArrayList: ArrayList<SettingsClass>,
-        authViewModel: AuthViewModel,
+        authViewModel: ApiViewModel,
         activity: Activity
     ) {
         this.context = context

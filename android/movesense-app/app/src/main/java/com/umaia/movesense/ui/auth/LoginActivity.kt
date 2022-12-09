@@ -5,24 +5,21 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.*
-import com.umaia.movesense.AuthViewModel
+import com.umaia.movesense.ApiViewModel
 import com.umaia.movesense.ScanActivity
 import com.umaia.movesense.databinding.ActivityLoginBinding
-import com.umaia.movesense.data.network.AuthApi
+import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
-import com.umaia.movesense.data.repository.AuthRepository
-import com.umaia.movesense.data.responses.User
+import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.data.responses.UserPreferences
-import com.umaia.movesense.ui.home.enable
 import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.ui.home.visible
 import com.umaia.movesense.util.ViewModelFactory
-import kotlinx.coroutines.launch
 
 open class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var viewModel: AuthViewModel
+    private lateinit var viewModel: ApiViewModel
     private val remoteDataSource = RemoteDataSource()
     private lateinit var userPreferences: UserPreferences
 
@@ -35,13 +32,13 @@ open class LoginActivity : AppCompatActivity() {
 
         val factory =
             ViewModelFactory(
-                AuthRepository(
-                    remoteDataSource.buildApi(AuthApi::class.java),
+                ApiRepository(
+                    remoteDataSource.buildApi(ServerApi::class.java),
                     userPreferences
                 )
             )
 
-        viewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
+        viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
 
 
         binding.progressBar.visible(false)

@@ -5,14 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.umaia.movesense.databinding.DialogLogoutBinding
 import com.umaia.movesense.ui.auth.LoginActivity
 import com.umaia.movesense.ui.home.startNewActivity
 
 class DialogLogout(
-    var authViewModel: AuthViewModel,
+    var authViewModel: ApiViewModel,
     var activity: Activity
 ) : DialogFragment() {
     private lateinit var binding: DialogLogoutBinding
