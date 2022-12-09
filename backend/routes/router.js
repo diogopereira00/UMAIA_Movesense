@@ -106,28 +106,103 @@ router.get('/secret-route', userMiddleware.isLoggedIn, (req, res, next) => {
 
 
 router.post("/addAccData", userMiddleware.isLoggedIn, (req, res, next) => {
-	console.log(req.body);
-	let accs = Object.values(req.body);
+	console.log(req.headers)
+	let accs = JSON.parse(req.body.jsonString);
 
 	db.query(`INSERT INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
-		[accs.map(acc => [acc.id, acc.userID, acc.x, acc.y, acc.z, acc.timestamp, acc.created])],
+		[accs.map(acc => [acc.id, acc.userID, acc.x, acc.y, acc.z, acc.timestamp, new Date(acc.created).toISOString().slice(0, 19).replace('T', ' ')])],
 		(err, ress) => {
 			if (err) {
-				res.status(400).send({
-					msg: err,
-				});
 				throw err;
-
+				return res.status(401).send({
+					msg: "Erro",
+				});
 			}
-
-			console.log("success: ", res);
-			res.send('This is the secret content. Only logged in users can see that!');
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
 		}
 	);
+});
+
+router.post("/addGyroData", userMiddleware.isLoggedIn, (req, res, next) => {
+	console.log(req.headers)
+	let gyros = JSON.parse(req.body.jsonString);
+
+	db.query(`INSERT INTO gyro_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+		[gyros.map(gyro => [gyro.id, gyro.userID, gyro.x, gyro.y, gyro.z, gyro.timestamp, new Date(gyro.created).toISOString().slice(0, 19).replace('T', ' ')])],
+		(err, ress) => {
+			if (err) {
+				throw err;
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+});
+
+router.post("/addMagnData", userMiddleware.isLoggedIn, (req, res, next) => {
+	console.log(req.headers)
+	let magns = JSON.parse(req.body.jsonString);
+
+	db.query(`INSERT INTO magn_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+		[magns.map(magn => [magn.id, magn.userID, magn.x, magn.y, magn.z, magn.timestamp, new Date(magn.created).toISOString().slice(0, 19).replace('T', ' ')])],
+		(err, ress) => {
+			if (err) {
+				throw err;
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+});
+
+router.post("/addECGData", userMiddleware.isLoggedIn, (req, res, next) => {
+	console.log(req.headers)
+	let ecgs = JSON.parse(req.body.jsonString);
+
+	db.query(`INSERT INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?`,
+		[ecgs.map(ecg => [ecg.id, ecg.userID, ecg.data, ecg.timestamp, new Date(ecg.created), toISOString().slice(0, 19).replace('T', ' ')])],
+		(err, ress) => {
+			if (err) {
+				throw err;
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+});
 
 
-	// return res.status(401).send({
-	// 	msg: "Username or password is incorrect!",
-	// });
+router.post("/addHRData", userMiddleware.isLoggedIn, (req, res, next) => {
+	console.log(req.headers)
+	let hrs = JSON.parse(req.body.jsonString);
+
+	db.query(`INSERT INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?`,
+		[hrs.map(hr => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created), toISOString().slice(0, 19).replace('T', ' ')])],
+		(err, ress) => {
+			if (err) {
+				throw err;
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
 });
 module.exports = router;
