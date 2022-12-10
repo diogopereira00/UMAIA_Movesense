@@ -170,7 +170,7 @@ router.post("/addECGData", userMiddleware.isLoggedIn, (req, res, next) => {
 	let ecgs = JSON.parse(req.body.jsonString);
 
 	db.query(`INSERT INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?`,
-		[ecgs.map(ecg => [ecg.id, ecg.userID, ecg.data, ecg.timestamp, new Date(ecg.created), toISOString().slice(0, 19).replace('T', ' ')])],
+		[ecgs.map(ecg => [ecg.id, ecg.userID, ecg.data, ecg.timestamp, new Date(ecg.created).toISOString().slice(0, 19).replace('T', ' ')])],
 		(err, ress) => {
 			if (err) {
 				throw err;
@@ -191,7 +191,7 @@ router.post("/addHRData", userMiddleware.isLoggedIn, (req, res, next) => {
 	let hrs = JSON.parse(req.body.jsonString);
 
 	db.query(`INSERT INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?`,
-		[hrs.map(hr => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created), toISOString().slice(0, 19).replace('T', ' ')])],
+		[hrs.map(hr => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created).toISOString().slice(0, 19).replace('T', ' ')])],
 		(err, ress) => {
 			if (err) {
 				throw err;
