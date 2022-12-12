@@ -29,6 +29,8 @@ import com.umaia.movesense.data.hr.HrRepository
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNRepository
 import com.umaia.movesense.data.network.NetworkChecker
+import com.umaia.movesense.data.network.RemoteDataSource
+import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
@@ -37,6 +39,10 @@ import com.umaia.movesense.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import com.umaia.movesense.data.network.ServerApi
+import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.ui.home.observeOnce
+import com.umaia.movesense.util.ViewModelFactory
 
 class MovesenseService : LifecycleService() {
 
@@ -53,6 +59,7 @@ class MovesenseService : LifecycleService() {
     private lateinit var ecgRepository: ECGRepository
     private lateinit var gyroRepository: GYRORepository
     private lateinit var magnRepository: MAGNRepository
+    private lateinit var apiRepository: ApiRepository
 
     private var isServiceStopped = true
 
@@ -72,10 +79,27 @@ class MovesenseService : LifecycleService() {
     private var mBleClient: RxBleClient? = null
     private var mMds: Mds? = null
     lateinit var gv: GlobalClass
+    private val remoteDataSource = RemoteDataSource()
+
+    private lateinit var listAcc: MutableList<ACC>
+    private lateinit var listGyro: MutableList<GYRO>
+    private lateinit var listMagn: MutableList<MAGN>
+    private lateinit var listHr: MutableList<Hr>
+    private lateinit var listECG: MutableList<ECG>
+
+    private lateinit var jsonStringAcc: String
+    private lateinit var jsonStringGyro: String
+    private lateinit var jsonStringMagn: String
+    private lateinit var jsonStringHr: String
+    private lateinit var jsonStringECG: String
+
 
     init {
 
     }
+
+
+
 
     override fun onCreate() {
         super.onCreate()
@@ -99,7 +123,7 @@ class MovesenseService : LifecycleService() {
         accRepository = ACCRepository(accDao)
         gyroRepository = GYRORepository(gyroDao)
         magnRepository = MAGNRepository(magnDao)
-
+        apiRepository = ApiRepository(api = remoteDataSource.buildApi(ServerApi::class.java), null)
         readAllData = hrRepository.readAllData
 
 
@@ -116,11 +140,54 @@ class MovesenseService : LifecycleService() {
                 if (networkChecker.hasInternet()) {
                     movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
 
+                    var accTable = accRepository.getAllACC
+                    accTable.observeOnce(this@MovesenseService) {
+                        if (it.size >= 2) {
+                            listAcc = it.toMutableList()
+                            jsonStringAcc = Gson().toJson(listAcc)
+                            addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+
+                        }
+                    }
+                    var ecgTable = ecgRepository.getAllECG
+                    ecgTable.observeOnce(this@MovesenseService) {
+                        if (it.size >= 2) {
+                            listECG = it.toMutableList()
+                            jsonStringECG = Gson().toJson(listECG)
+                            addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
+
+                        }
+                    }
+                    var gyroTable = gyroRepository.getAllGYRO
+                    gyroTable.observeOnce(this@MovesenseService) {
+                        if (it.size >= 2) {
+                            listGyro = it.toMutableList()
+                            jsonStringGyro = Gson().toJson(listGyro)
+                            addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+                        }
+                    }
+                    var magnTable = magnRepository.getAllMagn
+                    magnTable.observeOnce(this@MovesenseService) {
+                        if (it.size >= 2) {
+                            listMagn = it.toMutableList()
+                            jsonStringMagn = Gson().toJson(listMagn)
+                            addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
+                        }
+                    }
+                    var hrTable = hrRepository.getAllHr
+                    hrTable.observeOnce(this@MovesenseService) {
+                        if (it.size >= 2) {
+                            listHr = it.toMutableList()
+                            jsonStringHr = Gson().toJson(listHr)
+                            addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
+                        }
+                    }
+
                 } else {
                     movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
 
                 }
-                mainHandler.postDelayed(this, 5000)
+                mainHandler.postDelayed(this, 60000)
             }
         })
     }
@@ -756,6 +823,146 @@ class MovesenseService : LifecycleService() {
             })
         }
     }
+    private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> =
+        MutableLiveData()
+    val uploadDataAccResponses: LiveData<Resource<UploadAccRespose>>
+        get() = _uploadDataAccResponses
 
+    fun addACCData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataAccResponses.value =
+            apiRepository.addAccData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataAccResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (listAcc.isNotEmpty()) {
+                        for (acc in listAcc) {
+                            accRepository.deleteByID(acc.id)
+                        }
+                        listAcc.clear()
+                    }
+
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataGyroResponses: MutableLiveData<Resource<UploadGyroRespose>> =
+        MutableLiveData()
+    val uploadDataGyroResponses: LiveData<Resource<UploadGyroRespose>>
+        get() = _uploadDataGyroResponses
+
+    fun addGyroData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataGyroResponses.value =
+            apiRepository.addGyroData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataGyroResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (listGyro.isNotEmpty()) {
+                        for (acc in listGyro) {
+                            gyroRepository.deleteByID(acc.id)
+                        }
+                        listGyro.clear()
+                    }
+
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataMagnResponses: MutableLiveData<Resource<UploadMagnRespose>> =
+        MutableLiveData()
+    val uploadDataMagnResponses: LiveData<Resource<UploadMagnRespose>>
+        get() = _uploadDataMagnResponses
+
+    fun addMagnData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataMagnResponses.value =
+            apiRepository.addMagnData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataMagnResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (listMagn.isNotEmpty()) {
+                        for (acc in listMagn) {
+                            magnRepository.deleteByID(acc.id)
+                        }
+                        listMagn.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataECGResponses: MutableLiveData<Resource<UploadECGRespose>> =
+        MutableLiveData()
+    val uploadDataECGResponses: LiveData<Resource<UploadECGRespose>>
+        get() = _uploadDataECGResponses
+
+    fun addECGData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataECGResponses.value =
+            apiRepository.addEcgData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataAccResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (listECG.isNotEmpty()) {
+                        for (acc in listAcc) {
+                            ecgRepository.deleteByID(acc.id)
+                        }
+                        listECG.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataHRResponses: MutableLiveData<Resource<UploadHrRespose>> =
+        MutableLiveData()
+    val uploadDataHRResponses: LiveData<Resource<UploadHrRespose>>
+        get() = _uploadDataHRResponses
+
+    fun addHrData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataHRResponses.value =
+            apiRepository.addHrData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataHRResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (listHr.isNotEmpty()) {
+                        for (acc in listHr) {
+                            hrRepository.deleteByID(acc.id)
+                        }
+                        listHr.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
 
 }

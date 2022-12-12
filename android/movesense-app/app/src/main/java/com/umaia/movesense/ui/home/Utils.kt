@@ -8,6 +8,7 @@ import android.os.Looper
 import android.view.View
 import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 
@@ -19,6 +20,16 @@ fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observ
         }
     })
 }
+
+fun <T> LiveData<T>.observeOnceAtService(lifecycleService: LifecycleService, observer: Observer<T>) {
+    observe(lifecycleService, object : Observer<T> {
+        override fun onChanged(t: T?) {
+            observer.onChanged(t)
+            removeObserver(this)
+        }
+    })
+}
+
 fun <A : Activity> Activity.startNewActivityFromSplash(activity: Class<A>) {
 
     Handler(Looper.getMainLooper()).postDelayed({

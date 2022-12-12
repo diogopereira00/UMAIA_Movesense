@@ -1,9 +1,6 @@
 package com.umaia.movesense.data.network
 
-import com.umaia.movesense.data.responses.LoginResponse
-import com.umaia.movesense.data.responses.UploadAccRespose
-import com.umaia.movesense.data.responses.UploadGyroRespose
-import com.umaia.movesense.data.responses.UploadMagnRespose
+import com.umaia.movesense.data.responses.*
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.Header
@@ -44,5 +41,19 @@ interface ServerApi {
     suspend fun addECGData(
         @Field("jsonString") jsonString: String,
         @Header("Authorization") authToken : String
-    ): UploadMagnRespose
+    ): UploadECGRespose
+
+    @FormUrlEncoded
+    @POST("addHrData")
+    suspend fun addHrData(
+        @Field("jsonString") jsonString: String,
+        @Header("Authorization") authToken : String
+    ): UploadHrRespose
+
+    @FormUrlEncoded
+    @POST("addTempData")
+    suspend fun addTempData(
+        @Field("jsonString") jsonString: String,
+        @Header("Authorization") authToken : String
+    ): UploadTempRespose
 }
