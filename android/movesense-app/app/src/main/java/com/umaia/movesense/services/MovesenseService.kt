@@ -3,13 +3,11 @@ package com.umaia.movesense.services
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
@@ -42,7 +40,6 @@ import timber.log.Timber
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.ui.home.observeOnce
-import com.umaia.movesense.util.ViewModelFactory
 
 class MovesenseService : LifecycleService() {
 
@@ -93,12 +90,11 @@ class MovesenseService : LifecycleService() {
     private lateinit var jsonStringHr: String
     private lateinit var jsonStringECG: String
 
+    private lateinit var accTable: LiveData<List<ACC>>
 
     init {
 
     }
-
-
 
 
     override fun onCreate() {
@@ -108,7 +104,6 @@ class MovesenseService : LifecycleService() {
 
 
         initValues()
-        createTimer()
         gv = this.applicationContext as GlobalClass
         bluetoothList = gv.bluetoothList
 
@@ -137,59 +132,75 @@ class MovesenseService : LifecycleService() {
 
         mainHandler.post(object : Runnable {
             override fun run() {
-                if (networkChecker.hasInternet()) {
-                    movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+                //Se o LiveData tiver desativado, ativar o modo de se tiver internet enviar dados de 5 em 5 minutos
+                if (!gv.isLiveDataActivated) {
+                    Timber.e("LiveData Desativo")
 
-                    var accTable = accRepository.getAllACC
-                    accTable.observeOnce(this@MovesenseService) {
-                        if (it.size >= 2) {
-                            listAcc = it.toMutableList()
-                            jsonStringAcc = Gson().toJson(listAcc)
-                            addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+                    if (networkChecker.hasInternet()) {
+                        movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+                        sendDataToServer()
 
-                        }
-                    }
-                    var ecgTable = ecgRepository.getAllECG
-                    ecgTable.observeOnce(this@MovesenseService) {
-                        if (it.size >= 2) {
-                            listECG = it.toMutableList()
-                            jsonStringECG = Gson().toJson(listECG)
-                            addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
 
-                        }
-                    }
-                    var gyroTable = gyroRepository.getAllGYRO
-                    gyroTable.observeOnce(this@MovesenseService) {
-                        if (it.size >= 2) {
-                            listGyro = it.toMutableList()
-                            jsonStringGyro = Gson().toJson(listGyro)
-                            addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
-                        }
-                    }
-                    var magnTable = magnRepository.getAllMagn
-                    magnTable.observeOnce(this@MovesenseService) {
-                        if (it.size >= 2) {
-                            listMagn = it.toMutableList()
-                            jsonStringMagn = Gson().toJson(listMagn)
-                            addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
-                        }
-                    }
-                    var hrTable = hrRepository.getAllHr
-                    hrTable.observeOnce(this@MovesenseService) {
-                        if (it.size >= 2) {
-                            listHr = it.toMutableList()
-                            jsonStringHr = Gson().toJson(listHr)
-                            addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
-                        }
-                    }
+                    } else {
+                        movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+                        Timber.e("Nao há wifi")
 
+                    }
                 } else {
-                    movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
-
+                    //LiveData Ativo, não fazer nada aqui
+                    Timber.e("LiveData Ativo")
                 }
-                mainHandler.postDelayed(this, 60000)
+
+
+
+                mainHandler.postDelayed(this, 300000)
             }
         })
+    }
+
+    fun sendDataToServer(){
+        accTable = accRepository.getAllACC
+        accTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listAcc = it.toMutableList()
+                jsonStringAcc = Gson().toJson(listAcc)
+                addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+
+            }
+        }
+        var ecgTable = ecgRepository.getAllECG
+        ecgTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listECG = it.toMutableList()
+                jsonStringECG = Gson().toJson(listECG)
+                addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
+
+            }
+        }
+        var gyroTable = gyroRepository.getAllGYRO
+        gyroTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listGyro = it.toMutableList()
+                jsonStringGyro = Gson().toJson(listGyro)
+                addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+            }
+        }
+        var magnTable = magnRepository.getAllMagn
+        magnTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listMagn = it.toMutableList()
+                jsonStringMagn = Gson().toJson(listMagn)
+                addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
+            }
+        }
+        var hrTable = hrRepository.getAllHr
+        hrTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listHr = it.toMutableList()
+                jsonStringHr = Gson().toJson(listHr)
+                addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
+            }
+        }
     }
 
     private fun getBleClient(): RxBleClient? {
@@ -243,6 +254,7 @@ class MovesenseService : LifecycleService() {
 
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
+        createTimer()
         isServiceStopped = false
         gv.isServiceRunning = true
 
@@ -251,9 +263,13 @@ class MovesenseService : LifecycleService() {
 
 //        verificarSensoresAtivados()
 
+        
+        if(gv.isLiveDataActivated){
+            sendDataToServer()
+        }
 
         if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
-            // /Meas/IMU9: Combined Acc, Gyro & Magn
+            // Todo /Meas/IMU9: Combined Acc, Gyro & Magn
             Toast.makeText(
                 this@MovesenseService,
                 "ACC GYRO MAGN",
@@ -265,14 +281,14 @@ class MovesenseService : LifecycleService() {
                 "ACC MAGN",
                 Toast.LENGTH_SHORT
             ).show()
-            // /Meas/IMU6m: Combined Acc & Magn
+            // Todo /Meas/IMU6m: Combined Acc & Magn
         } else if (gv.isAccActivated && gv.isGyroActivated) {
             Toast.makeText(
                 this@MovesenseService,
                 "ACC GYRO",
                 Toast.LENGTH_SHORT
             ).show()
-            //  /Meas/IMU6: Combined Acc & Gyro
+            //  Todo /Meas/IMU6: Combined Acc & Gyro
         } else if (gv.isAccActivated) {
             enableAccSubscription()
         }
@@ -754,12 +770,35 @@ class MovesenseService : LifecycleService() {
     private fun addGYRO(gyro: GYRO) {
         lifecycleScope.launch(Dispatchers.IO) {
             gyroRepository.add(gyro)
+
+
         }
     }
 
+    //Todo testar isto
     private fun addACC(acc: ACC) {
         lifecycleScope.launch(Dispatchers.IO) {
             accRepository.add(acc)
+            if (gv.isLiveDataActivated) {
+                lifecycleScope.launch{
+                    var aux = ACC(
+                        id = accRepository.getIdFromLastRecord(),
+                        x = acc.x,
+                        y = acc.y,
+                        z = acc.z,
+                        timestamp = acc.timestamp,
+                        userID = acc.userID,
+                        created = acc.created
+                    )
+                    addACCData(jsonString = "["+Gson().toJson(aux)+"]", authToken = gv.authToken)
+//                    apiRepository.addAccData(
+//                        jsonString = Gson().toJson(aux),
+//                        authToken = gv.authToken
+//                    )
+                }
+
+            }
+
         }
     }
 
@@ -799,11 +838,22 @@ class MovesenseService : LifecycleService() {
                             icon = R.mipmap.ic_umaia_red_logo
                         }
 
-                        var pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
-                        } else {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
-                        }
+                        var pendingIntent =
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                PendingIntent.getActivity(
+                                    this,
+                                    0,
+                                    intent1,
+                                    PendingIntent.FLAG_MUTABLE
+                                )
+                            } else {
+                                PendingIntent.getActivity(
+                                    this,
+                                    0,
+                                    intent1,
+                                    PendingIntent.FLAG_ONE_SHOT
+                                )
+                            }
                         notification =
                             NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
                                 .setContentTitle(title)
@@ -823,18 +873,21 @@ class MovesenseService : LifecycleService() {
             })
         }
     }
+
     private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> =
         MutableLiveData()
     val uploadDataAccResponses: LiveData<Resource<UploadAccRespose>>
         get() = _uploadDataAccResponses
 
     fun addACCData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        //Efetua o post request atraves do apiRepository e guarda a resposta.
         _uploadDataAccResponses.value =
             apiRepository.addAccData(jsonString = jsonString, authToken = "Bearer $authToken")
         when (_uploadDataAccResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (listAcc.isNotEmpty()) {
+                    if (!listAcc.isNullOrEmpty()) {
                         for (acc in listAcc) {
                             accRepository.deleteByID(acc.id)
                         }
@@ -861,9 +914,10 @@ class MovesenseService : LifecycleService() {
         _uploadDataGyroResponses.value =
             apiRepository.addGyroData(jsonString = jsonString, authToken = "Bearer $authToken")
         when (_uploadDataGyroResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaGyro e vai remover todos os dados da room table.
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (listGyro.isNotEmpty()) {
+                    if (!listGyro.isNullOrEmpty()) {
                         for (acc in listGyro) {
                             gyroRepository.deleteByID(acc.id)
                         }
@@ -892,7 +946,7 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataMagnResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (listMagn.isNotEmpty()) {
+                    if (!listMagn.isNullOrEmpty()) {
                         for (acc in listMagn) {
                             magnRepository.deleteByID(acc.id)
                         }
@@ -920,9 +974,9 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataAccResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (listECG.isNotEmpty()) {
-                        for (acc in listAcc) {
-                            ecgRepository.deleteByID(acc.id)
+                    if (!listECG.isNullOrEmpty()) {
+                        for (ecg in listECG) {
+                            ecgRepository.deleteByID(ecg.id)
                         }
                         listECG.clear()
                     }
@@ -948,7 +1002,7 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataHRResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (listHr.isNotEmpty()) {
+                    if (!listHr.isNullOrEmpty()) {
                         for (acc in listHr) {
                             hrRepository.deleteByID(acc.id)
                         }

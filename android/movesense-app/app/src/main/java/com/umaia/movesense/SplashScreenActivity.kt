@@ -48,6 +48,11 @@ class SplashScreenActivity : AppCompatActivity() {
                 gv.userID = userID
             }
         }
+        userPreferences.liveData.asLiveData().observe(this) { isActivated ->
+            if (isActivated != null) {
+                gv.isLiveDataActivated = isActivated
+            }
+        }
 
         userPreferences.accStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {

@@ -22,6 +22,9 @@ interface ACCDao {
     suspend fun deleteAll()
 
     @Query("DELETE FROM acc_table WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    suspend fun deleteById(id: Long) : Int
+
+    @Query("SELECT id from acc_table ORDER BY id DESC LIMIT 1")
+    suspend fun getIdFromLastRecord() : Long
 
 }

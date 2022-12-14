@@ -53,6 +53,20 @@ class UserPreferences(
         }
     }
 
+    //LiveData status
+    val liveData: Flow<Boolean?>
+        get() = applicationContext.dataStore.data.map { preferences ->
+            preferences[KEY_LIVE_DATA]
+        }
+
+    suspend fun saveLiveDATAStatus(isActivated: Boolean) {
+        applicationContext.dataStore.edit { preferences ->
+            preferences[KEY_LIVE_DATA] = isActivated
+        }
+    }
+
+
+
     //Acc status
     val accStatus: Flow<Boolean?>
         get() = applicationContext.dataStore.data.map { preferences ->
@@ -135,6 +149,7 @@ class UserPreferences(
     companion object {
         private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_AUTH = stringPreferencesKey("key_auth")
+        private val KEY_LIVE_DATA = booleanPreferencesKey("key_live_data")
         private val KEY_ACC_STATUS = booleanPreferencesKey("key_acc_status")
         private val KEY_GYRO_STATUS = booleanPreferencesKey("key_gyro_status")
         private val KEY_MAGN_STATUS = booleanPreferencesKey("key_magn_status")

@@ -13,6 +13,15 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     val datastore = UserPreferences(application)
 
+    val getLiveDataStatus = datastore.liveData.asLiveData(Dispatchers.IO)
+    fun setLiveDataStatus(isActivated : Boolean){
+        viewModelScope.launch {
+            datastore.saveLiveDATAStatus(isActivated)
+
+        }
+    }
+
+
     val getAccStatus = datastore.accStatus.asLiveData(Dispatchers.IO)
     fun setAccStatus(isActivated : Boolean){
         viewModelScope.launch {
