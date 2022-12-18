@@ -123,7 +123,7 @@ router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 
 });
 //Retornatodos os estudos e dados dos estudos do user
-router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
+router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 	var userID = req.params.user_id;
 	console.log(userID)
 	var studie = db.query(`SELECT studies.id as 'studies_id', studies.name as 'studies_name', studies.description as 'studies_description',studies.start_date as 'studies_startdate', studies.end_date as 'studies_enddate', studies.version as 'studies_version',
@@ -158,12 +158,12 @@ router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 
 		for (const row of result) {
 			console.log(row);
-			const { study_id, studies_name, studies_description, studies_startdate, studies_enddate, studies_version, surveys_id, surveys_title, surveys_description, surveys_expected_time, surveys_created_at, surveys_updated_at, name,
+			const { studies_id, studies_name, studies_description, studies_startdate, studies_enddate, studies_version, surveys_id, surveys_title, surveys_description, surveys_expected_time, surveys_created_at, surveys_updated_at, name,
 				sections_id, sections_name, questions_id, questions_text, questions_type_id, start_time, end_time, version, title, expected_time, created_at, updated_at, question_id, text, question_type_id, section_id, section_name, option_id } = row;
 
-			if (!studies.has(study_id)) {
-				studies.set(study_id, {
-					study_id: study_id,
+			if (!studies.has(studies_id)) {
+				studies.set(studies_id, {
+					study_id: studies_id,
 					study_name: studies_name,
 					study_description: studies_description,
 					study_description: studies_startdate,
@@ -173,10 +173,10 @@ router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 				});
 			}
 
-			let survey = studies.get(study_id).surveys.find(survey => survey.id === surveys_id);
+			let survey = studies.get(studies_id).surveys.find(survey => survey.id === surveys_id);
 			if (!survey) {
 				survey = {
-					id: surveys_id,
+					surveys_id: surveys_id,
 					survey_title: surveys_title,
 					survey_description: surveys_description,
 					survey_expected_time: surveys_expected_time,
@@ -184,7 +184,7 @@ router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 					survey_updated_at: surveys_updated_at,
 					sections: []
 				};
-				studies.get(study_id).surveys.push(survey);
+				studies.get(studies_id).surveys.push(survey);
 			}
 
 			let section = survey.sections.find(section => section.id === section_id);
