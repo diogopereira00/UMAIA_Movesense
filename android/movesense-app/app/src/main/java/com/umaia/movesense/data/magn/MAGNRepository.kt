@@ -1,9 +1,6 @@
 package com.umaia.movesense.data.magn
 
 import androidx.lifecycle.LiveData
-import com.umaia.movesense.data.acc.ACC
-import com.umaia.movesense.data.acc.ACCDao
-import com.umaia.movesense.data.ecg.ECG
 
 class MAGNRepository(private val magnDao: MAGNDao) {
 

@@ -15,6 +15,11 @@ object Constants {
     const val URI_MEAS_ACC_13 = "/Meas/Acc/13"
     const val URI_EVENTLISTENER = "suunto://MDS/EventListener"
     const val URI_MEAS_HR = "/Meas/HR"
+    const val URI_MEAS_TEMP = "/Meas/Temp"
+    const val URI_MEAS_IMU_9= "/Meas/IMU9/13"
+    const val URI_MEAS_IMU_6M= "/Meas/IMU6m/13"
+    const val URI_MEAS_IMU_6= "/Meas/IMU6/13"
+
     const val URI_MEAS_GYRO_13= "/Meas/Gyro/13"
     const val URI_MEAS_MAGN_13= "/Meas/Magn/13"
 

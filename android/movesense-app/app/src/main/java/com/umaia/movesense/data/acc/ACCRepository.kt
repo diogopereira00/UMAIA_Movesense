@@ -2,7 +2,6 @@ package com.umaia.movesense.data.acc
 
 import androidx.lifecycle.LiveData
 import com.umaia.movesense.data.repository.BaseRepository
-import timber.log.Timber
 
 class ACCRepository(private val accDao: ACCDao) : BaseRepository() {
 

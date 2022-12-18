@@ -1,7 +1,6 @@
 package com.umaia.movesense.data.ecg
 
 import androidx.lifecycle.LiveData
-import com.umaia.movesense.data.acc.ACC
 
 class ECGRepository(private val ecgDao: ECGDao) {
 
