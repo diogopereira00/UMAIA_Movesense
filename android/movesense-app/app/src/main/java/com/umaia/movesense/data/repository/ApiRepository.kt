@@ -12,7 +12,21 @@ class ApiRepository(
     suspend fun addAccData(jsonString: String, authToken : String) = safeApiCall{
         api.addAccData(jsonString, authToken)
     }
-
+    suspend fun addMagnData(jsonString: String, authToken : String) = safeApiCall{
+        api.addMagnData(jsonString, authToken)
+    }
+    suspend fun addGyroData(jsonString: String, authToken : String) = safeApiCall{
+        api.addGyroData(jsonString, authToken)
+    }
+    suspend fun addEcgData(jsonString: String, authToken : String) = safeApiCall{
+        api.addECGData(jsonString, authToken)
+    }
+    suspend fun addHrData(jsonString: String, authToken : String) = safeApiCall{
+        api.addHrData(jsonString, authToken)
+    }
+    suspend fun addTempData(jsonString: String, authToken : String) = safeApiCall{
+        api.addTempData(jsonString, authToken)
+    }
     suspend fun login(
         username: String,
         password: String

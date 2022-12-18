@@ -8,13 +8,23 @@ class ACCRepository(private val accDao: ACCDao) : BaseRepository() {
 
     val readAllACC: LiveData<List<ACC>> = accDao.readAllACC()
 
+
+
     val getAllACC: LiveData<List<ACC>> = accDao.getAllAcc()
+
     suspend fun add(acc: ACC) {
         accDao.addACC(acc)
     }
+    suspend fun deleteByID(id: Long){
+       accDao.deleteById(id)
+    }
 
-     fun deleteAll(test: Int) {
+     suspend  fun deleteAll() {
         accDao.deleteAll()
+    }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return accDao.getIdFromLastRecord()
     }
 
 

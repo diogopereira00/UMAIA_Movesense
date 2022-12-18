@@ -104,7 +104,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
     ) {
         //TODO trocar para as frequencias
         val tamanhos = activity.resources.getStringArray(R.array.Tamanho)
-        if (currentItem.id == "HR" || currentItem.id == "Temperatura") {
+        if (currentItem.id == "HR" || currentItem.id == "Temperatura" || currentItem.id  =="LiveData") {
             holder.frequency.visible(false)
             holder.box.visible(false)
         } else {
@@ -123,6 +123,24 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
 
     private fun checkIfIsActivated(currentItem: SensorSettingsClass, holder: HolderDefinicoes) {
         when (currentItem.id) {
+            "LiveData" -> {
+                viewModel.getLiveDataStatus.observe((context as LifecycleOwner)) { isActivated ->
+                    if (isActivated != null) {
+                        holder.switchIsActive.isChecked = isActivated
+                    } else {
+                        holder.switchIsActive.isChecked = false
+                    }
+                }
+                holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
+                    viewModel.setLiveDataStatus(isChecked)
+                    if (isChecked != gv.isLiveDataActivated) {
+                        if (gv.isServiceRunning) {
+                            sendCommandToService(Constants.ACTION_REFRESH_SERVICE)
+                        }
+                    }
+                    gv.isLiveDataActivated = isChecked
+                }
+            }
             "Acelerometro" -> {
                 viewModel.getAccStatus.observe((context as LifecycleOwner)) { isActivated ->
                     if (isActivated != null) {

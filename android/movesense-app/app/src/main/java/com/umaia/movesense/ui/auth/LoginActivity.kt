@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.*
 import com.umaia.movesense.ApiViewModel
+import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.ScanActivity
 import com.umaia.movesense.databinding.ActivityLoginBinding
 import com.umaia.movesense.data.network.ServerApi
@@ -22,6 +23,7 @@ open class LoginActivity : AppCompatActivity() {
     private lateinit var viewModel: ApiViewModel
     private val remoteDataSource = RemoteDataSource()
     private lateinit var userPreferences: UserPreferences
+    lateinit var gv: GlobalClass
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,7 @@ open class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         userPreferences = UserPreferences(this)
+        gv = application as GlobalClass
 
         val factory =
             ViewModelFactory(
@@ -55,7 +58,8 @@ open class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
                     viewModel.saveAuthToken(it.value.user.access_token)
                     viewModel.saveUserID(it.value.user.id)
-
+                    gv.userID = it.value.user.id
+                    gv.authToken = it.value.user.access_token
                     this@LoginActivity.startNewActivity(ScanActivity::class.java)
 
 

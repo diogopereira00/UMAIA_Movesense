@@ -16,6 +16,7 @@ import com.umaia.movesense.ApiViewModel
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.acc.ACCRepository
+import com.umaia.movesense.data.gyro.GYRORepository
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
@@ -37,6 +38,8 @@ class Home : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     lateinit var gv: GlobalClass
     private lateinit var accRepository: ACCRepository
+    private lateinit var gyroRepository: GYRORepository
+
     private lateinit var jsonString: String
 
     private lateinit var viewModel: ApiViewModel
@@ -67,6 +70,8 @@ class Home : Fragment() {
 
         val accDao = AppDataBase.getDatabase(requireContext()).accDao()
         accRepository = ACCRepository(accDao)
+        val gyroDao = AppDataBase.getDatabase(requireContext()).gyroDao()
+        gyroRepository = GYRORepository(gyroDao)
 
 
         val factory =
@@ -103,13 +108,22 @@ class Home : Fragment() {
                         viewModel.addACCData(jsonString = jsonString, authToken = gv.authToken)
                     }
                 }
+            var gyroTable = accRepository.getAllACC
+            gyroTable.observeOnce(viewLifecycleOwner) {
+                if(it.size>=2) {
+                    countAcc = it.size
+                    jsonString = Gson().toJson(it)
+                    viewModel.addGyroData(jsonString = jsonString, authToken = gv.authToken)
+                }
+            }
+
 //            }
-            viewModel.uploadDataAccResponses.observeOnce(viewLifecycleOwner, Observer {
+            viewModel.uploadDataAccResponses.observeOnce(viewLifecycleOwner) {
                 when (it) {
                     is Resource.Success -> {
                         Timber.e(countAcc.toString())
                         lifecycleScope.launch(Dispatchers.IO) {
-                            accRepository.deleteAll(countAcc)
+                            accRepository.deleteAll()
 
                         }
                         Toast.makeText(context, "Dados adicionados", Toast.LENGTH_LONG).show()
@@ -119,7 +133,7 @@ class Home : Fragment() {
                         Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
                     }
                 }
-            })
+            }
         }
         return binding.root
     }

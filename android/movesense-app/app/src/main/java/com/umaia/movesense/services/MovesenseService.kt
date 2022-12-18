@@ -3,13 +3,11 @@ package com.umaia.movesense.services
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
@@ -29,6 +27,8 @@ import com.umaia.movesense.data.hr.HrRepository
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNRepository
 import com.umaia.movesense.data.network.NetworkChecker
+import com.umaia.movesense.data.network.RemoteDataSource
+import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.fragments.Home
 import com.umaia.movesense.model.MoveSenseEvent
@@ -37,6 +37,11 @@ import com.umaia.movesense.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import com.umaia.movesense.data.network.ServerApi
+import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.temp.TEMP
+import com.umaia.movesense.data.temp.TEMPRepository
+import com.umaia.movesense.ui.home.observeOnce
 
 class MovesenseService : LifecycleService() {
 
@@ -53,6 +58,8 @@ class MovesenseService : LifecycleService() {
     private lateinit var ecgRepository: ECGRepository
     private lateinit var gyroRepository: GYRORepository
     private lateinit var magnRepository: MAGNRepository
+    private lateinit var tempRepository: TEMPRepository
+    private lateinit var apiRepository: ApiRepository
 
     private var isServiceStopped = true
 
@@ -64,6 +71,9 @@ class MovesenseService : LifecycleService() {
     private var mACCSubscription: MdsSubscription? = null
     private var mGYROSubscription: MdsSubscription? = null
     private var mMAGNSubscription: MdsSubscription? = null
+    private var mTempSubscription: MdsSubscription? = null
+    private var mImuSubscription: MdsSubscription? = null
+
 
     private lateinit var networkChecker: NetworkChecker
 
@@ -72,10 +82,26 @@ class MovesenseService : LifecycleService() {
     private var mBleClient: RxBleClient? = null
     private var mMds: Mds? = null
     lateinit var gv: GlobalClass
+    private val remoteDataSource = RemoteDataSource()
+
+    private lateinit var listAcc: MutableList<ACC>
+    private lateinit var listGyro: MutableList<GYRO>
+    private lateinit var listMagn: MutableList<MAGN>
+    private lateinit var listHr: MutableList<Hr>
+    private lateinit var listECG: MutableList<ECG>
+
+    private lateinit var jsonStringAcc: String
+    private lateinit var jsonStringGyro: String
+    private lateinit var jsonStringMagn: String
+    private lateinit var jsonStringHr: String
+    private lateinit var jsonStringECG: String
+
+    private lateinit var accTable: LiveData<List<ACC>>
 
     init {
 
     }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -84,7 +110,6 @@ class MovesenseService : LifecycleService() {
 
 
         initValues()
-        createTimer()
         gv = this.applicationContext as GlobalClass
         bluetoothList = gv.bluetoothList
 
@@ -93,13 +118,15 @@ class MovesenseService : LifecycleService() {
         val accDao = AppDataBase.getDatabase(this).accDao()
         val gyroDao = AppDataBase.getDatabase(this).gyroDao()
         val magnDao = AppDataBase.getDatabase(this).magnDao()
+        val tempDao = AppDataBase.getDatabase(this).tempDao()
 
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
         accRepository = ACCRepository(accDao)
         gyroRepository = GYRORepository(gyroDao)
         magnRepository = MAGNRepository(magnDao)
-
+        tempRepository = TEMPRepository(tempDao)
+        apiRepository = ApiRepository(api = remoteDataSource.buildApi(ServerApi::class.java), null)
         readAllData = hrRepository.readAllData
 
 
@@ -113,16 +140,75 @@ class MovesenseService : LifecycleService() {
 
         mainHandler.post(object : Runnable {
             override fun run() {
-                if (networkChecker.hasInternet()) {
-                    movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+                //Se o LiveData tiver desativado, ativar o modo de se tiver internet enviar dados de 5 em 5 minutos
+                if (!gv.isLiveDataActivated) {
+                    Timber.e("LiveData Desativo")
 
+                    if (networkChecker.hasInternet()) {
+                        movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+                        sendDataToServer()
+
+
+                    } else {
+                        movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+                        Timber.e("Nao há wifi")
+
+                    }
                 } else {
-                    movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
-
+                    //LiveData Ativo, não fazer nada aqui
+                    Timber.e("LiveData Ativo")
                 }
-                mainHandler.postDelayed(this, 5000)
+
+
+
+                mainHandler.postDelayed(this, 300000)
             }
         })
+    }
+
+    fun sendDataToServer() {
+        accTable = accRepository.getAllACC
+        accTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listAcc = it.toMutableList()
+                jsonStringAcc = Gson().toJson(listAcc)
+                addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+
+            }
+        }
+        var ecgTable = ecgRepository.getAllECG
+        ecgTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listECG = it.toMutableList()
+                jsonStringECG = Gson().toJson(listECG)
+                addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
+
+            }
+        }
+        var gyroTable = gyroRepository.getAllGYRO
+        gyroTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listGyro = it.toMutableList()
+                jsonStringGyro = Gson().toJson(listGyro)
+                addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+            }
+        }
+        var magnTable = magnRepository.getAllMagn
+        magnTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listMagn = it.toMutableList()
+                jsonStringMagn = Gson().toJson(listMagn)
+                addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
+            }
+        }
+        var hrTable = hrRepository.getAllHr
+        hrTable.observeOnce(this@MovesenseService) {
+            if (it.size >= 2) {
+                listHr = it.toMutableList()
+                jsonStringHr = Gson().toJson(listHr)
+                addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
+            }
+        }
     }
 
     private fun getBleClient(): RxBleClient? {
@@ -150,6 +236,7 @@ class MovesenseService : LifecycleService() {
 
                     } else {
                         Timber.e("Errooooooooooooooooooooou")
+                        //Todo bug
                     }
                 }
                 Constants.ACTION_STOP_SERVICE -> {
@@ -176,6 +263,7 @@ class MovesenseService : LifecycleService() {
 
     private fun startForegroundService() {
         moveSenseEvent.postValue(MoveSenseEvent.START)
+        createTimer()
         isServiceStopped = false
         gv.isServiceRunning = true
 
@@ -185,27 +273,17 @@ class MovesenseService : LifecycleService() {
 //        verificarSensoresAtivados()
 
 
+        if (gv.isLiveDataActivated) {
+            sendDataToServer()
+        }
+
         if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
-            // /Meas/IMU9: Combined Acc, Gyro & Magn
-            Toast.makeText(
-                this@MovesenseService,
-                "ACC GYRO MAGN",
-                Toast.LENGTH_SHORT
-            ).show()
+            enableImu9()
         } else if (gv.isAccActivated && gv.isMagnActivated) {
-            Toast.makeText(
-                this@MovesenseService,
-                "ACC MAGN",
-                Toast.LENGTH_SHORT
-            ).show()
-            // /Meas/IMU6m: Combined Acc & Magn
+            enableImu6m()
+
         } else if (gv.isAccActivated && gv.isGyroActivated) {
-            Toast.makeText(
-                this@MovesenseService,
-                "ACC GYRO",
-                Toast.LENGTH_SHORT
-            ).show()
-            //  /Meas/IMU6: Combined Acc & Gyro
+            enableImu6()
         } else if (gv.isAccActivated) {
             enableAccSubscription()
         }
@@ -251,6 +329,8 @@ class MovesenseService : LifecycleService() {
                 "TEMP",
                 Toast.LENGTH_SHORT
             ).show()
+
+            enableTempSubscription()
         }
 
 
@@ -632,15 +712,214 @@ class MovesenseService : LifecycleService() {
                 })
     }
 
+    private fun enableTempSubscription() {
+        // Make sure there is no subscription
+        unsubscribeTemp()
+
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_TEMP)
+                .append("\"}").toString()
+        Timber.e(strContract)
+        mTempSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+                    val tempResponse: TempResponse = Gson().fromJson(
+                        data, TempResponse::class.java
+                    )
+                    //Adicionar a base de dados Room
+                    var teste = TEMP(
+                        id = 0,
+                        userID = gv.userID,
+                        measurement = tempResponse.body.measurement
+                    )
+                    addTemp(teste)
+//
+//
+//                    Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
+//
+//                    if (hrResponse != null) {
+//                        gv.hrAvarage = hrResponse.body.average.toString()
+//                        movesenseHeartRate.postValue(teste)
+//                        gv.hrRRdata =
+//                            hrResponse.body.rrData[hrResponse.body.rrData.size - 1].toString()
+//                        Timber.e(gv.hrAvarage + "<-  adasdasdasdas")
+//                    }
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("HRSubscription onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
+    private fun enableImu9() {
+        // Make sure there is no subscription
+        unsubscribeImu()
+
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_IMU_9)
+                .append("\"}").toString()
+        Timber.e(strContract)
+        mImuSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+                    val imuResponse: ImuResponse = Gson().fromJson(
+                        data, ImuResponse::class.java
+                    )
+                    var acc = ACC(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayAcc[0].x.toString(),
+                        y = imuResponse.body.arrayAcc[0].y.toString(),
+                        z = imuResponse.body.arrayAcc[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addACC(acc)
+
+                    var gyro = GYRO(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayGyro[0].x.toString(),
+                        y = imuResponse.body.arrayGyro[0].y.toString(),
+                        z = imuResponse.body.arrayGyro[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addGYRO(gyro)
+
+                    var magn = MAGN(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayMagnl[0].x.toString(),
+                        y = imuResponse.body.arrayMagnl[0].y.toString(),
+                        z = imuResponse.body.arrayMagnl[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addMagn(magn)
+
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("IMU9 onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
+    private fun enableImu6() {
+        // Make sure there is no subscription
+        unsubscribeImu()
+
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_IMU_6)
+                .append("\"}").toString()
+        Timber.e(strContract)
+        mImuSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+                    val imuResponse: ImuResponse = Gson().fromJson(
+                        data, ImuResponse::class.java
+                    )
+                    var acc = ACC(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayAcc[0].x.toString(),
+                        y = imuResponse.body.arrayAcc[0].y.toString(),
+                        z = imuResponse.body.arrayAcc[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addACC(acc)
+
+                    var gyro = GYRO(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayGyro[0].x.toString(),
+                        y = imuResponse.body.arrayGyro[0].y.toString(),
+                        z = imuResponse.body.arrayGyro[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addGYRO(gyro)
+
+
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("imu6 onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
+
+    private fun enableImu6m() {
+        // Make sure there is no subscription
+        unsubscribeImu()
+
+        // Build JSON doc that describes what resource and device to subscribe
+        val sb = StringBuilder()
+        val strContract: String =
+            sb.append("{\"Uri\": \"").append(gv.currentDevice.serial)
+                .append(Constants.URI_MEAS_IMU_6M)
+                .append("\"}").toString()
+        Timber.e(strContract)
+        mImuSubscription = Mds.builder().build(this).subscribe(Constants.URI_EVENTLISTENER,
+            strContract, object : MdsNotificationListener {
+                override fun onNotification(data: String) {
+                    Timber.e("onNotification(): $data")
+                    val imuResponse: ImuResponse = Gson().fromJson(
+                        data, ImuResponse::class.java
+                    )
+                    var acc = ACC(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayAcc[0].x.toString(),
+                        y = imuResponse.body.arrayAcc[0].y.toString(),
+                        z = imuResponse.body.arrayAcc[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addACC(acc)
+
+                    var magn = MAGN(
+                        id = 0,
+                        userID = gv.userID,
+                        x = imuResponse.body.arrayMagnl[0].x.toString(),
+                        y = imuResponse.body.arrayMagnl[0].y.toString(),
+                        z = imuResponse.body.arrayMagnl[0].z.toString(),
+                        timestamp = imuResponse.body.timestamp,
+                    )
+                    addMagn(magn)
+
+
+                }
+
+                override fun onError(error: MdsException) {
+                    Timber.e("imu6 onError(): $error")
+                    unsubscribeHR()
+                }
+            })
+    }
 
     fun unsubscribeAll() {
         Timber.e("unsubscribeAll()")
         // TODO: asdasd
+        unsubscribeImu()
         unsubscribeAcc()
         unsubscribeGYRO()
         unsubscribeECG()
         unsubscribeHR()
         unsubscribeMagn()
+        unsubscribeTemp()
     }
 
     private fun unsubscribeAcc() {
@@ -678,6 +957,20 @@ class MovesenseService : LifecycleService() {
         }
     }
 
+    private fun unsubscribeTemp() {
+        if (mTempSubscription != null) {
+            mTempSubscription!!.unsubscribe()
+            mTempSubscription = null
+        }
+    }
+
+    private fun unsubscribeImu() {
+        if (mImuSubscription != null) {
+            mImuSubscription!!.unsubscribe()
+            mImuSubscription = null
+        }
+    }
+
     private fun addMagn(magn: MAGN) {
         lifecycleScope.launch(Dispatchers.IO) {
             magnRepository.add(magn)
@@ -687,12 +980,38 @@ class MovesenseService : LifecycleService() {
     private fun addGYRO(gyro: GYRO) {
         lifecycleScope.launch(Dispatchers.IO) {
             gyroRepository.add(gyro)
+
+
         }
     }
 
+    //Todo testar isto
     private fun addACC(acc: ACC) {
         lifecycleScope.launch(Dispatchers.IO) {
             accRepository.add(acc)
+            if (gv.isLiveDataActivated) {
+                lifecycleScope.launch {
+                    var aux = ACC(
+                        id = accRepository.getIdFromLastRecord(),
+                        x = acc.x,
+                        y = acc.y,
+                        z = acc.z,
+                        timestamp = acc.timestamp,
+                        userID = acc.userID,
+                        created = acc.created
+                    )
+                    addACCData(
+                        jsonString = "[" + Gson().toJson(aux) + "]",
+                        authToken = gv.authToken
+                    )
+//                    apiRepository.addAccData(
+//                        jsonString = Gson().toJson(aux),
+//                        authToken = gv.authToken
+//                    )
+                }
+
+            }
+
         }
     }
 
@@ -705,6 +1024,12 @@ class MovesenseService : LifecycleService() {
     fun addHr(hr: Hr) {
         lifecycleScope.launch(Dispatchers.IO) {
             hrRepository.add(hr)
+        }
+    }
+
+    fun addTemp(temp: TEMP) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            tempRepository.add(temp)
         }
     }
 
@@ -732,11 +1057,22 @@ class MovesenseService : LifecycleService() {
                             icon = R.mipmap.ic_umaia_red_logo
                         }
 
-                        var pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_MUTABLE)
-                        } else {
-                            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_ONE_SHOT)
-                        }
+                        var pendingIntent =
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                PendingIntent.getActivity(
+                                    this,
+                                    0,
+                                    intent1,
+                                    PendingIntent.FLAG_MUTABLE
+                                )
+                            } else {
+                                PendingIntent.getActivity(
+                                    this,
+                                    0,
+                                    intent1,
+                                    PendingIntent.FLAG_ONE_SHOT
+                                )
+                            }
                         notification =
                             NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
                                 .setContentTitle(title)
@@ -757,5 +1093,149 @@ class MovesenseService : LifecycleService() {
         }
     }
 
+    private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> =
+        MutableLiveData()
+    val uploadDataAccResponses: LiveData<Resource<UploadAccRespose>>
+        get() = _uploadDataAccResponses
+
+    fun addACCData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        //Efetua o post request atraves do apiRepository e guarda a resposta.
+        _uploadDataAccResponses.value =
+            apiRepository.addAccData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataAccResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (!listAcc.isNullOrEmpty()) {
+                        for (acc in listAcc) {
+                            accRepository.deleteByID(acc.id)
+                        }
+                        listAcc.clear()
+                    }
+
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataGyroResponses: MutableLiveData<Resource<UploadGyroRespose>> =
+        MutableLiveData()
+    val uploadDataGyroResponses: LiveData<Resource<UploadGyroRespose>>
+        get() = _uploadDataGyroResponses
+
+    fun addGyroData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataGyroResponses.value =
+            apiRepository.addGyroData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataGyroResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaGyro e vai remover todos os dados da room table.
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (!listGyro.isNullOrEmpty()) {
+                        for (acc in listGyro) {
+                            gyroRepository.deleteByID(acc.id)
+                        }
+                        listGyro.clear()
+                    }
+
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataMagnResponses: MutableLiveData<Resource<UploadMagnRespose>> =
+        MutableLiveData()
+    val uploadDataMagnResponses: LiveData<Resource<UploadMagnRespose>>
+        get() = _uploadDataMagnResponses
+
+    fun addMagnData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataMagnResponses.value =
+            apiRepository.addMagnData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataMagnResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (!listMagn.isNullOrEmpty()) {
+                        for (acc in listMagn) {
+                            magnRepository.deleteByID(acc.id)
+                        }
+                        listMagn.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataECGResponses: MutableLiveData<Resource<UploadECGRespose>> =
+        MutableLiveData()
+    val uploadDataECGResponses: LiveData<Resource<UploadECGRespose>>
+        get() = _uploadDataECGResponses
+
+    fun addECGData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataECGResponses.value =
+            apiRepository.addEcgData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataAccResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (!listECG.isNullOrEmpty()) {
+                        for (ecg in listECG) {
+                            ecgRepository.deleteByID(ecg.id)
+                        }
+                        listECG.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    private val _uploadDataHRResponses: MutableLiveData<Resource<UploadHrRespose>> =
+        MutableLiveData()
+    val uploadDataHRResponses: LiveData<Resource<UploadHrRespose>>
+        get() = _uploadDataHRResponses
+
+    fun addHrData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        _uploadDataHRResponses.value =
+            apiRepository.addHrData(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataHRResponses.value) {
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (!listHr.isNullOrEmpty()) {
+                        for (acc in listHr) {
+                            hrRepository.deleteByID(acc.id)
+                        }
+                        listHr.clear()
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
 
 }

@@ -1,60 +1,99 @@
 package com.umaia.movesense.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.umaia.movesense.ApiViewModel
+import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.R
+import com.umaia.movesense.adapters.SettingsAdapter
+import com.umaia.movesense.adapters.SurveysAdapter
+import com.umaia.movesense.data.network.ServerApi
+import com.umaia.movesense.data.network.RemoteDataSource
+import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.databinding.FragmentSurveysBinding
+import com.umaia.movesense.model.SettingsClass
+import com.umaia.movesense.model.SurveysClass
+import com.umaia.movesense.util.Constants
+import com.umaia.movesense.util.ViewModelFactory
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [Surveys.newInstance] factory method to
- * create an instance of this fragment.
- */
 class Surveys : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+    private lateinit var binding: FragmentSurveysBinding
+    lateinit var gv: GlobalClass
+
+    private  var surveyList: ArrayList<SurveysClass> = ArrayList()
+    private lateinit var surveyAdapter: SurveysAdapter
+    private lateinit var surveyRecyclerView: RecyclerView
+    private lateinit var viewModel: ApiViewModel
+    private val remoteDataSource = RemoteDataSource()
+    private lateinit var userPreferences: UserPreferences
+
+    companion object Foo {
+        var s_INSTANCE: Home? = null
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        surveyAdapter.notifyDataSetChanged()
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_surveys, container, false)
+
+        binding = FragmentSurveysBinding.inflate(layoutInflater)
+        gv = activity?.application as GlobalClass
+
+
+        userPreferences = UserPreferences(requireContext())
+
+        val factory =
+            ViewModelFactory(
+                ApiRepository(
+                    remoteDataSource.buildApi(ServerApi::class.java),
+                    userPreferences
+                )
+            )
+
+        viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
+//        loadSharedPreferences()
+//        initSwitchListener();
+
+        gerarLista()
+        surveyAdapter = SurveysAdapter(requireContext(), surveyList, viewModel,requireActivity())
+        surveyRecyclerView = binding.recyclerViewDefinicoes
+        surveyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        surveyRecyclerView.adapter = surveyAdapter
+
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Surveys.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            Surveys().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    private fun gerarLista() {
+        surveyList.clear()
+        surveyList.add(SurveysClass(studyName = "Estudo sobre habitos do sono", surveyName = "Questionario 1", startTime ="2022-12-15 09:00:00", endTime = "2022-12-15 09:05:00", expectedTime = 3))
+        surveyList.add(SurveysClass(studyName = "Estudo sobre habitos do sono", surveyName = "Questionario 2", startTime ="2022-12-15 11:00:00", endTime = "2022-12-15 11:40:00", expectedTime = 3))
+        surveyList.add(SurveysClass(studyName = "Estudo sobre habitos do sono", surveyName = "Questionario 3", startTime ="2022-12-15 18:00:00", endTime = "2022-12-15 18:05:00", expectedTime = 3))
+
+
+
     }
+
+
+
+
+
 }

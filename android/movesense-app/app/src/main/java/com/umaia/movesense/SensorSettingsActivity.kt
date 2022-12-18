@@ -39,6 +39,15 @@ class SensorSettingsActivity : AppCompatActivity() {
         sensorsSettingsList.clear()
         sensorsSettingsList.add(
             SensorSettingsClass(
+                id = "LiveData",
+                name = "Live Data",
+                description = "Permite enviar os dados em tempo real para o servidor. Atenção: É necessario ter conexão a internet, taxas podem ser aplicadas na rede movel.",
+                frequency = 0,
+                isActive = false
+            )
+        )
+        sensorsSettingsList.add(
+            SensorSettingsClass(
                 id = "Acelerometro",
                 name = "Acelerômetro",
                 description = "O acelarometro é capaz de fornecer muitos dados úteis sobre movimento, aceleração e choques. Os dados do sensor também podem ser usados para cálculo de posição usando algoritmos AHRS. Para um trabalho eficiente com acelerómetro, deve ser tomado em consideração o consumo de energia e a frequência do acelerómetro.",

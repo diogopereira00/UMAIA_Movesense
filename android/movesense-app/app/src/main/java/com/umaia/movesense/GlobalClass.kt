@@ -29,6 +29,7 @@ class GlobalClass : Application() {
     var isHRActivated : Boolean = false
     var isTempActivated : Boolean = false
     var isImuActivated : Boolean = false
+    var isLiveDataActivated : Boolean = false
 
     var userID = ""
     var authToken = ""

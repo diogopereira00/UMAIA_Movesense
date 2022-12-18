@@ -19,7 +19,12 @@ interface ACCDao {
 
     //@Query("DELETE FROM acc_table WHERE id in (SELECT id from acc_table limit :id)")
     @Query("DELETE FROM acc_table WHERE id <(SELECT MAX(id) FROM ACC_TABLE)")
-    fun deleteAll()
+    suspend fun deleteAll()
 
+    @Query("DELETE FROM acc_table WHERE id = :id")
+    suspend fun deleteById(id: Long) : Int
+
+    @Query("SELECT id from acc_table ORDER BY id DESC LIMIT 1")
+    suspend fun getIdFromLastRecord() : Long
 
 }

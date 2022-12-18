@@ -14,8 +14,10 @@ import com.umaia.movesense.data.hr.Hr
 import com.umaia.movesense.data.hr.HrDao
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNDao
+import com.umaia.movesense.data.magn.TEMPDao
+import com.umaia.movesense.data.temp.TEMP
 
-@Database(entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class], version = 7, exportSchema = false)
+@Database(entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class,TEMP::class], version = 8, exportSchema = false)
 abstract class AppDataBase : RoomDatabase() {
 
     abstract fun hrDao(): HrDao
@@ -23,6 +25,7 @@ abstract class AppDataBase : RoomDatabase() {
     abstract fun accDao() : ACCDao
     abstract fun gyroDao(): GYRODao
     abstract fun magnDao(): MAGNDao
+    abstract fun tempDao(): TEMPDao
 
     companion object {
 
