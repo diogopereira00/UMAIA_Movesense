@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="80dp"
     android:layout_margin="10dp"
-    android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground"
     app:cardCornerRadius="@dimen/dp_10"
     app:cardElevation="3dp">
@@ -14,8 +13,11 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="80dp"
+        android:clickable="true"
+
         android:layout_marginBottom="@dimen/dp_3"
-        android:foreground="?android:attr/selectableItemBackground">
+        android:foreground="?android:attr/selectableItemBackground"
+        android:focusable="true">
 
         <FrameLayout
             android:id="@+id/fl_image"
@@ -56,7 +58,7 @@
             android:layout_toRightOf="@id/fl_image">
 
             <TextView
-                android:id="@+id/nome"
+                android:id="@+id/surveyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Questionario 1"
@@ -64,20 +66,20 @@
                 android:textSize="20sp" />
 
             <TextView
-                android:id="@+id/estudo"
+                android:id="@+id/studyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/nome"
+                android:layout_below="@id/surveyName"
                 android:text="Estudo sobre assas"
                 android:textColor="@color/Cinza"
                 android:textSize="16sp" />
 
 
             <TextView
-                android:id="@+id/tempoEstimado"
+                android:id="@+id/expectedTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/estudo"
+                android:layout_below="@id/studyName"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="10dp"
                 android:text="5 min"
@@ -85,10 +87,10 @@
                 android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/estado"
+                android:id="@+id/running"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/estudo"
+                android:layout_below="@id/studyName"
                 android:text="Abre a 24/12/2022 09:00:00"
                 android:textColor="@color/Cinza"
                 android:textSize="14sp" />
