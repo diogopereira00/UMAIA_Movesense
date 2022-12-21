@@ -7,6 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.data.responses.*
+import com.umaia.movesense.data.responses.studies_response.OptionsResponse
+import com.umaia.movesense.data.responses.studies_response.QuestionTypesResponse
+import com.umaia.movesense.data.responses.studies_response.StudiesResponse
+import com.umaia.movesense.data.suveys.questions_types.QuestionTypes
 import kotlinx.coroutines.launch
 
 class ApiViewModel(
@@ -23,6 +27,37 @@ class ApiViewModel(
     ) = viewModelScope.launch {
         _loginResponse.value = repository.login(username, password)
     }
+
+    //getAllStudiesFromUserId
+    private val _getAllStudiesFromUserIDReponse: MutableLiveData<Resource<StudiesResponse>> = MutableLiveData()
+    val getAllStudiesFromUserIDReponse: LiveData<Resource<StudiesResponse>>
+        get() = _getAllStudiesFromUserIDReponse
+    fun getAllStudiesFromId(
+        userID: String,
+        authToken : String
+    ) = viewModelScope.launch {
+        _getAllStudiesFromUserIDReponse.value = repository.getAllStudiesFromUser(userID,authToken= "Bearer $authToken")
+    }
+
+    //getOptions
+    private val _getOptionsReponse: MutableLiveData<Resource<OptionsResponse>> = MutableLiveData()
+    val getOptionsReponse: LiveData<Resource<OptionsResponse>>
+        get() = _getOptionsReponse
+    fun getOptions(
+        authToken : String
+    ) = viewModelScope.launch {
+        _getOptionsReponse.value = repository.getAllOptions(authToken= "Bearer $authToken")
+    }
+    //getQuestionTypes
+    private val _getQuestionTypes: MutableLiveData<Resource<QuestionTypesResponse>> = MutableLiveData()
+    val getQuestionTypes: LiveData<Resource<QuestionTypesResponse>>
+        get() = _getQuestionTypes
+    fun getQuestionTypes(
+        authToken : String
+    ) = viewModelScope.launch {
+        _getQuestionTypes.value = repository.getAllQuestionTypes(authToken= "Bearer $authToken")
+    }
+
 
     //Data ACC
     private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> = MutableLiveData()

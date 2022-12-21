@@ -8,6 +8,17 @@ class ApiRepository(
     private val preferences: UserPreferences?
 ) : BaseRepository() {
 
+    suspend fun getAllStudiesFromUser(userID: String,authToken: String) = safeApiCall{
+        api.getStudies(userID,authToken)
+    }
+
+    suspend fun getAllOptions(authToken: String) = safeApiCall {
+        api.getOptions(authToken)
+    }
+
+    suspend fun getAllQuestionTypes(authToken: String) = safeApiCall {
+        api.getQuestionTypes(authToken)
+    }
 
     suspend fun addAccData(jsonString: String, authToken : String) = safeApiCall{
         api.addAccData(jsonString, authToken)

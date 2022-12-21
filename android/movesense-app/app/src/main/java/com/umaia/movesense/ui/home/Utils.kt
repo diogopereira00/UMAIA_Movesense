@@ -11,7 +11,19 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import java.text.SimpleDateFormat
+import java.util.*
 
+fun checkIntBoolean (boolean : Int): Boolean {
+    return boolean === 1
+}
+
+
+fun convertDate(date: String): Date {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    val date = dateFormat.parse(date)
+    return date
+}
 fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
     observe(lifecycleOwner, object : Observer<T> {
         override fun onChanged(t: T?) {
