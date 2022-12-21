@@ -122,6 +122,52 @@ router.get('/studies/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 	})
 
 });
+
+router.get('/questions/options', userMiddleware.isLoggedIn, (req, res, next) => {
+	var options = db.query(`SELECT * FROM options`, (err, result) => {
+		if (err) {
+			throw err;
+			return res.status(400).send({
+				msg: err,
+			});
+		}
+		if (!result.length) {
+			return res.status(401).send({
+				msg: "Não existe nenhum user com esse id",
+			});
+		}
+
+		console.log(result[0]);
+
+		return res.status(200).send({
+			options: result,
+		});
+	})
+
+});
+
+router.get('/questionsTypes', userMiddleware.isLoggedIn, (req, res, next) => {
+	var options = db.query(`SELECT * FROM question_types`, (err, result) => {
+		if (err) {
+			throw err;
+			return res.status(400).send({
+				msg: err,
+			});
+		}
+		if (!result.length) {
+			return res.status(401).send({
+				msg: "Não existe nenhum user com esse id",
+			});
+		}
+
+		console.log(result[0]);
+
+		return res.status(200).send({
+			types: result,
+		});
+	})
+
+});
 //Retornatodos os estudos e dados dos estudos do user
 router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, (req, res, next) => {
 	var userID = req.params.user_id;
@@ -159,21 +205,21 @@ router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, (req, res, ne
 		for (const row of result) {
 			console.log(row);
 			const { studies_id, studies_name, studies_description, studies_startdate, studies_enddate, studies_version, surveys_id, surveys_title, surveys_description, surveys_expected_time, surveys_created_at, surveys_updated_at, name,
-				sections_id, sections_name, questions_id, questions_text, questions_type_id, start_time, end_time, version, title, expected_time, created_at, updated_at, question_id, text, question_type_id, section_id, section_name, option_id } = row;
+				sections_id, sections_name, questions_id, questions_text, questions_type_id, start_time, end_time, version, title, expected_time, created_at, updated_at, text, question_type_id, section_name, option_id } = row;
 
 			if (!studies.has(studies_id)) {
 				studies.set(studies_id, {
 					study_id: studies_id,
 					study_name: studies_name,
 					study_description: studies_description,
-					study_description: studies_startdate,
-					study_description: studies_enddate,
+					study_startdate: studies_startdate,
+					study_enddate: studies_enddate,
 					study_version: studies_version,
 					surveys: []
 				});
 			}
 
-			let survey = studies.get(studies_id).surveys.find(survey => survey.id === surveys_id);
+			let survey = studies.get(studies_id).surveys.find(survey => survey.surveys_id === surveys_id);
 			if (!survey) {
 				survey = {
 					surveys_id: surveys_id,
@@ -187,7 +233,7 @@ router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, (req, res, ne
 				studies.get(studies_id).surveys.push(survey);
 			}
 
-			let section = survey.sections.find(section => section.id === section_id);
+			let section = survey.sections.find(section => section.section_id === sections_id);
 			if (!section) {
 				section = {
 					section_id: sections_id,
@@ -198,12 +244,12 @@ router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, (req, res, ne
 			}
 
 			// Check if the options map has an entry for the current question
-			if (!optionsMap.has(question_id)) {
-				optionsMap.set(question_id, new Set());
+			if (!optionsMap.has(questions_id)) {
+				optionsMap.set(questions_id, new Set());
 			}
 
 			// Add the option to the set, if an option with the same id does not already exist in the set
-			const optionsSet = optionsMap.get(question_id);
+			const optionsSet = optionsMap.get(questions_id);
 			if (!optionsSet.has(option_id)) {
 				optionsSet.add(option_id);
 			}
