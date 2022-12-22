@@ -18,6 +18,10 @@ import com.umaia.movesense.data.suveys.sections.SectionRepository
 import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.surveys.Survey
 import com.umaia.movesense.data.suveys.surveys.SurveyRepository
+import com.umaia.movesense.data.suveys.user_studies.UserStudies
+import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -28,6 +32,8 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val questionRepository : QuestionRepository
     private val optionRepository : OptionRepository
     private val questionTypesRepository : QuestionTypesRepository
+    private val userStudiesRepository : UserStudiesRepository
+    private val userSurveysRepository : UserSurveysRepository
 
     init {
         val studyDao = AppDataBase.getDatabase(application).studyDao()
@@ -36,12 +42,16 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         val questionDao = AppDataBase.getDatabase(application).questionDao()
         val optionDao = AppDataBase.getDatabase(application).optionDao()
         val questionTypesDao = AppDataBase.getDatabase(application).questionTypesDao()
+        val userStudiesDao = AppDataBase.getDatabase(application).userStudiesDao()
+        val userSurveysDao  = AppDataBase.getDatabase(application).userSurveysDao()
         studyRepository =  StudyRepository(studyDao)
         surveyRepository = SurveyRepository(surveyDao)
         sectionRepository = SectionRepository(sectionDao)
         questionRepository = QuestionRepository(questionDao)
         optionRepository = OptionRepository(optionDao)
         questionTypesRepository = QuestionTypesRepository(questionTypesDao)
+        userStudiesRepository = UserStudiesRepository(userStudiesDao)
+        userSurveysRepository = UserSurveysRepository(userSurveysDao)
     }
 
     fun addTypes(questionTypes:  QuestionTypes){
@@ -77,6 +87,17 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     fun questionAdd(question: Question){
         viewModelScope.launch(Dispatchers.IO){
             questionRepository.add(question)
+        }
+    }
+
+    fun userSurveyAdd(userSurveys: UserSurveys){
+        viewModelScope.launch(Dispatchers.IO){
+            userSurveysRepository.add(userSurveys)
+        }
+    }
+    fun userStudysAdd(userStudies: UserStudies){
+        viewModelScope.launch(Dispatchers.IO){
+            userStudiesRepository.add(userStudies)
         }
     }
 

@@ -32,6 +32,8 @@ import com.umaia.movesense.data.suveys.sections.Section
 import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.studies.StudyRepository
 import com.umaia.movesense.data.suveys.surveys.Survey
+import com.umaia.movesense.data.suveys.user_studies.UserStudies
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.FragmentHomeBinding
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.model.MovesenseWifi
@@ -175,6 +177,7 @@ class Home : Fragment() {
                                     version = study.study_version
                                 )
                             )
+                            viewModelStudies.userStudysAdd(UserStudies(user_id = gv.userID, study_id = study.study_id.toLong()))
                             var studyID = study.study_id
                             //Percorre todos os questionarios dos estudos
                             for (survey in study.surveys) {
@@ -210,10 +213,6 @@ class Home : Fragment() {
                                 }
                             }
 
-//                            if(study.study_id){
-//
-//
-//                            }
                         }
 
                         Toast.makeText(context, "Dados adicionados", Toast.LENGTH_LONG).show()
