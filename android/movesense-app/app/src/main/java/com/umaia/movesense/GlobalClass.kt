@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.text.BoringLayout
+import com.umaia.movesense.data.responses.studies_response.Survey
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
@@ -33,6 +34,8 @@ class GlobalClass : Application() {
 
     var userID = ""
     var authToken = ""
+
+    lateinit var currentSurvey : Survey
 
     private var scannerECG: Boolean ? = null
     fun getscannerECG(): Boolean? {

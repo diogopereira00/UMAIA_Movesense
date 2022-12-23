@@ -9,6 +9,7 @@ import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.data.responses.studies_response.OptionsResponse
 import com.umaia.movesense.data.responses.studies_response.QuestionTypesResponse
+import com.umaia.movesense.data.responses.studies_response.QuestionsOptionsResponses
 import com.umaia.movesense.data.responses.studies_response.StudiesResponse
 import com.umaia.movesense.data.suveys.questions_types.QuestionTypes
 import kotlinx.coroutines.launch
@@ -56,6 +57,16 @@ class ApiViewModel(
         authToken : String
     ) = viewModelScope.launch {
         _getQuestionTypes.value = repository.getAllQuestionTypes(authToken= "Bearer $authToken")
+    }
+
+    //getQuestionTypes
+    private val _getQuestionOptions: MutableLiveData<Resource<QuestionsOptionsResponses>> = MutableLiveData()
+    val getQuestionOptions: LiveData<Resource<QuestionsOptionsResponses>>
+        get() = _getQuestionOptions
+    fun getQuestionOptions(
+        authToken : String
+    ) = viewModelScope.launch {
+        _getQuestionOptions.value = repository.getAllQuestionsOptions(authToken= "Bearer $authToken")
     }
 
 

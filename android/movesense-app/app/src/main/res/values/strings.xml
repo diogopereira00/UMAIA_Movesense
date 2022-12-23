@@ -9,6 +9,13 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <string name="abort_dialog_message">Tem a certeza que pretende sair? Se sair agora perdera o seu progresso</string>
+    <string name="finish">Terminar</string>
+    <string name="next">Proximo</string>
+    <string name="no">Não</string>
+    <string name="start">Iniciar questionario</string>
+    <string name="yes">Sim</string>
+    <string name="expectedTime">Tempo estimado</string>
 
     <string-array name="Tamanho">
         <item>37</item>

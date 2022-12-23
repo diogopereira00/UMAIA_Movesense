@@ -3,6 +3,7 @@ package com.umaia.movesense.data.network
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.data.responses.studies_response.OptionsResponse
 import com.umaia.movesense.data.responses.studies_response.QuestionTypesResponse
+import com.umaia.movesense.data.responses.studies_response.QuestionsOptionsResponses
 import com.umaia.movesense.data.responses.studies_response.StudiesResponse
 import retrofit2.http.*
 
@@ -12,10 +13,16 @@ interface ServerApi {
         @Header("Authorization") authToken: String
     ): QuestionTypesResponse
 
-    @GET("questions/options")
+    @GET("options")
     suspend fun getOptions(
         @Header("Authorization") authToken: String
     ): OptionsResponse
+
+    @GET("questions/options")
+    suspend fun getQuestionsOptions(
+        @Header("Authorization") authToken: String
+    ): QuestionsOptionsResponses
+
 
     @GET("studies/allInfo/{userId}")
     suspend fun getStudies(

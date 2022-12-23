@@ -1,6 +1,5 @@
 package com.umaia.movesense.fragments
 
-import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,42 +10,37 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.umaia.movesense.ApiViewModel
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.acc.ACCRepository
 import com.umaia.movesense.data.gyro.GYRORepository
-import com.umaia.movesense.data.hr.HrRepository
-import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
+import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.repository.ApiRepository
 import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.questions.Question
+import com.umaia.movesense.data.suveys.questions_options.QuestionOption
 import com.umaia.movesense.data.suveys.questions_types.QuestionTypes
 import com.umaia.movesense.data.suveys.sections.Section
 import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.studies.StudyRepository
 import com.umaia.movesense.data.suveys.surveys.Survey
 import com.umaia.movesense.data.suveys.user_studies.UserStudies
-import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.FragmentHomeBinding
 import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.model.MovesenseWifi
 import com.umaia.movesense.services.MovesenseService
-import com.umaia.movesense.ui.home.convertDate
+import com.umaia.movesense.ui.SurveyActivity
 import com.umaia.movesense.ui.home.checkIntBoolean
+import com.umaia.movesense.ui.home.convertDate
 import com.umaia.movesense.ui.home.observeOnce
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.sql.Time
+import java.net.IDN
 
 
 class Home : Fragment() {
@@ -181,6 +175,7 @@ class Home : Fragment() {
                             var studyID = study.study_id
                             //Percorre todos os questionarios dos estudos
                             for (survey in study.surveys) {
+
                                 viewModelStudies.surveyAdd(
                                     Survey(
                                         id = survey.surveys_id.toLong(),
@@ -190,6 +185,10 @@ class Home : Fragment() {
                                         expected_time = survey.survey_expected_time
                                     )
                                 )
+                                if(survey.surveys_id === 4){
+                                    gv.currentSurvey = survey
+                                }
+
                                 val surveyId = survey.surveys_id
                                 for (section in survey.sections) {
                                     viewModelStudies.sectionAdd(
@@ -215,6 +214,10 @@ class Home : Fragment() {
 
                         }
 
+                        viewModel.getQuestionOptions(gv.authToken)
+
+
+
                         Toast.makeText(context, "Dados adicionados", Toast.LENGTH_LONG).show()
 
                     }
@@ -224,6 +227,24 @@ class Home : Fragment() {
                 }
             }
         }
+
+        viewModel.getQuestionOptions.observeOnce(viewLifecycleOwner){
+            when (it) {
+                is Resource.Success -> {
+                    val response = it.value
+                    for(questionOption in response.question_options){
+                        viewModelStudies.questionOptionsAdd(QuestionOption(id = questionOption.id.toLong(), question_id = questionOption.question_id.toLong(), option_id = questionOption.option_id.toLong()))
+                    }
+                    val intent = Intent(context, SurveyActivity::class.java)
+                    startActivity(intent)
+                }
+                is Resource.Failure ->{
+                    Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
+
+                }
+            }
+        }
+
         return binding.root
     }
 

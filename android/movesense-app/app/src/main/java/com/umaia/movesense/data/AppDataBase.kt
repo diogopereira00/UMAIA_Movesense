@@ -21,6 +21,7 @@ import com.umaia.movesense.data.suveys.options.OptionDao
 import com.umaia.movesense.data.suveys.questions.Question
 import com.umaia.movesense.data.suveys.questions.QuestionDao
 import com.umaia.movesense.data.suveys.questions_options.QuestionOption
+import com.umaia.movesense.data.suveys.questions_options.QuestionOptionDao
 import com.umaia.movesense.data.suveys.questions_types.QuestionTypes
 import com.umaia.movesense.data.suveys.questions_types.QuestionTypesDao
 import com.umaia.movesense.data.suveys.sections.Section
@@ -58,6 +59,7 @@ abstract class AppDataBase : RoomDatabase() {
     abstract fun questionTypesDao(): QuestionTypesDao
     abstract fun userStudiesDao(): UserStudiesDao
     abstract fun userSurveysDao(): UserSurveysDao
+    abstract fun questionOptionsDao(): QuestionOptionDao
 
 
     companion object {

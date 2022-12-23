@@ -2,6 +2,10 @@ package com.umaia.movesense.data.suveys
 
 import QuestionTypesRepository
 import android.app.Application
+import android.graphics.Path.Op
+import android.view.KeyEvent.DispatcherState
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.umaia.movesense.data.suveys.studies.StudyRepository
 
 
@@ -12,6 +16,8 @@ import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.options.OptionRepository
 import com.umaia.movesense.data.suveys.questions.Question
 import com.umaia.movesense.data.suveys.questions.QuestionRepository
+import com.umaia.movesense.data.suveys.questions_options.QuestionOption
+import com.umaia.movesense.data.suveys.questions_options.QuestionOptionRepository
 import com.umaia.movesense.data.suveys.questions_types.QuestionTypes
 import com.umaia.movesense.data.suveys.sections.Section
 import com.umaia.movesense.data.suveys.sections.SectionRepository
@@ -24,6 +30,8 @@ import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 
 class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val studyRepository: StudyRepository
@@ -34,6 +42,9 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val questionTypesRepository : QuestionTypesRepository
     private val userStudiesRepository : UserStudiesRepository
     private val userSurveysRepository : UserSurveysRepository
+    private val questionOptionRepository: QuestionOptionRepository
+
+
 
     init {
         val studyDao = AppDataBase.getDatabase(application).studyDao()
@@ -44,6 +55,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         val questionTypesDao = AppDataBase.getDatabase(application).questionTypesDao()
         val userStudiesDao = AppDataBase.getDatabase(application).userStudiesDao()
         val userSurveysDao  = AppDataBase.getDatabase(application).userSurveysDao()
+        val questionOptionDao = AppDataBase.getDatabase(application).questionOptionsDao()
         studyRepository =  StudyRepository(studyDao)
         surveyRepository = SurveyRepository(surveyDao)
         sectionRepository = SectionRepository(sectionDao)
@@ -52,6 +64,9 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         questionTypesRepository = QuestionTypesRepository(questionTypesDao)
         userStudiesRepository = UserStudiesRepository(userStudiesDao)
         userSurveysRepository = UserSurveysRepository(userSurveysDao)
+        questionOptionRepository = QuestionOptionRepository(questionOptionDao)
+
+
     }
 
     fun addTypes(questionTypes:  QuestionTypes){
@@ -65,6 +80,32 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
             optionRepository.add(option)
         }
     }
+
+    val _options = MutableLiveData<List<Option>>()
+    val options : LiveData<List<Option>>
+    get() = _options
+
+    fun getOptionByQuestionID(questionID: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val options = optionRepository.getOptionByQuestionID(questionID)
+            withContext(Dispatchers.Main) {
+                _options.value = options
+            }
+        }
+    }
+
+    val _name = MutableLiveData<String>()
+    val name : LiveData<String>
+        get() = _name
+
+    fun getOptionTextById(optionID: Long): LiveData<String> {
+        val optionText = MutableLiveData<String>()
+        viewModelScope.launch {
+            optionText.postValue(optionRepository.getOptionTextById(optionID))
+        }
+        return optionText
+    }
+
 
     fun studyAdd(study: Study){
         viewModelScope.launch(Dispatchers.IO){
@@ -98,6 +139,12 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     fun userStudysAdd(userStudies: UserStudies){
         viewModelScope.launch(Dispatchers.IO){
             userStudiesRepository.add(userStudies)
+        }
+    }
+    fun questionOptionsAdd(questionOption: QuestionOption){
+        viewModelScope.launch(Dispatchers.IO){
+            questionOptionRepository.add(questionOption)
+
         }
     }
 
