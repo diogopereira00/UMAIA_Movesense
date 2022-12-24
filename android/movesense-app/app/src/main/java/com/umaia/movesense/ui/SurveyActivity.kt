@@ -47,6 +47,8 @@ class SurveyActivity : AppCompatActivity() {
 
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
 
+        val OtherQuestion = QuestionStep(title=  "Por favor explicite", text = "", answerFormat = AnswerFormat.TextAnswerFormat(maxLines = 1, hintText = "Introduza a sua opção"))
+
         var surveyView: SurveyView = binding.surveyView
         val step1 = InitialStep(
             title = gv.currentSurvey.survey_title,
@@ -85,8 +87,8 @@ class SurveyActivity : AppCompatActivity() {
                     val stepq = QuestionStep(
                         title = section.section_name,
                         text = question.question_text,
-                        answerFormat = AnswerFormat.MultipleChoiceAnswerFormat(
-                            textChoices = options
+                        answerFormat = AnswerFormat.SingleChoiceAnswerFormat(
+                            textChoices = options,
                         )
                     )
                     steps.add(stepq)
