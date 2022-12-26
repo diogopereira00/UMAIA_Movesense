@@ -25,9 +25,11 @@ import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.databinding.ActivityLoginBinding
 import com.umaia.movesense.databinding.ActivitySurveyBinding
+import com.umaia.movesense.ui.home.getLikertScale
 import com.umaia.movesense.ui.home.observeOnce
 import com.umaia.movesense.ui.surveys.InitialStep
 import com.umaia.movesense.util.ViewModelFactory
+import kotlin.math.round
 
 class SurveyActivity : AppCompatActivity() {
 
@@ -47,7 +49,14 @@ class SurveyActivity : AppCompatActivity() {
 
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
 
-        val OtherQuestion = QuestionStep(title=  "Por favor explicite", text = "", answerFormat = AnswerFormat.TextAnswerFormat(maxLines = 1, hintText = "Introduza a sua opção"))
+        val OtherQuestion = QuestionStep(
+            title = "Por favor explicite",
+            text = "",
+            answerFormat = AnswerFormat.TextAnswerFormat(
+                maxLines = 1,
+                hintText = "Introduza a sua opção"
+            )
+        )
 
         var surveyView: SurveyView = binding.surveyView
         val step1 = InitialStep(
@@ -74,7 +83,8 @@ class SurveyActivity : AppCompatActivity() {
 
 
                     for (option in question.options) {
-                        val optionTextLiveData = viewModelStudies.getOptionTextById(option.option_id.toLong())
+                        val optionTextLiveData =
+                            viewModelStudies.getOptionTextById(option.option_id.toLong())
                         optionTextLiveData.observe(this@SurveyActivity, Observer { optionText ->
                             options.add(
                                 TextChoice(
@@ -93,6 +103,31 @@ class SurveyActivity : AppCompatActivity() {
                     )
                     steps.add(stepq)
 
+                } else if (question.question_type_id == 2) {
+
+                } else if (question.question_type_id == 3) {
+                    //Escala linkart
+
+                    var size = 0
+                    var option: Option = Option()
+                    val optionLiveData =
+                        viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                    optionLiveData.observe(this@SurveyActivity, Observer { optionData ->
+                        option = optionData
+                    })
+
+                    val likertStep = QuestionStep(
+                        title = section.section_name, text = question.question_text,
+                        answerFormat = AnswerFormat.ScaleAnswerFormat(
+                            minimumValue = 1,
+                            maximumValue = option.likertScale!!.toInt(),
+                            defaultValue = option.likertScale!! / 2,
+                            minimumValueDescription = getLikertScale(option.text!!, 0),
+                            maximumValueDescription = getLikertScale(option.text!!,1),
+                            step = 1f
+                        )
+                    )
+                    steps.add(likertStep)
                 }
 
             }

@@ -14,6 +14,14 @@ import androidx.lifecycle.Observer
 import java.text.SimpleDateFormat
 import java.util.*
 
+fun getLikertScale(input: String, index: Int): String {
+    val pattern = Regex("(\\d)=\\s*(\\w+\\s\\w+)")
+    val matches = pattern.findAll(input)
+    val match = matches.elementAtOrNull(index)
+    return match?.groups?.get(2)?.value!!
+}
+
+
 fun checkIntBoolean (boolean : Int): Boolean {
     return boolean === 1
 }

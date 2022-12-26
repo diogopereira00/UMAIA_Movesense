@@ -107,6 +107,14 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     }
 
 
+    fun getOptionByID(optionID: Long) : LiveData<Option>{
+        val option = MutableLiveData<Option>()
+        viewModelScope.launch {
+            option.postValue(optionRepository.getOptionByID(optionID))
+        }
+        return option
+    }
+
     fun studyAdd(study: Study){
         viewModelScope.launch(Dispatchers.IO){
             studyRepository.add(study)

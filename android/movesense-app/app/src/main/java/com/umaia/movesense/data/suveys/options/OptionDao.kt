@@ -18,4 +18,7 @@ interface OptionDao {
 
     @Query("SELECT text from options_table WHERE id = :optionID ORDER  BY id ")
     suspend fun getOptionTextById(optionID: Long): String
+
+    @Query("SELECT * from options_table where id = :optionID ORDER BY id")
+    suspend fun getOptionByID(optionID: Long) : Option
 }
