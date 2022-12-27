@@ -8,22 +8,23 @@ import com.umaia.movesense.data.suveys.sections.Section
 
 
 @Entity(
-    tableName = "questions_table",
-    foreignKeys = [
-
-        ForeignKey(
-            entity = QuestionTypes::class,
-            parentColumns = ["id"],
-            childColumns = ["question_type_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Section::class,
-            parentColumns = ["id"],
-            childColumns = ["section_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+    tableName = "questions_table"
+    //,
+//    foreignKeys = [
+//
+//        ForeignKey(
+//            entity = QuestionTypes::class,
+//            parentColumns = ["id"],
+//            childColumns = ["question_type_id"],
+//            onDelete = ForeignKey.CASCADE,
+//        ),
+//        ForeignKey(
+//            entity = Section::class,
+//            parentColumns = ["id"],
+//            childColumns = ["section_id"],
+//            onDelete = ForeignKey.CASCADE
+//        )
+//    ]
 )
 
 data class Question(

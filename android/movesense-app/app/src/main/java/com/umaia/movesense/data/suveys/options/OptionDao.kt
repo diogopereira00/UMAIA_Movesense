@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.umaia.movesense.data.acc.ACC
 import com.umaia.movesense.data.suveys.questions.Question
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OptionDao {
@@ -20,5 +21,5 @@ interface OptionDao {
     suspend fun getOptionTextById(optionID: Long): String
 
     @Query("SELECT * from options_table where id = :optionID ORDER BY id")
-    suspend fun getOptionByID(optionID: Long) : Option
+    fun getOptionByID(optionID: Long) : Flow<Option>
 }

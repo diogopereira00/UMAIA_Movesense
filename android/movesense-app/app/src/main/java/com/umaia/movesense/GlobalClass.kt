@@ -35,7 +35,7 @@ class GlobalClass : Application() {
     var userID = ""
     var authToken = ""
 
-    lateinit var currentSurvey : Survey
+    var currentSurvey : Survey? = null
 
     private var scannerECG: Boolean ? = null
     fun getscannerECG(): Boolean? {

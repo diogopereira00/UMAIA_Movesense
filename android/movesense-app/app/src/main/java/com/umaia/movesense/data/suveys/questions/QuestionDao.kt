@@ -8,7 +8,7 @@ import com.umaia.movesense.data.suveys.sections.Section
 
 @Dao
 interface QuestionDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addQuestion(question: Question)
 
 }

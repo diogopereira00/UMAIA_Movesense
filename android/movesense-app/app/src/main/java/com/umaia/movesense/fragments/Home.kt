@@ -1,5 +1,6 @@
 package com.umaia.movesense.fragments
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -37,6 +39,7 @@ import com.umaia.movesense.ui.SurveyActivity
 import com.umaia.movesense.ui.home.checkIntBoolean
 import com.umaia.movesense.ui.home.convertDate
 import com.umaia.movesense.ui.home.observeOnce
+import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
@@ -64,6 +67,7 @@ class Home : Fragment() {
         var s_INSTANCE: Home? = null
     }
 
+
     override fun onResume() {
         super.onResume()
         Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
@@ -80,7 +84,6 @@ class Home : Fragment() {
         binding = FragmentHomeBinding.inflate(layoutInflater)
         gv = activity?.application as GlobalClass
         Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
-
         val accDao = AppDataBase.getDatabase(requireContext()).accDao()
         accRepository = ACCRepository(accDao)
         val gyroDao = AppDataBase.getDatabase(requireContext()).gyroDao()
@@ -104,6 +107,8 @@ class Home : Fragment() {
 
 
         setObservers()
+        viewModel.getQuestionTypes(gv.authToken)
+
         s_INSTANCE = this
         updateHR()
 
@@ -116,135 +121,155 @@ class Home : Fragment() {
 
         //TODO adiconar o resto dos sensores, efetuar mais alguns testes, e mudar o nome da resposta.
         binding.buttonTest.setOnClickListener {
-            viewModel.getQuestionTypes(gv.authToken)
-
-            viewModel.getQuestionTypes.observeOnce(viewLifecycleOwner){
-                when (it) {
-                    is Resource.Success -> {
-                        val response = it.value
-                        for(type in response.types){
-                            viewModelStudies.addTypes(QuestionTypes(id = type.id.toLong(), name = type.name))
-                        }
-                        viewModel.getOptions(gv.authToken)
-
-                    }
-                    is Resource.Failure ->{
-                        Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
-
-                    }
-                }
-            }
-
-            viewModel.getOptionsReponse.observeOnce(viewLifecycleOwner){
-                when (it) {
-                    is Resource.Success -> {
-                        val response = it.value
-                        for(option in response.options){
-                            viewModelStudies.optionAdd(Option(id = option.id.toLong(), text = option.text, isLikert = checkIntBoolean(option.isLikert), likertScale = option.likertScale))
-                        }
-                        viewModel.getAllStudiesFromId(gv.userID, gv.authToken)
-
-
-                    }
-                    is Resource.Failure ->{
-                        Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
-
-                    }
-                }
-            }
-
-
 //
-            viewModel.getAllStudiesFromUserIDReponse.observeOnce(viewLifecycleOwner) {
-                when (it) {
-                    is Resource.Success -> {
-                        val studies = it.value
-                        //Percorre todos os estudos do user
-                        for (study in studies) {
-                            viewModelStudies.studyAdd(
-                                Study(
-                                    id = study.study_id.toLong(),
-                                    name = study.study_name,
-                                    description = study.study_description,
-                                    start_date = convertDate(study.study_startdate).time,
-                                    end_date = convertDate(study.study_enddate).time,
-                                    version = study.study_version
-                                )
-                            )
-                            viewModelStudies.userStudysAdd(UserStudies(user_id = gv.userID, study_id = study.study_id.toLong()))
-                            var studyID = study.study_id
-                            //Percorre todos os questionarios dos estudos
-                            for (survey in study.surveys) {
-
-                                viewModelStudies.surveyAdd(
-                                    Survey(
-                                        id = survey.surveys_id.toLong(),
-                                        study_id = studyID.toLong(),
-                                        title = survey.survey_title,
-                                        description = survey.survey_description,
-                                        expected_time = survey.survey_expected_time
-                                    )
-                                )
-                                if(survey.surveys_id === 4){
-                                    gv.currentSurvey = survey
-                                }
-
-                                val surveyId = survey.surveys_id
-                                for (section in survey.sections) {
-                                    viewModelStudies.sectionAdd(
-                                        Section(
-                                            id = section.section_id.toLong(),
-                                            survey_id = surveyId.toLong(),
-                                            name = section.section_name
-                                        )
-                                    )
-                                    val sectionID = section.section_id
-                                    for (question in section.questions) {
-                                        viewModelStudies.questionAdd(
-                                            Question(
-                                                id = question.question_id.toLong(),
-                                                text = question.question_text,
-                                                question_type_id = question.question_type_id.toLong(),
-                                                section_id = sectionID.toLong()
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-
-                        }
-
-                        viewModel.getQuestionOptions(gv.authToken)
-
-
-
-                        Toast.makeText(context, "Dados adicionados", Toast.LENGTH_LONG).show()
-
-                    }
-                    is Resource.Failure -> {
-                        Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
-                    }
-                }
+            val intent = Intent(context, SurveyActivity::class.java)
+            startActivity(intent)
+//            (context as Activity).startNewActivity(SurveyActivity::class.java)
+            if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
         }
-
-        viewModel.getQuestionOptions.observeOnce(viewLifecycleOwner){
+        viewModel.getQuestionTypes.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
                     val response = it.value
-                    for(questionOption in response.question_options){
-                        viewModelStudies.questionOptionsAdd(QuestionOption(id = questionOption.id.toLong(), question_id = questionOption.question_id.toLong(), option_id = questionOption.option_id.toLong()))
+                    for (type in response.types) {
+                        viewModelStudies.addTypes(
+                            QuestionTypes(
+                                id = type.id.toLong(),
+                                name = type.name
+                            )
+                        )
                     }
-                    val intent = Intent(context, SurveyActivity::class.java)
-                    startActivity(intent)
+                    viewModel.getOptions(gv.authToken)
                 }
-                is Resource.Failure ->{
+                is Resource.Failure -> {
+                    Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        viewModel.getOptionsReponse.observe(viewLifecycleOwner) {
+            when (it) {
+                is Resource.Success -> {
+                    val response = it.value
+                    for (option in response.options) {
+                        viewModelStudies.optionAdd(
+                            Option(
+                                id = option.id.toLong(),
+                                text = option.text,
+                                isLikert = checkIntBoolean(option.isLikert),
+                                likertScale = option.likertScale
+                            )
+                        )
+                    }
+                    viewModel.getAllStudiesFromId(gv.userID, gv.authToken)
+
+
+                }
+                is Resource.Failure -> {
                     Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
 
                 }
             }
         }
+        viewModel.getAllStudiesFromUserIDReponse.observe(viewLifecycleOwner) {
+            when (it) {
+                is Resource.Success -> {
+                    val studies = it.value
+                    //Percorre todos os estudos do user
+                    for (study in studies) {
+                        viewModelStudies.studyAdd(
+                            Study(
+                                id = study.study_id.toLong(),
+                                name = study.study_name,
+                                description = study.study_description,
+                                start_date = convertDate(study.study_startdate).time,
+                                end_date = convertDate(study.study_enddate).time,
+                                version = study.study_version
+                            )
+                        )
+                        viewModelStudies.userStudysAdd(
+                            UserStudies(
+                                user_id = gv.userID,
+                                study_id = study.study_id.toLong()
+                            )
+                        )
+                        var studyID = study.study_id
+                        //Percorre todos os questionarios dos estudos
+                        for (survey in study.surveys) {
 
+                            viewModelStudies.surveyAdd(
+                                Survey(
+                                    id = survey.surveys_id.toLong(),
+                                    study_id = studyID.toLong(),
+                                    title = survey.survey_title,
+                                    description = survey.survey_description,
+                                    expected_time = survey.survey_expected_time
+                                )
+                            )
+                            if (survey.surveys_id === 4) {
+                                gv.currentSurvey = survey
+                            }
+
+                            val surveyId = survey.surveys_id
+                            for (section in survey.sections) {
+                                viewModelStudies.sectionAdd(
+                                    Section(
+                                        id = section.section_id.toLong(),
+                                        survey_id = surveyId.toLong(),
+                                        name = section.section_name
+                                    )
+                                )
+                                val sectionID = section.section_id
+                                for (question in section.questions) {
+                                    viewModelStudies.questionAdd(
+                                        Question(
+                                            id = question.question_id.toLong(),
+                                            text = question.question_text,
+                                            question_type_id = question.question_type_id.toLong(),
+                                            section_id = sectionID.toLong()
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                    }
+
+                    viewModel.getQuestionOptions(gv.authToken)
+
+
+
+                    Toast.makeText(context, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        viewModel.getQuestionOptions.observe(viewLifecycleOwner) {
+            when (it) {
+                is Resource.Success -> {
+                    val response = it.value
+                    for (questionOption in response.question_options) {
+                        viewModelStudies.questionOptionsAdd(
+                            QuestionOption(
+                                id = questionOption.id.toLong(),
+                                question_id = questionOption.question_id.toLong(),
+                                option_id = questionOption.option_id.toLong()
+                            )
+                        )
+                    }
+
+
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(context, "Erro", Toast.LENGTH_LONG).show()
+
+                }
+            }
+        }
         return binding.root
     }
 
@@ -264,6 +289,7 @@ class Home : Fragment() {
             when (it) {
                 is MovesenseWifi.AVAILABLE -> {
                     binding.textviewConnectiviy.text = "Status is available"
+                    viewModel.getQuestionTypes(gv.authToken)
 
                 }
 

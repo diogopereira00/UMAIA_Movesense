@@ -14,7 +14,8 @@
         <!-- Customize your theme here. -->
         <item name="android:textColorPrimary">@color/WhiteGray</item>
         <item name="android:editTextColor">#52424242</item>
-
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">0</item>
 
     </style>
 

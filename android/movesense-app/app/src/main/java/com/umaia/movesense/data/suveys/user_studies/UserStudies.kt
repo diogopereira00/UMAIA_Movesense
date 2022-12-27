@@ -8,13 +8,14 @@ import com.umaia.movesense.data.suveys.surveys.Survey
 
 
 @Entity(
-    tableName = "user_studies",
-    foreignKeys = [ForeignKey(
-        entity = Study::class,
-        parentColumns = ["id"],
-        childColumns = ["study_id"],
-        onDelete = ForeignKey.CASCADE
-    )]
+    tableName = "user_studies"
+//    ,
+//    foreignKeys = [ForeignKey(
+//        entity = Study::class,
+//        parentColumns = ["id"],
+//        childColumns = ["study_id"],
+//        onDelete = ForeignKey.CASCADE
+//    )]
 )
 data class UserStudies(
     @PrimaryKey(autoGenerate = true)

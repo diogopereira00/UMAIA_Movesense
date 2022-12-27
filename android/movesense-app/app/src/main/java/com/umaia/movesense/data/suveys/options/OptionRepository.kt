@@ -2,6 +2,7 @@ package com.umaia.movesense.data.suveys.options
 
 import android.graphics.Path.Op
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 
 
 class OptionRepository(private val optionDao: OptionDao) {
@@ -18,7 +19,7 @@ class OptionRepository(private val optionDao: OptionDao) {
         return optionDao.getOptionTextById(optionID)
     }
 
-    suspend fun getOptionByID(optionID: Long) : Option{
+    fun getOptionByID(optionID: Long) : Flow<Option> {
         return optionDao.getOptionByID(optionID)
     }
 }
