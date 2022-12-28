@@ -54,7 +54,7 @@ module.exports.login = (req, res, next) => {
         }
         if (!result.length) {
             return res.status(401).send({
-                msg: "Username or password is incorrect!",
+                msg: "O nome de utilizador ou a password estão errados.",
             });
         }
         // check password
@@ -63,7 +63,7 @@ module.exports.login = (req, res, next) => {
             if (bErr) {
                 throw bErr;
                 return res.status(401).send({
-                    msg: "Username or password is incorrect!",
+                    msg: "O nome de utilizador ou a password estão errados.",
                 });
             }
             if (bResult) {
@@ -90,7 +90,7 @@ module.exports.login = (req, res, next) => {
                 });
             }
             return res.status(401).send({
-                msg: "Username or password is incorrect!",
+                msg: "O nome de utilizador ou a password estão errados.",
             });
         });
     });
