@@ -116,8 +116,8 @@ class ApiViewModel(
     }
 
     //Data Temp todo
-    private val _uploadDataTempResponses: MutableLiveData<Resource<UploadTempRespose>> = MutableLiveData()
-    val uploadDataTempResponses: LiveData<Resource<UploadTempRespose>>
+    private val _uploadDataTempResponses: MutableLiveData<Resource<UploadTempResponse>> = MutableLiveData()
+    val uploadDataTempResponses: LiveData<Resource<UploadTempResponse>>
         get() = _uploadDataTempResponses
 
     fun addTempData(jsonString: String, authToken : String) = viewModelScope.launch {
