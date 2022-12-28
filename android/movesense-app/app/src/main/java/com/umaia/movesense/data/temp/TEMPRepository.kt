@@ -17,4 +17,8 @@ class TEMPRepository(private val tempDao: TEMPDao) {
     suspend fun add(temp: TEMP){
         tempDao.addTemp(temp)
     }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return tempDao.getIdFromLastRecord()
+    }
 }

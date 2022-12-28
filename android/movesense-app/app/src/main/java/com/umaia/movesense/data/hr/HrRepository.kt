@@ -18,4 +18,8 @@ class HrRepository(private val hrDao: HrDao) {
     suspend fun add(hr: Hr){
         hrDao.addHr(hr)
     }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return hrDao.getIdFromLastRecord()
+    }
 }

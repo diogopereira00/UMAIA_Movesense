@@ -24,4 +24,7 @@ interface GYRODao {
 
     @Query("DELETE FROM gyro_table WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT id from gyro_table ORDER BY id DESC LIMIT 1")
+    suspend fun getIdFromLastRecord() : Long
 }

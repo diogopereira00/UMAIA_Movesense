@@ -20,4 +20,8 @@ class GYRORepository(private val gyroDao: GYRODao) {
     suspend fun add(gyro: GYRO){
         gyroDao.addGYRO(gyro)
     }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return gyroDao.getIdFromLastRecord()
+    }
 }

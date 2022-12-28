@@ -16,4 +16,8 @@ class MAGNRepository(private val magnDao: MAGNDao) {
     suspend fun add(magn: MAGN){
         magnDao.addMAGNO(magn)
     }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return magnDao.getIdFromLastRecord()
+    }
 }

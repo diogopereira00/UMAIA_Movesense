@@ -18,4 +18,8 @@ class ECGRepository(private val ecgDao: ECGDao) {
     suspend fun deleteByID(id: Long){
         ecgDao.deleteById(id)
     }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return ecgDao.getIdFromLastRecord()
+    }
 }

@@ -24,4 +24,7 @@ interface TEMPDao {
 
     @Query("DELETE FROM temp_table WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT id from temp_table ORDER BY id DESC LIMIT 1")
+    suspend fun getIdFromLastRecord() : Long
 }
