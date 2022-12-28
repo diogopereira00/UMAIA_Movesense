@@ -77,5 +77,5 @@ interface ServerApi {
     suspend fun addTempData(
         @Field("jsonString") jsonString: String,
         @Header("Authorization") authToken: String
-    ): UploadTempRespose
+    ): UploadTempResponse
 }
