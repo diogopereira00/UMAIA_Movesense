@@ -5,5 +5,6 @@ data class User(
     val created_at: String,
     val id: String,
     val last_login: String,
+    val isResearcher : Int,
     val username: String
 )
