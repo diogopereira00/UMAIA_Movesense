@@ -1283,9 +1283,9 @@ class MovesenseService : LifecycleService() {
         get() = _uploadDataTempResponses
 
     fun addTempData(jsonString: String, authToken: String) = lifecycleScope.launch {
-        _uploadDataHRResponses.value =
+        _uploadDataTempResponses.value =
             apiRepository.addTempData(jsonString = jsonString, authToken = "Bearer $authToken")
-        when (_uploadDataHRResponses.value) {
+        when (_uploadDataTempResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
                     if (!listTemp.isNullOrEmpty()) {
