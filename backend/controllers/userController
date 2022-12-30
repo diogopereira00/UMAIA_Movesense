@@ -2,7 +2,6 @@ const bcrypt = require("bcryptjs");
 const uuid = require("uuid");
 const jwt = require("jsonwebtoken");
 const db = require("../lib/db.js");
-const { use } = require("../routes/router")
 
 //Register
 module.exports.register = (req, res, next) => {
@@ -83,6 +82,7 @@ module.exports.login = (req, res, next) => {
                     user: {
                         id: result[0].id,
                         username: result[0].username,
+                        isResearcher: result[0].isResearcher,
                         created_at: result[0].created_at,
                         last_login: result[0].last_login,
                         access_token: token,
