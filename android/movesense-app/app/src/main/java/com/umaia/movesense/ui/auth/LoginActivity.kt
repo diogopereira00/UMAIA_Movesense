@@ -12,7 +12,7 @@ import com.umaia.movesense.databinding.ActivityLoginBinding
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
-import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.ui.home.visible

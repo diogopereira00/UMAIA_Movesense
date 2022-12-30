@@ -20,6 +20,9 @@ private lateinit var userPreferences: UserPreferences
 lateinit var gv: GlobalClass
 
 class SplashScreenActivity : AppCompatActivity() {
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashScreenBinding.inflate(layoutInflater)

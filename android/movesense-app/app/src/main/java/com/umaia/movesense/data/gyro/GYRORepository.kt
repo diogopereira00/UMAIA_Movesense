@@ -10,7 +10,7 @@ class GYRORepository(private val gyroDao: GYRODao) {
 
 
     val getAllGYRO: LiveData<List<GYRO>> = gyroDao.getAllGyro()
-    suspend fun deleteByID(id: Long){
+    fun deleteByID(id: Long){
         gyroDao.deleteById(id)
     }
 
@@ -19,5 +19,9 @@ class GYRORepository(private val gyroDao: GYRODao) {
     }
     suspend fun add(gyro: GYRO){
         gyroDao.addGYRO(gyro)
+    }
+
+    suspend fun getIdFromLastRecord() : Long{
+        return gyroDao.getIdFromLastRecord()
     }
 }

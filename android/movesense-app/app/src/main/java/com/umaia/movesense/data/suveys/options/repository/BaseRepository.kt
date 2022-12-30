@@ -1,4 +1,4 @@
-package com.umaia.movesense.data.repository
+package com.umaia.movesense.data.suveys.options.repository
 
 import com.umaia.movesense.data.network.Resource
 import kotlinx.coroutines.Dispatchers

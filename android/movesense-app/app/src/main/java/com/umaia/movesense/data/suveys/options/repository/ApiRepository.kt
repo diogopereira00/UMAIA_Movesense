@@ -1,4 +1,4 @@
-package com.umaia.movesense.data.repository
+package com.umaia.movesense.data.suveys.options.repository
 
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.responses.UserPreferences
@@ -10,6 +10,10 @@ class ApiRepository(
 
     suspend fun getAllStudiesFromUser(userID: String,authToken: String) = safeApiCall{
         api.getStudies(userID,authToken)
+    }
+
+    suspend fun getStudyVersion(studyID: String, authToken: String)  =safeApiCall {
+        api.getStudyVersion(studyID,authToken)
     }
 
     suspend fun getAllOptions(authToken: String) = safeApiCall {

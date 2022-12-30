@@ -1,5 +1,5 @@
 package com.umaia.movesense.data.responses
 
-data class UploadTempRespose(
+data class UploadTempResponse(
     val msg: String
 )

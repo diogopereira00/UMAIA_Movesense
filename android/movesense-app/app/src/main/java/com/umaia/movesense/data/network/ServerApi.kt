@@ -1,10 +1,7 @@
 package com.umaia.movesense.data.network
 
 import com.umaia.movesense.data.responses.*
-import com.umaia.movesense.data.responses.studies_response.OptionsResponse
-import com.umaia.movesense.data.responses.studies_response.QuestionTypesResponse
-import com.umaia.movesense.data.responses.studies_response.QuestionsOptionsResponses
-import com.umaia.movesense.data.responses.studies_response.StudiesResponse
+import com.umaia.movesense.data.responses.studies_response.*
 import retrofit2.http.*
 
 interface ServerApi {
@@ -29,6 +26,11 @@ interface ServerApi {
         @Path("userId") userId: String, @Header("Authorization") authToken: String
     ): StudiesResponse
 
+    @GET("studies/{studyID}/version")
+    suspend fun getStudyVersion(
+        @Path("studyID") studyID : String,
+        @Header("Authorization") authToken: String
+    ) : StudyVersionResponse
 
     @FormUrlEncoded
     @POST("login")
@@ -77,5 +79,5 @@ interface ServerApi {
     suspend fun addTempData(
         @Field("jsonString") jsonString: String,
         @Header("Authorization") authToken: String
-    ): UploadTempRespose
+    ): UploadTempResponse
 }
