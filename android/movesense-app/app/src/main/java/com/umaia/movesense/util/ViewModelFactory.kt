@@ -5,8 +5,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.umaia.movesense.ApiViewModel
-import com.umaia.movesense.data.repository.ApiRepository
-import com.umaia.movesense.data.repository.BaseRepository
+import com.umaia.movesense.data.suveys.options.repository.ApiRepository
+import com.umaia.movesense.data.suveys.options.repository.BaseRepository
 import com.umaia.movesense.data.suveys.StudiesViewmodel
 
 class ViewModelFactory(

@@ -22,7 +22,7 @@ interface HrDao {
     fun deleteAll()
 
     @Query("DELETE FROM hr_table WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    fun deleteById(id: Long)
 
     @Query("SELECT id from hr_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long

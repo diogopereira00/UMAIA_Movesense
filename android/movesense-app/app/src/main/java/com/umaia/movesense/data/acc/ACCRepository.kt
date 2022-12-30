@@ -1,7 +1,7 @@
 package com.umaia.movesense.data.acc
 
 import androidx.lifecycle.LiveData
-import com.umaia.movesense.data.repository.BaseRepository
+import com.umaia.movesense.data.suveys.options.repository.BaseRepository
 
 class ACCRepository(private val accDao: ACCDao) : BaseRepository() {
 
@@ -15,7 +15,7 @@ class ACCRepository(private val accDao: ACCDao) : BaseRepository() {
     suspend fun add(acc: ACC) {
         accDao.addACC(acc)
     }
-    suspend fun deleteByID(id: Long){
+    fun deleteByID(id: Long){
        accDao.deleteById(id)
     }
 

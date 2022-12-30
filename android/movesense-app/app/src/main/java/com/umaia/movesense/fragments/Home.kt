@@ -20,7 +20,7 @@ import com.umaia.movesense.data.gyro.GYRORepository
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.network.ServerApi
-import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.questions.Question
@@ -108,7 +108,7 @@ class Home : Fragment() {
 
         setObservers()
         viewModel.getQuestionTypes(gv.authToken)
-
+        var studyVersion = viewModel.getStudyVersion(studyID = "3", authToken = gv.authToken)
         s_INSTANCE = this
         updateHR()
 

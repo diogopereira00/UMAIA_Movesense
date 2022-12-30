@@ -15,7 +15,7 @@ import com.umaia.movesense.adapters.SettingsAdapter
 import com.umaia.movesense.adapters.SurveysAdapter
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.network.RemoteDataSource
-import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.FragmentSurveysBinding
 import com.umaia.movesense.model.SettingsClass

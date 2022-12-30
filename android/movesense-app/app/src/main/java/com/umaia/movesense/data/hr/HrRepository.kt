@@ -8,7 +8,7 @@ class HrRepository(private val hrDao: HrDao) {
     val readAllData: LiveData<List<Hr>> = hrDao.readAllHr()
 
     val getAllHr: LiveData<List<Hr>> = hrDao.getAllHr()
-    suspend fun deleteByID(id: Long){
+    fun deleteByID(id: Long){
         hrDao.deleteById(id)
     }
 

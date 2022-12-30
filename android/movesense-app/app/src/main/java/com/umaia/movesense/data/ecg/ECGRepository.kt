@@ -15,7 +15,7 @@ class ECGRepository(private val ecgDao: ECGDao) {
     suspend fun add(ecg: ECG){
         ecgDao.addHr(ecg)
     }
-    suspend fun deleteByID(id: Long){
+    fun deleteByID(id: Long){
         ecgDao.deleteById(id)
     }
 

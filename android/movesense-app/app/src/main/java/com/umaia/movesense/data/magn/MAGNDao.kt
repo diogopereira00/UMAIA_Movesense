@@ -22,7 +22,7 @@ interface MAGNDao {
     fun deleteAll()
 
     @Query("DELETE FROM magn_table WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    fun deleteById(id: Long)
 
     @Query("SELECT id from magn_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long

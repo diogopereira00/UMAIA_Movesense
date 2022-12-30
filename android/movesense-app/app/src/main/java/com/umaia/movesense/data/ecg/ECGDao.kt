@@ -22,7 +22,7 @@ interface ECGDao {
     fun deleteAll()
 
     @Query("DELETE FROM ecg_table WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    fun deleteById(id: Long)
 
     @Query("SELECT id from ecg_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long

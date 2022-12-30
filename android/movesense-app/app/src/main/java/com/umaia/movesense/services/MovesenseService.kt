@@ -38,7 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.umaia.movesense.data.network.ServerApi
-import com.umaia.movesense.data.repository.ApiRepository
+import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.temp.TEMP
 import com.umaia.movesense.data.temp.TEMPRepository
 import com.umaia.movesense.ui.home.observeOnce
@@ -84,12 +84,12 @@ class MovesenseService : LifecycleService() {
     lateinit var gv: GlobalClass
     private val remoteDataSource = RemoteDataSource()
 
-    private lateinit var listAcc: MutableList<ACC>
-    private lateinit var listGyro: MutableList<GYRO>
-    private lateinit var listMagn: MutableList<MAGN>
-    private lateinit var listHr: MutableList<Hr>
-    private lateinit var listECG: MutableList<ECG>
-    private lateinit var listTemp: MutableList<TEMP>
+    private var listAcc: MutableList<ACC> = mutableListOf()
+    private var listGyro: MutableList<GYRO> = mutableListOf()
+    private var listMagn: MutableList<MAGN> = mutableListOf()
+    private var listHr: MutableList<Hr> = mutableListOf()
+    private var listECG: MutableList<ECG> = mutableListOf()
+    private var listTemp: MutableList<TEMP> = mutableListOf()
 
     private lateinit var jsonStringAcc: String
     private lateinit var jsonStringGyro: String
@@ -1092,7 +1092,7 @@ class MovesenseService : LifecycleService() {
             moveSenseEvent.observe(this, Observer {
                 when (it) {
                     is MoveSenseEvent.START -> {
-
+                        Timber.e("estou aquiiiiii")
                         var intent1 = Intent(this, MainActivity::class.java)
                         var title = "Sensor conectado"
                         var description = "Recolhendo dados..."
@@ -1144,13 +1144,15 @@ class MovesenseService : LifecycleService() {
             //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!listAcc.isNullOrEmpty()) {
-                        for (acc in listAcc) {
-                            accRepository.deleteByID(acc.id)
-                        }
-                        listAcc.clear()
-                    }
+                    synchronized(listAcc) {
 
+                        if (!listAcc.isNullOrEmpty()) {
+                            for (acc in listAcc) {
+                                accRepository.deleteByID(acc.id)
+                            }
+                            listAcc.clear()
+                        }
+                    }
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
 
@@ -1174,12 +1176,15 @@ class MovesenseService : LifecycleService() {
             //Se a resposta for ok, então vai percorrer a listaGyro e vai remover todos os dados da room table.
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!listGyro.isNullOrEmpty()) {
-                        for (acc in listGyro) {
-                            gyroRepository.deleteByID(acc.id)
+                    synchronized(listGyro) {
+                        if (!listGyro.isNullOrEmpty()) {
+                            for (acc in listGyro) {
+                                gyroRepository.deleteByID(acc.id)
+                            }
+                            listGyro.clear()
                         }
-                        listGyro.clear()
                     }
+
 
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
@@ -1203,11 +1208,14 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataMagnResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!listMagn.isNullOrEmpty()) {
-                        for (acc in listMagn) {
-                            magnRepository.deleteByID(acc.id)
+                    synchronized(listMagn) {
+
+                        if (!listMagn.isNullOrEmpty()) {
+                            for (acc in listMagn) {
+                                magnRepository.deleteByID(acc.id)
+                            }
+                            listMagn.clear()
                         }
-                        listMagn.clear()
                     }
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
@@ -1231,11 +1239,14 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataAccResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!listECG.isNullOrEmpty()) {
-                        for (ecg in listECG) {
-                            ecgRepository.deleteByID(ecg.id)
+                    synchronized(listECG) {
+
+                        if (!listECG.isNullOrEmpty()) {
+                            for (ecg in listECG) {
+                                ecgRepository.deleteByID(ecg.id)
+                            }
+                            listECG.clear()
                         }
-                        listECG.clear()
                     }
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
@@ -1259,11 +1270,14 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataHRResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!listHr.isNullOrEmpty()) {
-                        for (acc in listHr) {
-                            hrRepository.deleteByID(acc.id)
+                    synchronized(listHr) {
+
+                        if (!listHr.isNullOrEmpty()) {
+                            for (acc in listHr) {
+                                hrRepository.deleteByID(acc.id)
+                            }
+                            listHr.clear()
                         }
-                        listHr.clear()
                     }
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
@@ -1288,12 +1302,14 @@ class MovesenseService : LifecycleService() {
         when (_uploadDataTempResponses.value) {
             is Resource.Success -> {
                 lifecycleScope.launch(Dispatchers.IO) {
+                    synchronized(listTemp) {
+
                     if (!listTemp.isNullOrEmpty()) {
                         for (temp in listTemp) {
                             tempRepository.deleteByID(temp.id)
                         }
                         listTemp.clear()
-                    }
+                    }}
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
 
