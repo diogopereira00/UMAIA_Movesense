@@ -119,7 +119,6 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
         })
     }
 
-    //TODO ADICIONAR O RESTO DOS SENSORES
 
     private fun checkIfIsActivated(currentItem: SensorSettingsClass, holder: HolderDefinicoes) {
         when (currentItem.id) {

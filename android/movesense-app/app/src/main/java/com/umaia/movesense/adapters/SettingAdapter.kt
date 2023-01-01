@@ -76,10 +76,8 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
             if (currentItem.id == Constants.SETTINGS_SENSORS) {
 
                 (context as Activity).startActivity(Intent(context,SensorSettingsActivity::class.java))
-                // TODO: Quando clicar no sensores abrir activity com a lista de sensores.
 
             } else if (currentItem.id == Constants.SETTINGS_LOGOUT) {
-                // TODO: DIALOG tem a certeza?
                 var dialog = DialogLogout(authViewModel, activity)
                 dialog.show((context as FragmentActivity).supportFragmentManager, ContentValues.TAG)
 

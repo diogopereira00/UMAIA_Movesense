@@ -71,9 +71,6 @@ class SurveysAdapter : RecyclerView.Adapter<SurveysAdapter.HolderDefinicoes> {
         currentItem.studyName?.let {
             holder.studyName.text = it
         }
-        //TODO() se o current date > endTime, closed.
-        // se o currentDate >= StartTime e <endTime running
-        // se o current date < StartTime Abre a ...
 
         val sdf = SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss")
         val startTime = sdf.parse(currentItem.startTime!!)
@@ -173,10 +170,8 @@ class SurveysAdapter : RecyclerView.Adapter<SurveysAdapter.HolderDefinicoes> {
                         SensorSettingsActivity::class.java
                     )
                 )
-                // TODO: Quando clicar no sensores abrir activity com a lista de sensores.
 
             } else if (currentItem.id == Constants.SETTINGS_LOGOUT) {
-                // TODO: DIALOG tem a certeza?
                 var dialog = DialogLogout(authViewModel, activity)
                 dialog.show((context as FragmentActivity).supportFragmentManager, ContentValues.TAG)
 

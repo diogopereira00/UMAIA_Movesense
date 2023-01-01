@@ -137,7 +137,7 @@ class MovesenseService : LifecycleService() {
 
 
     //Esta função serve para verificar, de x em x tempo, se o wifi está conectado.
-    //TODO Se o wifi tiver conectado efetuar um push de todos os dados para o servidor.
+    //Se o wifi tiver conectado efetuar um push de todos os dados para o servidor.
     private fun createTimer() {
         val mainHandler = Handler(Looper.getMainLooper())
 
@@ -280,7 +280,7 @@ class MovesenseService : LifecycleService() {
         gv.isServiceRunning = true
 
 
-        //TODO ADICIONAR O IMU9, IMU6m, IMU GYRO, e TEMP, adicionar tambem frequencias
+
 
 //        verificarSensoresAtivados()
 
@@ -941,7 +941,6 @@ class MovesenseService : LifecycleService() {
             mImuSubscription = null
         }
     }
-    //Todo testar isto
 
     private fun addACC(acc: ACC) {
         lifecycleScope.launch(Dispatchers.IO) {

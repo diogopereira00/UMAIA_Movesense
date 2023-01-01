@@ -74,11 +74,6 @@ class SensorSettingsActivity : AppCompatActivity() {
             )
         )
 
-        //TODO The Meas/IMU -API provides a synchronized access to accelerometer, gyroscope and magnetometer datastreams for easier processing e.g. for AHRS algorithms.
-        // It is more efficient to subscribe to the IMU resource than to subscribe the individual resources separately.
-        // /Meas/IMU6: Combined Acc & Gyro
-        // /Meas/IMU6m: Combined Acc & Magn
-        // /Meas/IMU9: Combined Acc, Gyro & Magn
 
         sensorsSettingsList.add(
             SensorSettingsClass(
