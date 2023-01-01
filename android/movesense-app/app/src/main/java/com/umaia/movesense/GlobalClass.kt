@@ -36,6 +36,9 @@ class GlobalClass : Application() {
 
     var currentSurvey: Survey? = null
 
+    var useMobileDataThisTime = false
+    var foundNewStudyVersion = false
+
     private var scannerECG: Boolean? = null
     fun getscannerECG(): Boolean? {
         return scannerECG

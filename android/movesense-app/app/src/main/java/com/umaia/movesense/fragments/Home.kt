@@ -65,8 +65,8 @@ class Home : Fragment() {
 
     private var hasWifi = false
 
-    private var studyVersionDB = null
-    private var studyVersionAPI = null
+    private var studyVersionDB: Double? = null
+    private var studyVersionAPI: Double? = null
     private lateinit var networkChecker: NetworkChecker
 
     companion object Foo {
@@ -117,6 +117,8 @@ class Home : Fragment() {
         setObservers()
         var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
         checkForStudies.observe(viewLifecycleOwner, Observer { studyVersion ->
+            studyVersionDB  = studyVersion
+
             //se nao houver versao na base de dados, significa que nao há estudos
             if (studyVersion == null) {
                 //vou buscar estudos a api
@@ -131,7 +133,16 @@ class Home : Fragment() {
 //                        binding.progressBar.visible(false)
                         when (it) {
                             is Resource.Success -> {
-                                Timber.e(it.value.toString())
+                                //todo exprimentar quando tiver no servidor
+                                studyVersionAPI = it.value.version
+                                Timber.e(studyVersionAPI.toString())
+                                Timber.e(studyVersionDB.toString())
+                                if(studyVersionAPI != studyVersionDB){
+                                    gv.foundNewStudyVersion = true
+                                    checkInternetAndGetStudies()
+                                }
+                                Timber.e("api  :" +it.value.version.toDouble().toString())
+                                Timber.e("db :" + studyVersion )
 
 
                             }
@@ -317,18 +328,15 @@ class Home : Fragment() {
     private fun checkInternetAndGetStudies() {
         //se tiver internet
         if (networkChecker.hasInternet()) {
-            //verifico se tem wifi
-            if (networkChecker.hasInternetWifi()) {
+            //verifico se tem wifi,ou se optou por usar dados moveis.
+            if (networkChecker.hasInternetWifi() || gv.useMobileDataThisTime) {
                 //se tiver vou buscar todos os dados
                 viewModel.getQuestionTypes(gv.authToken)
             }
             //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
             else {
                 var dialog = DialogWifi(viewModel, (context as Activity))
-                dialog.show(
-                    (context as FragmentActivity).supportFragmentManager,
-                    ContentValues.TAG
-                )
+                dialog.show((context as FragmentActivity).supportFragmentManager, ContentValues.TAG)
             }
         }
         //se nao tiver internet, mostro um dialog que pede para ligar a internet.
