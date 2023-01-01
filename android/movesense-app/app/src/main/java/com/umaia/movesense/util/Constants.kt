@@ -7,7 +7,7 @@ object Constants {
     const val ACTION_STOP_SERVICE = "ACTION_STOP_SERVICE"
     const val ACTION_REFRESH_SERVICE = "ACTION_REFRESH_SERVICE"
 
-
+    const val PERMISSION_REQUEST_CODE = 1
     const val NOTIFICATION_CHANNEL_ID = "movesense_channel"
     const val NOTIFICATION_CHANNEL_NAME = "movesense_channel"
     const val NOTIFICATION_ID = 143

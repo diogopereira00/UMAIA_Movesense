@@ -19,6 +19,7 @@ import com.umaia.movesense.adapters.BluetoothAdapter
 import com.umaia.movesense.databinding.ActivityScanBinding
 import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.util.Constants
+import com.umaia.movesense.util.Functions.checkAndRequestPermissions
 import com.umaia.movesense.util.Functions.requestNeededPermissions
 import io.reactivex.disposables.Disposable
 
@@ -48,7 +49,8 @@ class ScanActivity : AppCompatActivity() {
         gv = application as GlobalClass
 
         bindUI()
-        requestNeededPermissions(this)
+        checkAndRequestPermissions(this)
+        //requestNeededPermissions(this)
         mBluetoothAdapter.setOnItemClickListener(object : BluetoothAdapter.onItemClickListener {
             override fun onItemClick(position: Int) {
                 if (gv.bluetoothList.size < 0)

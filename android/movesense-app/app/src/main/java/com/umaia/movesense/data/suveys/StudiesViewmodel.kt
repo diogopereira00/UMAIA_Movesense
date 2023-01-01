@@ -94,6 +94,13 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         }
     }
 
+    fun getStudyVersionById(studyID: String) : LiveData<Double>{
+        val studyVersion = MutableLiveData<Double>()
+        viewModelScope.launch {
+           studyVersion.postValue(studyRepository.getStudyVersionById(studyID))
+        }
+        return studyVersion
+    }
 
     fun getOptionTextById(optionID: Long): LiveData<String> {
         val optionText = MutableLiveData<String>()

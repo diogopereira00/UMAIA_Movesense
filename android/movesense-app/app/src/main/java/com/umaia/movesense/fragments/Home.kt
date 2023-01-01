@@ -1,6 +1,7 @@
 package com.umaia.movesense.fragments
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,13 +11,15 @@ import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.umaia.movesense.ApiViewModel
-import com.umaia.movesense.GlobalClass
+import com.quickbirdstudios.surveykit.TextChoice
+import com.umaia.movesense.*
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.acc.ACCRepository
 import com.umaia.movesense.data.gyro.GYRORepository
+import com.umaia.movesense.data.network.NetworkChecker
 import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.network.ServerApi
@@ -36,10 +39,7 @@ import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.model.MovesenseWifi
 import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.ui.SurveyActivity
-import com.umaia.movesense.ui.home.checkIntBoolean
-import com.umaia.movesense.ui.home.convertDate
-import com.umaia.movesense.ui.home.observeOnce
-import com.umaia.movesense.ui.home.startNewActivity
+import com.umaia.movesense.ui.home.*
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
@@ -63,6 +63,12 @@ class Home : Fragment() {
 
     private var countAcc: Int = 0
 
+    private var hasWifi = false
+
+    private var studyVersionDB = null
+    private var studyVersionAPI = null
+    private lateinit var networkChecker: NetworkChecker
+
     companion object Foo {
         var s_INSTANCE: Home? = null
     }
@@ -83,6 +89,8 @@ class Home : Fragment() {
 
         binding = FragmentHomeBinding.inflate(layoutInflater)
         gv = activity?.application as GlobalClass
+        networkChecker = NetworkChecker(requireContext())
+
         Timber.e("Atenção ->>>>>>>>>>>>>>>>>>>> ${gv.getscannerECG()}")
         val accDao = AppDataBase.getDatabase(requireContext()).accDao()
         accRepository = ACCRepository(accDao)
@@ -107,8 +115,34 @@ class Home : Fragment() {
 
 
         setObservers()
-        viewModel.getQuestionTypes(gv.authToken)
-        var studyVersion = viewModel.getStudyVersion(studyID = "3", authToken = gv.authToken)
+        var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
+        checkForStudies.observe(viewLifecycleOwner, Observer { studyVersion ->
+            //se nao houver versao na base de dados, significa que nao há estudos
+            if (studyVersion == null) {
+                //vou buscar estudos a api
+                checkInternetAndGetStudies()
+
+            } else {
+                //se ja houver estudos, verifico a versão se é igual a do servidor
+                if (networkChecker.hasInternet()) {
+
+                    viewModel.getStudyVersion(studyID = "3", authToken = gv.authToken)
+                    viewModel.getStudyVersionResponse.observe(viewLifecycleOwner, Observer {
+//                        binding.progressBar.visible(false)
+                        when (it) {
+                            is Resource.Success -> {
+                                Timber.e(it.value.toString())
+
+
+                            }
+                            is Resource.Failure -> {
+                                Timber.e("Erro")
+                            }
+                        }
+                    })
+                }
+            }
+        })
         s_INSTANCE = this
         updateHR()
 
@@ -119,7 +153,14 @@ class Home : Fragment() {
             sendCommandToService(Constants.ACTION_STOP_SERVICE)
         }
 
-        //TODO adiconar o resto dos sensores, efetuar mais alguns testes, e mudar o nome da resposta.
+
+
+
+
+
+
+
+
         binding.buttonTest.setOnClickListener {
 //
             val intent = Intent(context, SurveyActivity::class.java)
@@ -271,6 +312,35 @@ class Home : Fragment() {
             }
         }
         return binding.root
+    }
+
+    private fun checkInternetAndGetStudies() {
+        //se tiver internet
+        if (networkChecker.hasInternet()) {
+            //verifico se tem wifi
+            if (networkChecker.hasInternetWifi()) {
+                //se tiver vou buscar todos os dados
+                viewModel.getQuestionTypes(gv.authToken)
+            }
+            //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
+            else {
+                var dialog = DialogWifi(viewModel, (context as Activity))
+                dialog.show(
+                    (context as FragmentActivity).supportFragmentManager,
+                    ContentValues.TAG
+                )
+            }
+        }
+        //se nao tiver internet, mostro um dialog que pede para ligar a internet.
+        else {
+            var dialog = DialogInternet(viewModel, (context as Activity))
+            dialog.show(
+                (context as FragmentActivity).supportFragmentManager,
+                ContentValues.TAG
+            )
+
+//            checkInternetAndGetStudies()
+        }
     }
 
 

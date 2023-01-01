@@ -41,6 +41,7 @@ import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.temp.TEMP
 import com.umaia.movesense.data.temp.TEMPRepository
+import com.umaia.movesense.model.MovesenseInternet
 import com.umaia.movesense.ui.home.observeOnce
 
 class MovesenseService : LifecycleService() {
@@ -49,7 +50,7 @@ class MovesenseService : LifecycleService() {
         val moveSenseEvent = MutableLiveData<MoveSenseEvent>()
         val movesenseHeartRate = MutableLiveData<Hr>()
         val movesenseWifi = MutableLiveData<MovesenseWifi>()
-
+        val movesenseInternet =  MutableLiveData<MovesenseInternet>()
     }
 
     private lateinit var readAllData: LiveData<List<Hr>>
@@ -146,7 +147,7 @@ class MovesenseService : LifecycleService() {
                 if (!gv.isLiveDataActivated) {
                     Timber.e("LiveData Desativo")
 
-                    if (networkChecker.hasInternet()) {
+                    if (networkChecker.hasInternetWifi()) {
                         movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
                         sendDataToServer()
 

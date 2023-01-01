@@ -3,6 +3,7 @@ package com.umaia.movesense.ui
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -33,10 +34,12 @@ class SurveyActivity : AppCompatActivity() {
 
     private var steps: MutableList<Step> = mutableListOf()
 
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_FOLLOW_SYSTEM)
-//    }
+    override fun onStop() {
+        super.onStop()
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
+
+    }
 
     override fun onStart() {
         super.onStart()
@@ -165,6 +168,8 @@ class SurveyActivity : AppCompatActivity() {
 
         surveyView.onSurveyFinish = { taskResult: TaskResult, reason: FinishReason ->
             if (reason == FinishReason.Completed) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
                 taskResult.results.forEach { stepResult ->
                     Timber.e("answer ${stepResult.results.firstOrNull()}")
                 }
