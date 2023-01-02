@@ -1116,7 +1116,7 @@ class MovesenseService : LifecycleService() {
                         notification =
                             NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
                                 .setContentTitle(title).setContentText(description)
-                                .setSmallIcon(icon).setPriority(128).setContentIntent(pendingIntent)
+                                .setSmallIcon(icon).setPriority(128).setContentIntent(pendingIntent).setOngoing(true)
                                 .build()
 
                         startForeground(Constants.NOTIFICATION_ID, notification)
