@@ -11,9 +11,9 @@ class OptionRepository(private val optionDao: OptionDao) {
         optionDao.addOption(option)
     }
 
-    suspend fun getOptionByQuestionID(questionId: Long) : List<Option>{
-         return optionDao.getOptionByQuestionID(questionId)
-    }
+//    suspend fun getOptionByQuestionID(questionId: Long) : List<Option>{
+//         return optionDao.getOptionByQuestionID(questionId)
+//    }
 
     suspend fun  getOptionTextById(optionID: Long) : String{
         return optionDao.getOptionTextById(optionID)
@@ -21,5 +21,9 @@ class OptionRepository(private val optionDao: OptionDao) {
 
     fun getOptionByID(optionID: Long) : Flow<Option> {
         return optionDao.getOptionByID(optionID)
+    }
+
+    fun getOptionByQuestionID(id: String) : Flow<List<Option>> {
+        return optionDao.getOptionByQuestionID(id)
     }
 }

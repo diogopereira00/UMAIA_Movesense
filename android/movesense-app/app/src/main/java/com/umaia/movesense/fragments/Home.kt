@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.quickbirdstudios.surveykit.TextChoice
 import com.umaia.movesense.*
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.acc.ACCRepository
@@ -43,7 +42,6 @@ import com.umaia.movesense.ui.home.*
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
-import java.net.IDN
 
 
 class Home : Fragment() {
@@ -68,6 +66,8 @@ class Home : Fragment() {
     private var studyVersionDB: Double? = null
     private var studyVersionAPI: Double? = null
     private lateinit var networkChecker: NetworkChecker
+
+    private lateinit var survey: com.umaia.movesense.data.responses.studies_response.Survey
 
     companion object Foo {
         var s_INSTANCE: Home? = null
@@ -115,9 +115,11 @@ class Home : Fragment() {
 
 
         setObservers()
+
+        //TODO : mover isto para o splashscree se o login tiver efetuado, se nao faz login e faz pedido tambem
         var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
         checkForStudies.observe(viewLifecycleOwner, Observer { studyVersion ->
-            studyVersionDB  = studyVersion
+            studyVersionDB = studyVersion
 
             //se nao houver versao na base de dados, significa que nao há estudos
             if (studyVersion == null) {
@@ -137,12 +139,18 @@ class Home : Fragment() {
                                 studyVersionAPI = it.value.version
                                 Timber.e(studyVersionAPI.toString())
                                 Timber.e(studyVersionDB.toString())
-                                if(studyVersionAPI != studyVersionDB){
+                                if (studyVersionAPI != studyVersionDB) {
                                     gv.foundNewStudyVersion = true
                                     checkInternetAndGetStudies()
                                 }
-                                Timber.e("api  :" +it.value.version.toDouble().toString())
-                                Timber.e("db :" + studyVersion )
+                                else{
+                                    if(gv.currentSurvey == null){
+                                        getSurvey(4)
+
+                                    }
+                                }
+                                Timber.e("api  :" + it.value.version.toDouble().toString())
+                                Timber.e("db :" + studyVersion)
 
 
                             }
@@ -153,6 +161,7 @@ class Home : Fragment() {
                     })
                 }
             }
+
         })
         s_INSTANCE = this
         updateHR()
@@ -172,8 +181,17 @@ class Home : Fragment() {
 
 
 
+
+
+
+
         binding.buttonTest.setOnClickListener {
 //
+            gv.currentSurveyID = 3
+            if(gv.currentSurvey == null){
+                gv.currentSurvey  = survey
+
+            }
             val intent = Intent(context, SurveyActivity::class.java)
             startActivity(intent)
 //            (context as Activity).startNewActivity(SurveyActivity::class.java)
@@ -181,6 +199,10 @@ class Home : Fragment() {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
         }
+
+
+
+
         viewModel.getQuestionTypes.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
@@ -259,9 +281,7 @@ class Home : Fragment() {
                                     expected_time = survey.survey_expected_time
                                 )
                             )
-                            if (survey.surveys_id === 4) {
-                                gv.currentSurvey = survey
-                            }
+
 
                             val surveyId = survey.surveys_id
                             for (section in survey.sections) {
@@ -313,7 +333,10 @@ class Home : Fragment() {
                             )
                         )
                     }
+                    if(gv.currentSurvey == null){
+                        getSurvey(4)
 
+                    }
 
                 }
                 is Resource.Failure -> {
@@ -324,6 +347,7 @@ class Home : Fragment() {
         }
         return binding.root
     }
+
 
     private fun checkInternetAndGetStudies() {
         //se tiver internet
@@ -349,6 +373,96 @@ class Home : Fragment() {
 
 //            checkInternetAndGetStudies()
         }
+    }
+
+
+    private fun getSurvey(id: Long) {
+        viewModelStudies.getSurveyByID(id)
+        viewModelStudies.surveyItem.observe(
+            viewLifecycleOwner,
+            Observer { surveyInfo ->
+                Timber.e(surveyInfo.title)
+                survey = com.umaia.movesense.data.responses.studies_response.Survey(
+                    sections = mutableListOf<com.umaia.movesense.data.responses.studies_response.Section>(),
+                    survey_description = surveyInfo.description!!,
+                    survey_expected_time = surveyInfo.expected_time!!,
+                    survey_title = surveyInfo.title!!,
+                    surveys_id = surveyInfo.id.toInt()!!
+                )
+                Timber.e(survey.survey_title)
+
+                //    val step1 = InitialStep(
+                //        title = survey.survey_title,
+                //        text = survey.survey_description,
+                //        expectedTime = survey.survey_expected_time,
+                //        buttonText = getString(R.string.start)
+                //    )
+                //    steps.add(step1)
+                viewModelStudies.getSectionsByID(surveyInfo.id)
+
+            })
+
+        viewModelStudies.sectionItem.observe(viewLifecycleOwner, Observer { sections ->
+            Timber.e(sections[0].name)
+            for (section in sections) {
+                survey.sections.add(
+                    com.umaia.movesense.data.responses.studies_response.Section(
+                        section_id = section.id.toInt(),
+                        section_name = section.name!!,
+                        questions = mutableListOf<com.umaia.movesense.data.responses.studies_response.Question>()
+                    )
+                )
+
+                viewModelStudies.getQuestionsBySectionID(section.id)
+            }
+            Timber.e(survey.sections[0].section_name)
+
+        })
+// Declare optionsByQuestionId in a higher scope so that it can be accessed by both observers
+        val optionsByQuestionId = mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
+
+        viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
+            Timber.e(questions[0].text)
+
+            // Add the questions to the survey
+            for (section in survey.sections) {
+                for (question in questions) {
+                    if (section.section_id == question.section_id!!.toInt()) {
+                        val newQuestion = com.umaia.movesense.data.responses.studies_response.Question(
+                            options = mutableListOf(),
+                            question_id = question.id.toInt(),
+                            question_text = question.text!!,
+                            question_type_id = question.question_type_id!!.toInt()
+                        )
+                        survey.sections[survey.sections.indexOf(section)].questions.add(newQuestion)
+
+                        // Store the options for this question in the map
+                        optionsByQuestionId[question.id.toInt()] = newQuestion.options
+                    }
+                }
+            }
+
+            // Retrieve the options for each question
+            for (question in questions) {
+                viewModelStudies.getQuestionOptions(question.id)
+            }
+        })
+
+        viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
+            Timber.e(options[0].option_id.toString())
+
+            // Add the options to the correct question using the map
+            optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
+                com.umaia.movesense.data.responses.studies_response.Option(
+                    option_id = it.option_id!!.toInt()
+                )
+            })
+        })
+
+
+        viewModelStudies.optionQuestionIDItem.observeOnce(this@Home, Observer { option ->
+            Timber.e(option[0].text)
+        })
     }
 
 

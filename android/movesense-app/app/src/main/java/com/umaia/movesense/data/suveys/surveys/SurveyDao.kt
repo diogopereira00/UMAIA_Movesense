@@ -1,13 +1,16 @@
 package com.umaia.movesense.data.suveys.surveys
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
+import androidx.room.*
 import com.umaia.movesense.data.suveys.studies.Study
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SurveyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addSurvey(survey: Survey)
 
+
+    @Transaction
+    @Query("SELECT * FROM surveys_table where id = :id")
+    fun getSurveyByID(id: String) : Flow<Survey>
 }

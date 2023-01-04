@@ -2,8 +2,6 @@ package com.umaia.movesense.data.suveys
 
 import QuestionTypesRepository
 import android.app.Application
-import android.graphics.Path.Op
-import android.view.KeyEvent.DispatcherState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.umaia.movesense.data.suveys.studies.StudyRepository
@@ -29,10 +27,7 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.Dispatcher
 
 class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val studyRepository: StudyRepository
@@ -81,18 +76,8 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         }
     }
 
-    val _options = MutableLiveData<List<Option>>()
-    val options: LiveData<List<Option>>
-        get() = _options
 
-    fun getOptionByQuestionID(questionID: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val options = optionRepository.getOptionByQuestionID(questionID)
-            withContext(Dispatchers.Main) {
-                _options.value = options
-            }
-        }
-    }
+
 
     fun getStudyVersionById(studyID: String) : LiveData<Double>{
         val studyVersion = MutableLiveData<Double>()
@@ -121,6 +106,70 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
             }
         }
         return option
+    }
+
+    val surveyItem = MutableLiveData<Survey>()
+
+    fun getSurveyByID(surveyID: Long){
+//        val option = MutableLiveData<Survey>()
+        viewModelScope.launch {
+            var survey = surveyRepository.getSurveyByID(surveyID.toString()).collect { item ->
+                surveyItem.postValue(item)
+
+            }
+        }
+//        return option
+    }
+
+
+    val sectionItem = MutableLiveData<List<Section>>()
+
+    fun getSectionsByID(surveyID: Long){
+        val sections = mutableListOf<Section>()
+        viewModelScope.launch {
+                sectionRepository.getSectionsByID(surveyID.toString()).collect { item ->
+                    sections.addAll(item)
+                    sectionItem.postValue(sections)
+                }
+        }
+    }
+
+    val questionsItem = MutableLiveData<List<Question>>()
+
+    fun getQuestionsBySectionID(sectionID: Long){
+        val questions = mutableListOf<Question>()
+        viewModelScope.launch {
+            questionRepository.getQuestionsBySectionID(sectionID.toString()).collect { item ->
+                questions.addAll(item)
+                questionsItem.postValue(questions)
+            }
+        }
+    }
+
+    val optionQuestionIDItem = MutableLiveData<List<Option>>()
+
+    fun getOptionsByQuestionID(questionID: Long): MutableList<Option> {
+        val options = mutableListOf<Option>()
+        viewModelScope.launch {
+            optionRepository.getOptionByQuestionID(questionID.toString()).collect { item ->
+                options.addAll(item)
+                optionQuestionIDItem.postValue(options)
+            }
+        }
+        return options
+    }
+
+    val questionOptionItem = MutableLiveData<List<QuestionOption>>()
+
+    fun getQuestionOptions(questionID: Long): MutableList<QuestionOption> {
+        val questionOptions = mutableListOf<QuestionOption>()
+        viewModelScope.launch {
+            questionOptionRepository.getOptionsFromQuestions(questionID.toString()).collect { item ->
+                questionOptions.addAll(item)
+                questionOptionItem.postValue(questionOptions)
+            }
+        }
+        return questionOptions
     }
 
     fun studyAdd(study: Study) {

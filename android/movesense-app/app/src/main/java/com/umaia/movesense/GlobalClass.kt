@@ -35,6 +35,7 @@ class GlobalClass : Application() {
     var authToken = ""
 
     var currentSurvey: Survey? = null
+    var currentSurveyID : Long? =null
 
     var useMobileDataThisTime = false
     var foundNewStudyVersion = false

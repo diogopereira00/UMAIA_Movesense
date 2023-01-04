@@ -5,8 +5,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.umaia.movesense.data.acc.ACC
 import com.umaia.movesense.data.hr.Hr
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StudyDao {
@@ -15,4 +17,6 @@ interface StudyDao {
 
     @Query("SELECT version FROM studies_table WHERE id = :id")
     suspend fun getVersionByID(id : String): Double
+
+
 }

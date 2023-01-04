@@ -1,7 +1,10 @@
 package com.umaia.movesense.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.util.AttributeSet
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -18,6 +21,10 @@ import com.quickbirdstudios.surveykit.survey.SurveyView
 import com.umaia.movesense.GlobalClass
 import com.umaia.movesense.R
 import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.data.responses.studies_response.Option
+import com.umaia.movesense.data.responses.studies_response.Question
+import com.umaia.movesense.data.responses.studies_response.Section
+import com.umaia.movesense.data.responses.studies_response.Survey
 import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.databinding.ActivitySurveyBinding
 import com.umaia.movesense.ui.home.observeOnce
@@ -34,6 +41,8 @@ class SurveyActivity : AppCompatActivity() {
 
     private var steps: MutableList<Step> = mutableListOf()
 
+    private lateinit var survey: Survey
+
     override fun onStop() {
         super.onStop()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -41,10 +50,8 @@ class SurveyActivity : AppCompatActivity() {
 
     }
 
-    override fun onStart() {
-        super.onStart()
 
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,7 +208,7 @@ class SurveyActivity : AppCompatActivity() {
         val handler = Handler()
         handler.postDelayed(Runnable {
             steps.add(complete)
-        }, 5000) //5 seconds
+        }, 1000) //5 seconds
 
         val task = OrderedTask(steps = steps)
 

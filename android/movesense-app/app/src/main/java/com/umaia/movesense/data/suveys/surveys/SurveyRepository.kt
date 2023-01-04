@@ -5,6 +5,7 @@ import com.umaia.movesense.data.suveys.studies.StudyDao
 
 
 import com.umaia.movesense.data.suveys.surveys.SurveyDao
+import kotlinx.coroutines.flow.Flow
 
 class SurveyRepository(private val surveyDao: SurveyDao) {
 
@@ -16,5 +17,9 @@ class SurveyRepository(private val surveyDao: SurveyDao) {
 
     suspend fun add(survey: Survey){
         surveyDao.addSurvey(survey)
+    }
+
+    fun getSurveyByID(id: String) : Flow<Survey> {
+        return surveyDao.getSurveyByID(id)
     }
 }
