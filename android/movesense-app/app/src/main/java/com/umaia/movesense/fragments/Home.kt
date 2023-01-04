@@ -143,6 +143,7 @@ class Home : Fragment() {
                                     gv.foundNewStudyVersion = true
                                     checkInternetAndGetStudies()
                                 }
+                                //Os estudos nao foram alterados, então uso a base de dados local e guardo o current survey.
                                 else{
                                     if(gv.currentSurvey == null){
                                         getSurvey(4)
@@ -172,42 +173,25 @@ class Home : Fragment() {
         binding.buttonStop.setOnClickListener {
             sendCommandToService(Constants.ACTION_STOP_SERVICE)
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
         binding.buttonTest.setOnClickListener {
-//
             gv.currentSurveyID = 3
             if(gv.currentSurvey == null){
                 gv.currentSurvey  = survey
-
             }
             val intent = Intent(context, SurveyActivity::class.java)
             startActivity(intent)
-//            (context as Activity).startNewActivity(SurveyActivity::class.java)
             if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
         }
 
-
-
-
+        //Vai buscar o tipo de perguntas
         viewModel.getQuestionTypes.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
                     val response = it.value
                     for (type in response.types) {
+                        //Adiciona os tipos de perguntas a base de dados room
                         viewModelStudies.addTypes(
                             QuestionTypes(
                                 id = type.id.toLong(),
@@ -215,6 +199,7 @@ class Home : Fragment() {
                             )
                         )
                     }
+                    //Pede as opçoes
                     viewModel.getOptions(gv.authToken)
                 }
                 is Resource.Failure -> {
@@ -222,11 +207,13 @@ class Home : Fragment() {
                 }
             }
         }
+        //Vai buscar as opções
         viewModel.getOptionsReponse.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
                     val response = it.value
                     for (option in response.options) {
+                        //Adiciona todas as opções a base de dados room
                         viewModelStudies.optionAdd(
                             Option(
                                 id = option.id.toLong(),
@@ -236,6 +223,7 @@ class Home : Fragment() {
                             )
                         )
                     }
+                    //Pede todos os estudos do utilizador
                     viewModel.getAllStudiesFromId(gv.userID, gv.authToken)
 
 
@@ -246,12 +234,14 @@ class Home : Fragment() {
                 }
             }
         }
+        //Recebe todos os estudos do utilizador
         viewModel.getAllStudiesFromUserIDReponse.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
                     val studies = it.value
                     //Percorre todos os estudos do user
                     for (study in studies) {
+                        //Adiciona todos os estudos a base de dados room
                         viewModelStudies.studyAdd(
                             Study(
                                 id = study.study_id.toLong(),
@@ -262,6 +252,7 @@ class Home : Fragment() {
                                 version = study.study_version
                             )
                         )
+                        //adiciona os estudos dos utilizador a base dados room
                         viewModelStudies.userStudysAdd(
                             UserStudies(
                                 user_id = gv.userID,
@@ -271,7 +262,7 @@ class Home : Fragment() {
                         var studyID = study.study_id
                         //Percorre todos os questionarios dos estudos
                         for (survey in study.surveys) {
-
+                            //Adiciona todos os surveys dos studies
                             viewModelStudies.surveyAdd(
                                 Survey(
                                     id = survey.surveys_id.toLong(),
@@ -285,6 +276,7 @@ class Home : Fragment() {
 
                             val surveyId = survey.surveys_id
                             for (section in survey.sections) {
+                                //Adiciona todas as secções aos dos surveys
                                 viewModelStudies.sectionAdd(
                                     Section(
                                         id = section.section_id.toLong(),
@@ -294,6 +286,7 @@ class Home : Fragment() {
                                 )
                                 val sectionID = section.section_id
                                 for (question in section.questions) {
+                                    //Adiciona todas as questoes aos das secçoes
                                     viewModelStudies.questionAdd(
                                         Question(
                                             id = question.question_id.toLong(),
@@ -307,7 +300,7 @@ class Home : Fragment() {
                         }
 
                     }
-
+                    //Pede as opçoes de cada pergunta
                     viewModel.getQuestionOptions(gv.authToken)
 
 
@@ -320,11 +313,13 @@ class Home : Fragment() {
                 }
             }
         }
+        //Recebe as opções das perguntas
         viewModel.getQuestionOptions.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Success -> {
                     val response = it.value
                     for (questionOption in response.question_options) {
+                        //Adiciona as opções a cada pergunta
                         viewModelStudies.questionOptionsAdd(
                             QuestionOption(
                                 id = questionOption.id.toLong(),
@@ -333,6 +328,7 @@ class Home : Fragment() {
                             )
                         )
                     }
+                    //Houveram alterações então o current survey é alterado.
                     if(gv.currentSurvey == null){
                         getSurvey(4)
 
