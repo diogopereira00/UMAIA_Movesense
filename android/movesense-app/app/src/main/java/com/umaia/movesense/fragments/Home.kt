@@ -137,8 +137,6 @@ class Home : Fragment() {
                             is Resource.Success -> {
                                 //todo exprimentar quando tiver no servidor
                                 studyVersionAPI = it.value.version
-                                Timber.e(studyVersionAPI.toString())
-                                Timber.e(studyVersionDB.toString())
                                 if (studyVersionAPI != studyVersionDB) {
                                     gv.foundNewStudyVersion = true
                                     checkInternetAndGetStudies()
@@ -150,8 +148,8 @@ class Home : Fragment() {
 
                                     }
                                 }
-                                Timber.e("api  :" + it.value.version.toDouble().toString())
-                                Timber.e("db :" + studyVersion)
+                                Timber.e("api: " + it.value.version.toString())
+                                Timber.e("db: " + studyVersion)
 
 
                             }
@@ -377,7 +375,7 @@ class Home : Fragment() {
         viewModelStudies.surveyItem.observe(
             viewLifecycleOwner,
             Observer { surveyInfo ->
-                Timber.e(surveyInfo.title)
+//                Timber.e(surveyInfo.title)
                 survey = com.umaia.movesense.data.responses.studies_response.Survey(
                     sections = mutableListOf<com.umaia.movesense.data.responses.studies_response.Section>(),
                     survey_description = surveyInfo.description!!,
@@ -385,7 +383,7 @@ class Home : Fragment() {
                     survey_title = surveyInfo.title!!,
                     surveys_id = surveyInfo.id.toInt()!!
                 )
-                Timber.e(survey.survey_title)
+//                Timber.e(survey.survey_title)
 
                 //    val step1 = InitialStep(
                 //        title = survey.survey_title,
@@ -399,7 +397,7 @@ class Home : Fragment() {
             })
 
         viewModelStudies.sectionItem.observe(viewLifecycleOwner, Observer { sections ->
-            Timber.e(sections[0].name)
+//            Timber.e(sections[0].name)
             for (section in sections) {
                 survey.sections.add(
                     com.umaia.movesense.data.responses.studies_response.Section(
@@ -411,14 +409,14 @@ class Home : Fragment() {
 
                 viewModelStudies.getQuestionsBySectionID(section.id)
             }
-            Timber.e(survey.sections[0].section_name)
+//            Timber.e(survey.sections[0].section_name)
 
         })
 // Declare optionsByQuestionId in a higher scope so that it can be accessed by both observers
         val optionsByQuestionId = mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
 
         viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
-            Timber.e(questions[0].text)
+//            Timber.e(questions[0].text)
 
             // Add the questions to the survey
             for (section in survey.sections) {
@@ -445,7 +443,7 @@ class Home : Fragment() {
         })
 
         viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
-            Timber.e(options[0].option_id.toString())
+//            Timber.e(options[0].option_id.toString())
 
             // Add the options to the correct question using the map
             optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
@@ -455,10 +453,6 @@ class Home : Fragment() {
             })
         })
 
-
-        viewModelStudies.optionQuestionIDItem.observeOnce(this@Home, Observer { option ->
-            Timber.e(option[0].text)
-        })
     }
 
 
