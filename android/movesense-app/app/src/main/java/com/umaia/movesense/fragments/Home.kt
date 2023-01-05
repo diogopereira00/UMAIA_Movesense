@@ -245,6 +245,7 @@ class Home : Fragment() {
                                 id = study.study_id.toLong(),
                                 name = study.study_name,
                                 description = study.study_description,
+                                adminPassword = study.study_adminPassword,
                                 start_date = convertDate(study.study_startdate).time,
                                 end_date = convertDate(study.study_enddate).time,
                                 version = study.study_version

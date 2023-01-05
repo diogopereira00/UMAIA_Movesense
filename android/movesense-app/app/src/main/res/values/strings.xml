@@ -23,6 +23,8 @@
         \nPor favor, leia atentamente a nossa Política de Privacidade antes de conceder o seu consentimento para a coleta de dados. Se você tiver alguma dúvida sobre como utilizaremos os seus dados, não hesite em entrar em contato atraves de <b>email@umaia.pt</b>.
         \n\nAo clicar no botão abaixo, está a consentir a coleta dos dados  para os fins descritos em cima. Se optar por não conceder o seu consentimento, infelizmente não poderá participar nesta investigação científica.
 </string>
+    <string name="admin_pin_hint">Introduza a password de administrador para prosseguir</string>
+    <string name="submit">Submeter</string>
     <string-array name="Tamanho">
         <item>37</item>
         <item>37.5</item>

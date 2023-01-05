@@ -9,10 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.umaia.movesense.ApiViewModel
-import com.umaia.movesense.DialogLogout
-import com.umaia.movesense.GlobalClass
-import com.umaia.movesense.SensorSettingsActivity
+import com.umaia.movesense.*
 import com.umaia.movesense.databinding.ItemDefinicoesBinding
 import com.umaia.movesense.model.SettingsClass
 import com.umaia.movesense.util.Constants
@@ -74,8 +71,9 @@ class SettingsAdapter : RecyclerView.Adapter<SettingsAdapter.HolderDefinicoes> {
 
         binding.layout.setOnClickListener {
             if (currentItem.id == Constants.SETTINGS_SENSORS) {
-
-                (context as Activity).startActivity(Intent(context,SensorSettingsActivity::class.java))
+                var dialog = AdminPinDialog(authViewModel, activity)
+                dialog.show((context as FragmentActivity).supportFragmentManager, ContentValues.TAG)
+//                (context as Activity).startActivity(Intent(context,SensorSettingsActivity::class.java))
 
             } else if (currentItem.id == Constants.SETTINGS_LOGOUT) {
                 var dialog = DialogLogout(authViewModel, activity)

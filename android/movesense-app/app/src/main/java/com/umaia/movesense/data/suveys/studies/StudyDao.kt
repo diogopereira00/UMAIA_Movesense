@@ -18,5 +18,8 @@ interface StudyDao {
     @Query("SELECT version FROM studies_table WHERE id = :id")
     suspend fun getVersionByID(id : String): Double
 
+    @Query("SELECT adminPassword from studies_table where id = :id")
+    suspend fun getAdminPassword(id: String) : String
+
 
 }

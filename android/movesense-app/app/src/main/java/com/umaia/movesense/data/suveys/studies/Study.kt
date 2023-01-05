@@ -14,6 +14,7 @@ data class Study(
     val id: Long = 0,
     val name: String? = "",
     val description: String? = "",
+    val adminPassword: String? = "",
     val start_date: Long? = null ,
     val end_date: Long? = null,
     val version : Double? = 0.0

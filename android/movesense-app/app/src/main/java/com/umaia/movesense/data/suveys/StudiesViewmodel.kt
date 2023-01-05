@@ -77,12 +77,18 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     }
 
 
-
-
     fun getStudyVersionById(studyID: String) : LiveData<Double>{
         val studyVersion = MutableLiveData<Double>()
         viewModelScope.launch {
-           studyVersion.postValue(studyRepository.getStudyVersionById(studyID))
+            studyVersion.postValue(studyRepository.getStudyVersionById(studyID))
+        }
+        return studyVersion
+    }
+
+    fun getStudyAdminPassword(studyID: String) : LiveData<String>{
+        val studyVersion = MutableLiveData<String>()
+        viewModelScope.launch {
+           studyVersion.postValue(studyRepository.getAdminPasswordStudy(studyID))
         }
         return studyVersion
     }
