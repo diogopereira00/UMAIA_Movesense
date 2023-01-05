@@ -34,12 +34,19 @@ class SplashScreenActivity : AppCompatActivity() {
 
         userPreferences = UserPreferences(this)
 
+        userPreferences.consent.asLiveData().observe(this){ isActivated ->
+            if (isActivated != null) {
+                gv.consent = isActivated
+            }
+        }
+
         userPreferences.token.asLiveData().observe(this) { token ->
             val activity =
                 if (token.isNullOrEmpty())
                     startNewActivityFromSplash(LoginActivity::class.java)
                 else if(!gv.consent){
                     startNewActivityFromSplash(ConsentActivity::class.java)
+                    gv.authToken = token
                 }
                 else if (!gv.connected) {
                     startNewActivityFromSplash(ScanActivity::class.java)
@@ -51,11 +58,7 @@ class SplashScreenActivity : AppCompatActivity() {
             Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
         }
 
-        userPreferences.consent.asLiveData().observe(this){ isActivated ->
-            if (isActivated != null) {
-                gv.consent = isActivated
-            }
-        }
+
 
         userPreferences.userid.asLiveData().observe(this) { userID ->
             if (!userID.isNullOrEmpty()) {
