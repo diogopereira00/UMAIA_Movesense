@@ -15,7 +15,14 @@
     <string name="start">Iniciar questionario</string>
     <string name="yes">Sim</string>
     <string name="expectedTime">Tempo estimado</string>
-
+    <string name="accept_consent">Aceito</string>
+    <string name="consent_title">Declaração de consentimento</string>
+    <string name="consent_explanation">"Obrigado por participar neste estudo. Antes de prosseguir, gostaríamos de lhe explicar como utilizaremos os dados coletados pela aplicação e pelo dispositivo Movesense.
+        \nO Movesense é capaz de coletar uma ampla variedade de dados, incluindo informações do acelerômetro, giroscópio, magnetômetro, e frequência cardíaca. Utilizaremos esses dados para realizar estudos cientificos sobre o exercício físico e a saúde. Também poderemos utilizar esses dados para publicar artigos científicos e para apresentar os nossos resultados em conferências.
+        \nProtegeremos os seus dados de acordo com as leis de privacidade aplicáveis e os nossos padrões éticos. Os seus dados serão armazenados de forma segura e só serão acessados pelos membros da equipe de pesquisa autorizados. Os seus dados serão identificados apenas por um número de identificação e não serão relacionados com o seu nome ou qualquer outra informação pessoal.
+        \nPor favor, leia atentamente a nossa Política de Privacidade antes de conceder o seu consentimento para a coleta de dados. Se você tiver alguma dúvida sobre como utilizaremos os seus dados, não hesite em entrar em contato atraves de <b>email@umaia.pt</b>.
+        \n\nAo clicar no botão abaixo, está a consentir a coleta dos dados  para os fins descritos em cima. Se optar por não conceder o seu consentimento, infelizmente não poderá participar nesta investigação científica.
+</string>
     <string-array name="Tamanho">
         <item>37</item>
         <item>37.5</item>

@@ -281,7 +281,7 @@ class MovesenseService : LifecycleService() {
 
 
 
-
+//TODO:
 //        verificarSensoresAtivados()
 
 
@@ -293,7 +293,6 @@ class MovesenseService : LifecycleService() {
             enableImu9()
         } else if (gv.isAccActivated && gv.isMagnActivated) {
             enableImu6m()
-
         } else if (gv.isAccActivated && gv.isGyroActivated) {
             enableImu6()
         } else if (gv.isAccActivated) {

@@ -13,6 +13,14 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     val datastore = UserPreferences(application)
 
+    val getConsentStatus = datastore.liveData.asLiveData(Dispatchers.IO)
+    fun setConsentStatus(isActivated: Boolean){
+        viewModelScope.launch {
+            datastore.saveConsentStatus(isActivated)
+        }
+    }
+
+
     val getLiveDataStatus = datastore.liveData.asLiveData(Dispatchers.IO)
     fun setLiveDataStatus(isActivated : Boolean){
         viewModelScope.launch {

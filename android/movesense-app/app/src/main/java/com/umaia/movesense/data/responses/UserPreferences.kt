@@ -17,6 +17,18 @@ class UserPreferences(
 
     private val applicationContext = context.applicationContext
 
+    //Consentimento de Recolha de dados
+    val consent : Flow<Boolean?>
+    get() = applicationContext.dataStore.data.map { preferences ->
+        preferences[KEY_CONSENT]
+    }
+    suspend fun saveConsentStatus(isActivated: Boolean){
+        applicationContext.dataStore.edit { preferences ->
+            preferences[KEY_CONSENT] = isActivated
+        }
+    }
+
+
 
     //Auth Token
     val token: Flow<String?>
@@ -149,6 +161,7 @@ class UserPreferences(
     companion object {
         private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_AUTH = stringPreferencesKey("key_auth")
+        private val KEY_CONSENT = booleanPreferencesKey("key_consent")
         private val KEY_LIVE_DATA = booleanPreferencesKey("key_live_data")
         private val KEY_ACC_STATUS = booleanPreferencesKey("key_acc_status")
         private val KEY_GYRO_STATUS = booleanPreferencesKey("key_gyro_status")

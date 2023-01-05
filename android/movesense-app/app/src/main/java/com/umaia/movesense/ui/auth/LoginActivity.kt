@@ -14,6 +14,7 @@ import com.umaia.movesense.data.network.RemoteDataSource
 import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.ui.ConsentActivity
 import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.ui.home.visible
 import com.umaia.movesense.util.ViewModelFactory
@@ -60,7 +61,13 @@ open class LoginActivity : AppCompatActivity() {
                     viewModel.saveUserID(it.value.user.id)
                     gv.userID = it.value.user.id
                     gv.authToken = it.value.user.access_token
-                    this@LoginActivity.startNewActivity(ScanActivity::class.java)
+
+                    if(gv.consent){
+                        this@LoginActivity.startNewActivity(ScanActivity::class.java)
+                    }
+                    else{
+                        this@LoginActivity.startNewActivity(ConsentActivity::class.java)
+                    }
 
 
                 }

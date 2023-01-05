@@ -33,6 +33,7 @@ class GlobalClass : Application() {
 
     var userID = ""
     var authToken = ""
+    var consent : Boolean = false
 
     var currentSurvey: Survey? = null
     var currentSurveyID : Long? =null

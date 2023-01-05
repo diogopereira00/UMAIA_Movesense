@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <TextView
+        android:id="@+id/textview_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="@string/consent_title"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.2"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="15dp">
+
+        <TextView
+            android:id="@+id/textview_consent_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:justificationMode="inter_word"
+            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque sed diam id risus faucibus condimentum at in leo. Sed consectetur euismod tempor. Cras ultrices velit non tellus pellentesque, mollis mattis odio tincidunt. Quisque eu efficitur ipsum. Nam mollis ante vel iaculis rutrum. Aliquam erat volutpat. Cras et dui eu tortor bibendum posuere at eget est. Donec condimentum eleifend felis eu vulputate. Nunc malesuada augue id sem tincidunt laoreet. Nunc eros risus, molestie pretium consequat suscipit, interdum vel tellus.
+
+Sed hendrerit fringilla mauris, ac luctus leo pharetra ut. Maecenas vitae viverra purus, eget vulputate sem. Morbi aliquet nisi id nisi molestie tristique at eget sapien. Cras lectus urna, finibus at iaculis eu, feugiat nec tortor. Mauris leo velit, finibus vitae varius ac, viverra eget massa. Vivamus eu eleifend nunc, ut lobortis magna. Maecenas accumsan eget velit in aliquam.
+
+Ut fringilla, tortor sed malesuada porta, magna dolor pretium quam, eu commodo massa quam sit amet erat. Morbi malesuada risus ut lorem pellentesque dictum. Pellentesque risus justo, convallis id condimentum ac, consequat nec mauris. Morbi mattis massa vel tincidunt congue. Fusce ullamcorper tincidunt urna at vestibulum. Curabitur ultricies tellus ut metus finibus, blandit egestas diam luctus. Vestibulum viverra ullamcorper imperdiet. Nunc egestas, purus ac tristique bibendum, nisl turpis maximus elit, vitae eleifend neque dui ac dolor. In purus risus, auctor ac tincidunt nec, hendrerit non est. Vivamus neque risus, malesuada sit amet maximus non, accumsan id velit. Aliquam eget erat vitae turpis tincidunt pellentesque in nec ex. Sed efficitur dapibus rutrum. Quisque felis leo, tincidunt vel tempus ut, consectetur non orci. Nunc vehicula risus felis, nec convallis nibh egestas a."
+            android:textSize="16sp" />
+
+    </ScrollView>
+
+    <Button
+        android:id="@+id/consentButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/button_primary_background"
+        android:backgroundTint="@color/primary"
+        android:fontFamily="@font/seg_ui_semibold"
+        android:text="Aceitar"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
+</LinearLayout>

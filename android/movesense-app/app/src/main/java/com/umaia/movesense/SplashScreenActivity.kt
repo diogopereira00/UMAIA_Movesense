@@ -10,6 +10,7 @@ import androidx.lifecycle.asLiveData
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.ActivityMainBinding
 import com.umaia.movesense.databinding.ActivitySplashScreenBinding
+import com.umaia.movesense.ui.ConsentActivity
 import com.umaia.movesense.ui.auth.LoginActivity
 import com.umaia.movesense.ui.home.startNewActivity
 import com.umaia.movesense.ui.home.startNewActivityFromSplash
@@ -37,6 +38,9 @@ class SplashScreenActivity : AppCompatActivity() {
             val activity =
                 if (token.isNullOrEmpty())
                     startNewActivityFromSplash(LoginActivity::class.java)
+                else if(!gv.consent){
+                    startNewActivityFromSplash(ConsentActivity::class.java)
+                }
                 else if (!gv.connected) {
                     startNewActivityFromSplash(ScanActivity::class.java)
                     gv.authToken = token
@@ -46,6 +50,13 @@ class SplashScreenActivity : AppCompatActivity() {
                 }
             Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
         }
+
+        userPreferences.consent.asLiveData().observe(this){ isActivated ->
+            if (isActivated != null) {
+                gv.consent = isActivated
+            }
+        }
+
         userPreferences.userid.asLiveData().observe(this) { userID ->
             if (!userID.isNullOrEmpty()) {
                 gv.userID = userID
@@ -72,7 +83,6 @@ class SplashScreenActivity : AppCompatActivity() {
                 gv.isMagnActivated = isActivated
             }
         }
-        //TODO ADICIONAR O RESTO DOS SENSORES
         userPreferences.ecgStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isECGActivated = isActivated
