@@ -133,7 +133,17 @@ class SurveyActivity : AppCompatActivity() {
 
 
                     // Get the option data for the question
-                    viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                    try{
+                        while (question.options.size==0){
+                            Thread.sleep(500)
+                        }
+                        viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+
+                    }
+                    catch (e : InterruptedException){
+                        Timber.e(e.toString())
+                    }
+
 
                     // Observe the option data and assign it to the option variable when it is available
                     viewModelStudies.optionsItem.observeOnce(

@@ -70,14 +70,6 @@ class ScanActivity : AppCompatActivity() {
 
                     sendCommandToService(Constants.ACTION_BLUETOOTH_CONNECTED)
 
-//                    if (Build.VERSION.SDK_INT >= 0) {
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                            var intent = Intent(this@ScanActivity, MyService2::class.java)
-//                            startForegroundService(intent)
-//                        }
-//                    } else {
-//                        stopService(Intent(this@ScanActivity, MyService2::class.java))
-//                    }
 
                 }
             }
