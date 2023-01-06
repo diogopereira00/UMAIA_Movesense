@@ -142,8 +142,8 @@ class Home : Fragment() {
                                     checkInternetAndGetStudies()
                                 }
                                 //Os estudos nao foram alterados, então uso a base de dados local e guardo o current survey.
-                                else{
-                                    if(gv.currentSurvey == null){
+                                else {
+                                    if (gv.currentSurvey == null) {
                                         getSurvey(4)
 
                                     }
@@ -163,7 +163,7 @@ class Home : Fragment() {
 
         })
         s_INSTANCE = this
-        updateHR()
+//        updateHR()
 
         binding.buttonStart.setOnClickListener {
             sendCommandToService(Constants.ACTION_START_SERVICE)
@@ -173,8 +173,8 @@ class Home : Fragment() {
         }
         binding.buttonTest.setOnClickListener {
             gv.currentSurveyID = 3
-            if(gv.currentSurvey == null){
-                gv.currentSurvey  = survey
+            if (gv.currentSurvey == null && survey != null) {
+                gv.currentSurvey = survey
             }
             val intent = Intent(context, SurveyActivity::class.java)
             startActivity(intent)
@@ -328,7 +328,7 @@ class Home : Fragment() {
                         )
                     }
                     //Houveram alterações então o current survey é alterado.
-                    if(gv.currentSurvey == null){
+                    if (gv.currentSurvey == null) {
                         getSurvey(4)
 
                     }
@@ -414,7 +414,8 @@ class Home : Fragment() {
 
         })
 // Declare optionsByQuestionId in a higher scope so that it can be accessed by both observers
-        val optionsByQuestionId = mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
+        val optionsByQuestionId =
+            mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
 
         viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
 //            Timber.e(questions[0].text)
@@ -423,12 +424,13 @@ class Home : Fragment() {
             for (section in survey.sections) {
                 for (question in questions) {
                     if (section.section_id == question.section_id!!.toInt()) {
-                        val newQuestion = com.umaia.movesense.data.responses.studies_response.Question(
-                            options = mutableListOf(),
-                            question_id = question.id.toInt(),
-                            question_text = question.text!!,
-                            question_type_id = question.question_type_id!!.toInt()
-                        )
+                        val newQuestion =
+                            com.umaia.movesense.data.responses.studies_response.Question(
+                                options = mutableListOf(),
+                                question_id = question.id.toInt(),
+                                question_text = question.text!!,
+                                question_type_id = question.question_type_id!!.toInt()
+                            )
                         survey.sections[survey.sections.indexOf(section)].questions.add(newQuestion)
 
                         // Store the options for this question in the map
@@ -457,11 +459,11 @@ class Home : Fragment() {
     }
 
 
-    private fun updateHR() {
-        binding.textViewHR.text = gv.hrAvarage.toString()
-        binding.textViewIBI.text = gv.hrRRdata
-
-    }
+//    private fun updateHR() {
+//        binding.textViewHR.text = gv.hrAvarage.toString()
+//        binding.textViewIBI.text = gv.hrRRdata
+//
+//    }
 
     private fun setObservers() {
 
@@ -471,22 +473,26 @@ class Home : Fragment() {
         MovesenseService.movesenseWifi.observe(viewLifecycleOwner, Observer {
             when (it) {
                 is MovesenseWifi.AVAILABLE -> {
-                    binding.textviewConnectiviy.text = "Status is available"
+//                    binding.textviewConnectiviy.text = "Status is available"
                     viewModel.getQuestionTypes(gv.authToken)
 
                 }
 
                 is MovesenseWifi.UNAVAILABLE -> {
-                    binding.textviewConnectiviy.text = "Status is unavailable"
+//                    binding.textviewConnectiviy.text = "Status is unavailable"
                 }
             }
         })
 
-        MovesenseService.movesenseHeartRate.observe(viewLifecycleOwner, Observer {
-            updateHR()
+        MovesenseService.movesenseTimer.observe(viewLifecycleOwner, Observer {
+            updateTimer(it)
         })
 
 
+    }
+
+    private fun updateTimer(it: String?) {
+        binding.timer.text = it.toString()
     }
 
     private fun updateUi(event: MoveSenseEvent) {

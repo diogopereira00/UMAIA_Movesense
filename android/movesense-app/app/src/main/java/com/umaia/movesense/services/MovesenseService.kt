@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
@@ -42,7 +43,9 @@ import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.temp.TEMP
 import com.umaia.movesense.data.temp.TEMPRepository
 import com.umaia.movesense.model.MovesenseInternet
+import com.umaia.movesense.model.MovesenseTimerEvent
 import com.umaia.movesense.ui.home.observeOnce
+import kotlinx.coroutines.Runnable
 
 class MovesenseService : LifecycleService() {
 
@@ -50,7 +53,10 @@ class MovesenseService : LifecycleService() {
         val moveSenseEvent = MutableLiveData<MoveSenseEvent>()
         val movesenseHeartRate = MutableLiveData<Hr>()
         val movesenseWifi = MutableLiveData<MovesenseWifi>()
-        val movesenseInternet =  MutableLiveData<MovesenseInternet>()
+        val movesenseInternet = MutableLiveData<MovesenseInternet>()
+        val movesenseTimerEvent = MutableLiveData<MovesenseTimerEvent>()
+        val movesenseTimer = MutableLiveData<String>()
+
     }
 
     private lateinit var readAllData: LiveData<List<Hr>>
@@ -101,6 +107,15 @@ class MovesenseService : LifecycleService() {
 
     private lateinit var accTable: LiveData<List<ACC>>
 
+    //Timer
+    private var timerThread: Thread? = null
+    private var timerRunning = false
+    private var startTime = 0L
+    private var timeInMilliseconds = 0L
+    private var timeSwapBuff = 0L
+    private var updatedTime = 0L
+
+
     init {
 
     }
@@ -136,9 +151,147 @@ class MovesenseService : LifecycleService() {
     }
 
 
-    //Esta função serve para verificar, de x em x tempo, se o wifi está conectado.
+    private fun getBleClient(): RxBleClient? {
+        // Init RxAndroidBle (Ble helper library) if not yet initialized
+        if (mBleClient == null) {
+            mBleClient = RxBleClient.create(this)
+        }
+        return mBleClient
+    }
+
+    private fun initMds() {
+        if (mMds == null) {
+            mMds = Mds.builder().build(this)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        intent?.let {
+            when (it.action) {
+                Constants.ACTION_START_SERVICE -> {
+                    Timber.d("Started Service")
+                    if (gv.currentDevice.isConnected) {
+                        startForegroundService()
+//                            createNotification2()
+
+                    } else {
+                        Timber.e("Errooooooooooooooooooooou")
+                        //Todo bug
+                    }
+                }
+                Constants.ACTION_STOP_SERVICE -> {
+                    Timber.d("Stop service")
+                    stopService()
+                }
+                Constants.ACTION_BLUETOOTH_CONNECTED -> {
+                    initMds()
+                    connectBLEDevice(gv.currentDevice)
+                }
+                Constants.ACTION_REFRESH_SERVICE -> {
+                    stopService()
+                    startForegroundService()
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+
+    private fun initValues() {
+        moveSenseEvent.postValue(MoveSenseEvent.STOP)
+    }
+
+    private fun startForegroundService() {
+        moveSenseEvent.postValue(MoveSenseEvent.START)
+        fiveMinutesTimer()
+        isServiceStopped = false
+        gv.isServiceRunning = true
+        verificarSensoresAtivados()
+        startTimer()
+    }
+
+    private fun startTimer() {
+        if (!timerRunning) {
+            startTime = SystemClock.uptimeMillis()
+            timerThread = Thread(
+                object : Runnable {
+                    override fun run() {
+                        while (timerRunning) {
+                            timeInMilliseconds = SystemClock.uptimeMillis() - startTime
+                            updatedTime = timeSwapBuff + timeInMilliseconds
+                            val secs = (updatedTime / 1000).toInt()
+                            val mins = secs / 60
+                            val hrs = mins / 60
+                            val secsRemaining = secs % 60
+                            val minsRemaining = mins % 60
+                            val formattedTime = "${String.format("%02d", hrs)}:${
+                                String.format(
+                                    "%02d",
+                                    minsRemaining
+                                )
+                            }:${String.format("%02d", secsRemaining)}"
+                            // update LiveData object
+                            movesenseTimer.postValue(formattedTime)
+                            try {
+                                Thread.sleep(1000)
+                            } catch (e: InterruptedException) {
+                                // thread was interrupted, exit loop
+                                break
+                            }
+                        }
+                    }
+
+                })
+            timerThread?.start()
+            timerRunning = true
+        }
+    }
+
+    private fun stopTimer() {
+        if (timerRunning) {
+            timerRunning = false
+            timerThread?.interrupt()
+            timerThread = null
+        }
+    }
+
+    private fun verificarSensoresAtivados() {
+        if (gv.isLiveDataActivated) {
+            sendDataToServer()
+        }
+        if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
+            enableImu9()
+        } else if (gv.isAccActivated && gv.isMagnActivated) {
+            enableImu6m()
+        } else if (gv.isAccActivated && gv.isGyroActivated) {
+            enableImu6()
+        } else if (gv.isAccActivated) {
+            enableAccSubscription()
+        }
+        if (gv.isGyroActivated && !gv.isAccActivated) {
+            enableGyroSubscription()
+        }
+        if (gv.isMagnActivated && !gv.isAccActivated) {
+            enableMagnSubscription()
+        }
+
+        if (gv.isECGActivated) {
+            enableECGSubscription()
+        }
+        if (gv.isHRActivated) {
+            enableHRSubscription()
+        }
+        if (gv.isTempActivated) {
+            enableTempSubscription()
+        }
+
+
+    }
+
+
+    //Esta função serve para verificar, de 5 em 5 minutos, se o wifi está conectado.
     //Se o wifi tiver conectado efetuar um push de todos os dados para o servidor.
-    private fun createTimer() {
+    private fun fiveMinutesTimer() {
         val mainHandler = Handler(Looper.getMainLooper())
 
         mainHandler.post(object : Runnable {
@@ -169,6 +322,7 @@ class MovesenseService : LifecycleService() {
         })
     }
 
+    //Envia as informações para o servidor.
     fun sendDataToServer() {
         accTable = accRepository.getAllACC
         accTable.observeOnce(this@MovesenseService) {
@@ -223,119 +377,6 @@ class MovesenseService : LifecycleService() {
         }
     }
 
-    private fun getBleClient(): RxBleClient? {
-        // Init RxAndroidBle (Ble helper library) if not yet initialized
-        if (mBleClient == null) {
-            mBleClient = RxBleClient.create(this)
-        }
-        return mBleClient
-    }
-
-    private fun initMds() {
-        if (mMds == null) {
-            mMds = Mds.builder().build(this)
-        }
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            when (it.action) {
-                Constants.ACTION_START_SERVICE -> {
-                    Timber.d("Started Service")
-                    if (gv.currentDevice.isConnected) {
-                        startForegroundService()
-//                            createNotification2()
-
-                    } else {
-                        Timber.e("Errooooooooooooooooooooou")
-                        //Todo bug
-                    }
-                }
-                Constants.ACTION_STOP_SERVICE -> {
-                    Timber.d("Stop service")
-                    stopService()
-                }
-                Constants.ACTION_BLUETOOTH_CONNECTED -> {
-                    initMds()
-                    connectBLEDevice(gv.currentDevice)
-                }
-                Constants.ACTION_REFRESH_SERVICE -> {
-                    stopService()
-                    startForegroundService()
-                }
-            }
-        }
-        return super.onStartCommand(intent, flags, startId)
-    }
-
-
-    private fun initValues() {
-        moveSenseEvent.postValue(MoveSenseEvent.STOP)
-    }
-
-    private fun startForegroundService() {
-        moveSenseEvent.postValue(MoveSenseEvent.START)
-        createTimer()
-        isServiceStopped = false
-        gv.isServiceRunning = true
-
-
-
-//TODO:
-//        verificarSensoresAtivados()
-
-
-        if (gv.isLiveDataActivated) {
-            sendDataToServer()
-        }
-
-        if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
-            enableImu9()
-        } else if (gv.isAccActivated && gv.isMagnActivated) {
-            enableImu6m()
-        } else if (gv.isAccActivated && gv.isGyroActivated) {
-            enableImu6()
-        } else if (gv.isAccActivated) {
-            enableAccSubscription()
-        }
-        if (gv.isGyroActivated && !gv.isAccActivated) {
-            Toast.makeText(
-                this@MovesenseService, "GYRO", Toast.LENGTH_SHORT
-            ).show()
-
-            enableGyroSubscription()
-
-        }
-        if (gv.isMagnActivated && !gv.isAccActivated) {
-            Toast.makeText(
-                this@MovesenseService, "MAGN", Toast.LENGTH_SHORT
-            ).show()
-
-            enableMagnSubscription()
-        }
-
-        if (gv.isECGActivated) {
-            enableECGSubscription()
-            Toast.makeText(
-                this@MovesenseService, "ECG", Toast.LENGTH_SHORT
-            ).show()
-        }
-        if (gv.isHRActivated) {
-            enableHRSubscription()
-            Toast.makeText(
-                this@MovesenseService, "HR", Toast.LENGTH_SHORT
-            ).show()
-        }
-        if (gv.isTempActivated) {
-            Toast.makeText(
-                this@MovesenseService, "TEMP", Toast.LENGTH_SHORT
-            ).show()
-
-            enableTempSubscription()
-        }
-
-
-    }
 
     private fun connectBLEDevice(device: MyScanResult) {
         val bleDevice = getBleClient()!!.getBleDevice(device.macAddress)
@@ -570,7 +611,7 @@ class MovesenseService : LifecycleService() {
         moveSenseEvent.postValue(MoveSenseEvent.STOP)
         isServiceStopped = true
         gv.isServiceRunning = false
-
+        stopTimer()
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
             Constants.NOTIFICATION_ID
         )
@@ -1115,7 +1156,8 @@ class MovesenseService : LifecycleService() {
                         notification =
                             NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
                                 .setContentTitle(title).setContentText(description)
-                                .setSmallIcon(icon).setPriority(128).setContentIntent(pendingIntent).setOngoing(true)
+                                .setSmallIcon(icon).setPriority(128).setContentIntent(pendingIntent)
+                                .setOngoing(true)
                                 .build()
 
                         startForeground(Constants.NOTIFICATION_ID, notification)
@@ -1303,12 +1345,13 @@ class MovesenseService : LifecycleService() {
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listTemp) {
 
-                    if (!listTemp.isNullOrEmpty()) {
-                        for (temp in listTemp) {
-                            tempRepository.deleteByID(temp.id)
+                        if (!listTemp.isNullOrEmpty()) {
+                            for (temp in listTemp) {
+                                tempRepository.deleteByID(temp.id)
+                            }
+                            listTemp.clear()
                         }
-                        listTemp.clear()
-                    }}
+                    }
                 }
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
 
