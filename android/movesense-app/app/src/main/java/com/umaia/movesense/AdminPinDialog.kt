@@ -60,6 +60,8 @@ class AdminPinDialog(
             val checkForAdminPassword = viewModelStudies.getStudyAdminPassword(studyID = "3")
             checkForAdminPassword.observe(viewLifecycleOwner, Observer { studyAdminPassword ->
                 if (studyAdminPassword == password) {
+                    dismiss()
+
                     (context as Activity).startActivity(
                         Intent(
                             context,
