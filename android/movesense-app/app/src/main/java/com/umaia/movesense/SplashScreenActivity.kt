@@ -26,6 +26,7 @@ import com.umaia.movesense.data.suveys.sections.Section
 import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.surveys.Survey
 import com.umaia.movesense.data.suveys.user_studies.UserStudies
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.ActivityMainBinding
 import com.umaia.movesense.databinding.ActivitySplashScreenBinding
 import com.umaia.movesense.ui.ConsentActivity
@@ -307,6 +308,17 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
     private fun checkForUpdates() {
+
+        var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()
+        checkCurrentUserSurveys.observe(this, Observer { userStudyID ->
+            if(userStudyID == null){
+                gv.lastUserSurveyID = 0
+
+            }
+            else{
+                gv.lastUserSurveyID = userStudyID
+            }
+        })
 
         var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
         checkForStudies.observe(this, Observer { studyVersion ->

@@ -10,6 +10,8 @@ import com.umaia.movesense.data.suveys.studies.StudyRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umaia.movesense.data.AppDataBase
+import com.umaia.movesense.data.suveys.answers.Answer
+import com.umaia.movesense.data.suveys.answers.AnswerRepository
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.options.OptionRepository
 import com.umaia.movesense.data.suveys.questions.Question
@@ -27,6 +29,7 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class StudiesViewmodel(private val application: Application) : ViewModel() {
@@ -39,7 +42,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val userStudiesRepository: UserStudiesRepository
     private val userSurveysRepository: UserSurveysRepository
     private val questionOptionRepository: QuestionOptionRepository
-
+    private val answersRepository: AnswerRepository
 
     init {
         val studyDao = AppDataBase.getDatabase(application).studyDao()
@@ -51,6 +54,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         val userStudiesDao = AppDataBase.getDatabase(application).userStudiesDao()
         val userSurveysDao = AppDataBase.getDatabase(application).userSurveysDao()
         val questionOptionDao = AppDataBase.getDatabase(application).questionOptionsDao()
+        val answerDao = AppDataBase.getDatabase(application).answerDao()
         studyRepository = StudyRepository(studyDao)
         surveyRepository = SurveyRepository(surveyDao)
         sectionRepository = SectionRepository(sectionDao)
@@ -60,6 +64,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         userStudiesRepository = UserStudiesRepository(userStudiesDao)
         userSurveysRepository = UserSurveysRepository(userSurveysDao)
         questionOptionRepository = QuestionOptionRepository(questionOptionDao)
+        answersRepository = AnswerRepository(answerDao)
 
 
     }
@@ -220,6 +225,34 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
         }
     }
+
+    fun addAnswer(answer: Answer){
+        viewModelScope.launch(Dispatchers.IO){
+            answersRepository.add(answer)
+        }
+    }
+    val answersItem = MutableLiveData<List<Answer>>()
+
+    fun getAllAnswers() : MutableList<Answer>{
+        val answers = mutableListOf<Answer>()
+        viewModelScope.launch {
+            answersRepository.getAllAnswers().collect(){item ->
+                answers.addAll(item)
+                answersItem.postValue(answers)
+            }
+        }
+        return answers
+    }
+
+
+    fun getUserSurveysIdFromLastRecord() : LiveData<Long>{
+        val userSurveyID = MutableLiveData<Long>()
+        viewModelScope.launch {
+            userSurveyID.postValue(userSurveysRepository.getIdFromLastRecord())
+        }
+        return userSurveyID
+    }
+
 
 
 }

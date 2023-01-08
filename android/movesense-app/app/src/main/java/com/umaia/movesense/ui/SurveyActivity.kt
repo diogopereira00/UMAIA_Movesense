@@ -1,6 +1,8 @@
 package com.umaia.movesense.ui
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.AttributeSet
@@ -10,6 +12,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.google.gson.Gson
 import com.quickbirdstudios.surveykit.*
 import com.quickbirdstudios.surveykit.backend.views.main_parts.AbortDialogConfiguration
 import com.quickbirdstudios.surveykit.result.TaskResult
@@ -26,8 +29,11 @@ import com.umaia.movesense.data.responses.studies_response.Question
 import com.umaia.movesense.data.responses.studies_response.Section
 import com.umaia.movesense.data.responses.studies_response.Survey
 import com.umaia.movesense.data.suveys.StudiesViewmodel
+import com.umaia.movesense.data.suveys.answers.Answer
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.ActivitySurveyBinding
 import com.umaia.movesense.ui.home.observeOnce
+import com.umaia.movesense.ui.home.visible
 import com.umaia.movesense.ui.surveys.InitialStep
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
@@ -40,8 +46,8 @@ class SurveyActivity : AppCompatActivity() {
     private lateinit var viewModelStudies: StudiesViewmodel
 
     private var steps: MutableList<Step> = mutableListOf()
-
     private lateinit var survey: Survey
+    private var start: Long? = null
 
     override fun onStop() {
         super.onStop()
@@ -49,8 +55,6 @@ class SurveyActivity : AppCompatActivity() {
 
 
     }
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,6 +111,7 @@ class SurveyActivity : AppCompatActivity() {
                         })
                     }
                     val stepq = QuestionStep(
+                        id = StepIdentifier(question.question_id.toString()),
                         title = question.question_text,
                         text = "",
                         answerFormat = AnswerFormat.SingleChoiceAnswerFormat(
@@ -118,6 +123,7 @@ class SurveyActivity : AppCompatActivity() {
                 } else if (question.question_type_id == 2) {
                     //Texto Livre
                     val freeStep = QuestionStep(
+                        id = StepIdentifier(question.question_id.toString()),
                         title = question.question_text,
                         text = "",
                         answerFormat = AnswerFormat.TextAnswerFormat(
@@ -133,14 +139,22 @@ class SurveyActivity : AppCompatActivity() {
 
 
                     // Get the option data for the question
-                    try{
-                        while (question.options.size==0){
-                            Thread.sleep(500)
-                        }
-                        viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                    try {
+                        val surveyChecker = Thread {
+                            while (question.options.size == 0) {
+                                Thread.sleep(500)
+                            }
 
-                    }
-                    catch (e : InterruptedException){
+                            this.runOnUiThread {
+                                viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+
+
+                            }
+                        }
+//                        viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                        surveyChecker.start()
+
+                    } catch (e: InterruptedException) {
                         Timber.e(e.toString())
                     }
 
@@ -154,6 +168,7 @@ class SurveyActivity : AppCompatActivity() {
                             if (!optionData.text.toString().isNullOrEmpty()) {
                                 // Create a Likert scale step using the option data
                                 val likertStep = QuestionStep(
+                                    id = StepIdentifier(question.question_id.toString()),
                                     title = question.question_text,
                                     text = "Tenha em atenção que " + optionData.text,
                                     answerFormat = AnswerFormat.ScaleAnswerFormat(
@@ -179,7 +194,12 @@ class SurveyActivity : AppCompatActivity() {
 
         }
 
-
+        surveyView.onStepResult = { step, stepResult ->
+            if (step == step1) {
+                Timber.e("teste1")
+                start = System.currentTimeMillis()
+            }
+        }
 
 
 
@@ -187,11 +207,44 @@ class SurveyActivity : AppCompatActivity() {
             if (reason == FinishReason.Completed) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
+                var userSurvey = UserSurveys(
+                    id = 0,
+                    user_id = gv.userID,
+                    survey_id = gv.currentSurvey!!.surveys_id.toLong(),
+                    start_time = start,
+                    isCompleted = true
+                )
+                var y = Gson().toJson(userSurvey)
+//                viewModelStudies.userSurveyID.observe(this@SurveyActivity) {
+//                    Timber.e("x>${it.toString()}")
+//                }
+                var x = viewModelStudies.userSurveyAdd(userSurvey)
+
                 taskResult.results.forEach { stepResult ->
-                    Timber.e("answer ${stepResult.results.firstOrNull()}")
+
+                    Timber.e("answer ${stepResult.id} +  ${stepResult.results.firstOrNull()}")
+//                    viewModelStudies.addAnswer(Answer(id=0, question_id = 3))
+                    if (!stepResult.results.firstOrNull()!!.stringIdentifier.isNullOrEmpty()) {
+                        val stepresult = stepResult.results.firstOrNull()
+                        var answer = Answer(
+                            id = 0,
+                            question_id = stepResult.id.id.toLong(),
+                            user_survey_id = gv.lastUserSurveyID!! +1L,
+                            text = stepresult!!.stringIdentifier,
+                            created_at = stepresult!!.startDate.time
+                        )
+                        var answex = Gson().toJson(answer)
+                        viewModelStudies.addAnswer(answer)
+                    }
                 }
+
+                gv.lastUserSurveyID = gv.lastUserSurveyID!! +1L
+
+                finish()
+
+
             }
-            finish()
+
         }
 
 
@@ -216,9 +269,11 @@ class SurveyActivity : AppCompatActivity() {
             )
         )
         val handler = Handler()
-        handler.postDelayed(Runnable {
+        handler.postDelayed(Runnable
+        {
             steps.add(complete)
-        }, 1000) //5 seconds
+        }, 1000
+        ) //5 seconds
 
         val task = OrderedTask(steps = steps)
 

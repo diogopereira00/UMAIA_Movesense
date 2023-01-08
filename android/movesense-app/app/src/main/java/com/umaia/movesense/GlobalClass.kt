@@ -37,6 +37,8 @@ class GlobalClass : Application() {
 
     var currentSurvey: Survey? = null
     var currentSurveyID : Long? =null
+    var lastUserSurveyID : Long? =null
+
 
     var useMobileDataThisTime = false
     var foundNewStudyVersion = false

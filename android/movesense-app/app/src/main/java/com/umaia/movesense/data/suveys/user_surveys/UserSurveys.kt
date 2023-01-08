@@ -11,7 +11,7 @@ data class UserSurveys(
     val id: Long = 0,
     var user_id: String? = "",
     var survey_id: Long? = 0,
-    var start_time : String? =  "",
-    var end_time : String? = "",
-    var isCompleted : String? = ""
+    var start_time : Long? =  0,
+    var end_time : Long? = System.currentTimeMillis(),
+    var isCompleted : Boolean? = true
     )

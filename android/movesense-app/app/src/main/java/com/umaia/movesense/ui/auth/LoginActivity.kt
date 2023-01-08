@@ -265,6 +265,18 @@ open class LoginActivity : AppCompatActivity() {
 
     private fun checkForUpdates() {
 
+        var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()
+        checkCurrentUserSurveys.observe(this, Observer { userStudyID ->
+            if(userStudyID == null){
+                gv.lastUserSurveyID = 0
+
+            }
+            else{
+                gv.lastUserSurveyID = userStudyID
+            }
+        })
+
+
         var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
         checkForStudies.observe(this, Observer { studyVersion ->
             studyVersionDB = studyVersion

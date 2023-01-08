@@ -15,6 +15,8 @@ import com.umaia.movesense.data.hr.HrDao
 import com.umaia.movesense.data.magn.MAGN
 import com.umaia.movesense.data.magn.MAGNDao
 import com.umaia.movesense.data.magn.TEMPDao
+import com.umaia.movesense.data.suveys.answers.Answer
+import com.umaia.movesense.data.suveys.answers.AnswerDao
 
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.options.OptionDao
@@ -37,8 +39,8 @@ import com.umaia.movesense.data.suveys.user_surveys.UserSurveysDao
 import com.umaia.movesense.data.temp.TEMP
 
 @Database(
-    entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class, TEMP::class, Study::class, Survey::class, Section::class, Question::class, QuestionTypes::class, QuestionOption::class, Option::class,UserSurveys::class,UserStudies::class],
-    version = 18,
+    entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class, TEMP::class, Study::class, Survey::class, Section::class, Question::class, QuestionTypes::class, QuestionOption::class, Option::class,UserSurveys::class,UserStudies::class, Answer::class],
+    version = 4,
     exportSchema = false
 )
 
@@ -60,6 +62,7 @@ abstract class AppDataBase : RoomDatabase() {
     abstract fun userStudiesDao(): UserStudiesDao
     abstract fun userSurveysDao(): UserSurveysDao
     abstract fun questionOptionsDao(): QuestionOptionDao
+    abstract fun answerDao() : AnswerDao
 
 
     companion object {
