@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserSurveysDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-     suspend fun addUserSurvey(userSurveys: UserSurveys) : Long
+    fun addUserSurvey(userSurveys: UserSurveys): Long
 
     @Query("SELECT id from user_surveys ORDER BY id DESC LIMIT 1")
-    suspend fun getIdFromLastRecord() : Long
+    suspend fun getIdFromLastRecord(): Long
 }

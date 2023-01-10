@@ -40,7 +40,7 @@ import com.umaia.movesense.data.temp.TEMP
 
 @Database(
     entities = [Hr::class, ECG::class, ACC::class, GYRO::class, MAGN::class, TEMP::class, Study::class, Survey::class, Section::class, Question::class, QuestionTypes::class, QuestionOption::class, Option::class,UserSurveys::class,UserStudies::class, Answer::class],
-    version = 4,
+    version = 7,
     exportSchema = false
 )
 

@@ -377,7 +377,7 @@ class SplashScreenActivity : AppCompatActivity() {
 //                Timber.e(surveyInfo.title)
                 survey = com.umaia.movesense.data.responses.studies_response.Survey(
                     sections = mutableListOf<com.umaia.movesense.data.responses.studies_response.Section>(),
-                    survey_description = surveyInfo.description!!,
+                    survey_description = surveyInfo!!.description!!,
                     survey_expected_time = surveyInfo.expected_time!!,
                     survey_title = surveyInfo.title!!,
                     surveys_id = surveyInfo.id.toInt()!!

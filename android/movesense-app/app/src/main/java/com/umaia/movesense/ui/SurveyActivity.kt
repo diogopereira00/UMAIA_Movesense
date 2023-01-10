@@ -32,9 +32,11 @@ import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.ActivitySurveyBinding
+import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.ui.home.observeOnce
 import com.umaia.movesense.ui.home.visible
 import com.umaia.movesense.ui.surveys.InitialStep
+import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
@@ -218,33 +220,43 @@ class SurveyActivity : AppCompatActivity() {
 //                viewModelStudies.userSurveyID.observe(this@SurveyActivity) {
 //                    Timber.e("x>${it.toString()}")
 //                }
-                var x = viewModelStudies.userSurveyAdd(userSurvey)
 
-                taskResult.results.forEach { stepResult ->
+                val survey = Thread {
+                    var x = viewModelStudies.userSurveyAdd(userSurvey)
+                    Timber.e(x.toString())
+                    taskResult.results.forEach { stepResult ->
 
-                    Timber.e("answer ${stepResult.id} +  ${stepResult.results.firstOrNull()}")
+                        Timber.e("answer ${stepResult.id} +  ${stepResult.results.firstOrNull()}")
 //                    viewModelStudies.addAnswer(Answer(id=0, question_id = 3))
-                    if (!stepResult.results.firstOrNull()!!.stringIdentifier.isNullOrEmpty()) {
-                        val stepresult = stepResult.results.firstOrNull()
-                        var answer = Answer(
-                            id = 0,
-                            question_id = stepResult.id.id.toLong(),
-                            user_survey_id = gv.lastUserSurveyID!! +1L,
-                            text = stepresult!!.stringIdentifier,
-                            created_at = stepresult!!.startDate.time
-                        )
-                        var answex = Gson().toJson(answer)
-                        viewModelStudies.addAnswer(answer)
+                        if (!stepResult.results.firstOrNull()!!.stringIdentifier.isNullOrEmpty()) {
+                            val stepresult = stepResult.results.firstOrNull()
+                            var answer = Answer(
+                                id = 0,
+                                question_id = stepResult.id.id.toLong(),
+                                user_survey_id = x,
+                                text = stepresult!!.stringIdentifier,
+                                created_at = stepresult!!.startDate.time
+                            )
+                            var answex = Gson().toJson(answer)
+                            viewModelStudies.addAnswer(answer)
+                        }
                     }
+
+//                    gv.lastUserSurveyID = gv.lastUserSurveyID!! +1L
+0
+                    this.runOnUiThread {
+                        if (gv.currentSurvey!!.surveys_id == 3) {
+                            sendCommandToService(Constants.ACTION_START_SERVICE)
+                        } else {
+                            sendCommandToService(Constants.ACTION_STOP_SERVICE)
+                        }
+                        finish()
+
+                    }
+
                 }
-
-                gv.lastUserSurveyID = gv.lastUserSurveyID!! +1L
-
-                finish()
-
-
+                survey.start()
             }
-
         }
 
 
@@ -269,10 +281,11 @@ class SurveyActivity : AppCompatActivity() {
             )
         )
         val handler = Handler()
-        handler.postDelayed(Runnable
-        {
-            steps.add(complete)
-        }, 1000
+        handler.postDelayed(
+            Runnable
+            {
+                steps.add(complete)
+            }, 1000
         ) //5 seconds
 
         val task = OrderedTask(steps = steps)
@@ -281,4 +294,12 @@ class SurveyActivity : AppCompatActivity() {
 
 
     }
+
+    private fun sendCommandToService(action: String) {
+        this.startService(Intent(this, MovesenseService::class.java).apply {
+            this.action = action
+        })
+    }
 }
+
+

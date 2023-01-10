@@ -5,7 +5,10 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.umaia.movesense.data.suveys.studies.Study
 
-@Entity(tableName = "user_surveys", foreignKeys = [ForeignKey(entity = Study::class, parentColumns = ["id"], childColumns = ["survey_id"], onDelete = ForeignKey.CASCADE)])
+@Entity(tableName = "user_surveys"
+
+//    ,foreignKeys = [ForeignKey(entity = Study::class, parentColumns = ["id"], childColumns = ["survey_id"], onDelete = ForeignKey.CASCADE)]
+)
 data class UserSurveys(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

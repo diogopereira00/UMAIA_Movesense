@@ -28,8 +28,8 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudies
 import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
+import com.umaia.movesense.ui.home.SingleLiveData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class StudiesViewmodel(private val application: Application) : ViewModel() {
@@ -82,7 +82,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     }
 
 
-    fun getStudyVersionById(studyID: String) : LiveData<Double>{
+    fun getStudyVersionById(studyID: String): LiveData<Double> {
         val studyVersion = MutableLiveData<Double>()
         viewModelScope.launch {
             studyVersion.postValue(studyRepository.getStudyVersionById(studyID))
@@ -90,10 +90,10 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         return studyVersion
     }
 
-    fun getStudyAdminPassword(studyID: String) : LiveData<String>{
+    fun getStudyAdminPassword(studyID: String): LiveData<String> {
         val studyVersion = MutableLiveData<String>()
         viewModelScope.launch {
-           studyVersion.postValue(studyRepository.getAdminPasswordStudy(studyID))
+            studyVersion.postValue(studyRepository.getAdminPasswordStudy(studyID))
         }
         return studyVersion
     }
@@ -119,10 +119,11 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         return option
     }
 
-    val surveyItem = MutableLiveData<Survey>()
+    val surveyItem = SingleLiveData<Survey>()
 
-    fun getSurveyByID(surveyID: Long){
+    fun getSurveyByID(surveyID: Long) {
 //        val option = MutableLiveData<Survey>()
+
         viewModelScope.launch {
             var survey = surveyRepository.getSurveyByID(surveyID.toString()).collect { item ->
                 surveyItem.postValue(item)
@@ -135,50 +136,38 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
     val sectionItem = MutableLiveData<List<Section>>()
 
-    fun getSectionsByID(surveyID: Long){
-        val sections = mutableListOf<Section>()
+    fun getSectionsByID(surveyID: Long) {
         viewModelScope.launch {
-                sectionRepository.getSectionsByID(surveyID.toString()).collect { item ->
-                    sections.addAll(item)
-                    sectionItem.postValue(sections)
-                }
+            sectionRepository.getSectionsByID(surveyID.toString()).collect { item ->
+                sectionItem.postValue(item)
+            }
         }
     }
 
     val questionsItem = MutableLiveData<List<Question>>()
 
-    fun getQuestionsBySectionID(sectionID: Long){
+    fun getQuestionsBySectionID(sectionID: Long) {
         val questions = mutableListOf<Question>()
         viewModelScope.launch {
             questionRepository.getQuestionsBySectionID(sectionID.toString()).collect { item ->
-                questions.addAll(item)
-                questionsItem.postValue(questions)
+                questionsItem.postValue(item)
             }
         }
     }
 
-    val optionQuestionIDItem = MutableLiveData<List<Option>>()
 
-    fun getOptionsByQuestionID(questionID: Long): MutableList<Option> {
-        val options = mutableListOf<Option>()
-        viewModelScope.launch {
-            optionRepository.getOptionByQuestionID(questionID.toString()).collect { item ->
-                options.addAll(item)
-                optionQuestionIDItem.postValue(options)
-            }
-        }
-        return options
-    }
 
     val questionOptionItem = MutableLiveData<List<QuestionOption>>()
 
     fun getQuestionOptions(questionID: Long): MutableList<QuestionOption> {
         val questionOptions = mutableListOf<QuestionOption>()
         viewModelScope.launch {
-            questionOptionRepository.getOptionsFromQuestions(questionID.toString()).collect { item ->
-                questionOptions.addAll(item)
-                questionOptionItem.postValue(questionOptions)
-            }
+            questionOptions.clear()
+            questionOptionRepository.getOptionsFromQuestions(questionID.toString())
+                .collect { item ->
+                    questionOptions.addAll(item)
+                    questionOptionItem.postValue(item)
+                }
         }
         return questionOptions
     }
@@ -207,10 +196,9 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         }
     }
 
-    fun userSurveyAdd(userSurveys: UserSurveys) {
-        viewModelScope.launch(Dispatchers.IO) {
-            userSurveysRepository.add(userSurveys)
-        }
+    fun userSurveyAdd(userSurveys: UserSurveys): Long {
+        return userSurveysRepository.add(userSurveys)
+
     }
 
     fun userStudysAdd(userStudies: UserStudies) {
@@ -226,17 +214,18 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         }
     }
 
-    fun addAnswer(answer: Answer){
-        viewModelScope.launch(Dispatchers.IO){
+    fun addAnswer(answer: Answer) {
+        viewModelScope.launch(Dispatchers.IO) {
             answersRepository.add(answer)
         }
     }
+
     val answersItem = MutableLiveData<List<Answer>>()
 
-    fun getAllAnswers() : MutableList<Answer>{
+    fun getAllAnswers(): MutableList<Answer> {
         val answers = mutableListOf<Answer>()
         viewModelScope.launch {
-            answersRepository.getAllAnswers().collect(){item ->
+            answersRepository.getAllAnswers().collect() { item ->
                 answers.addAll(item)
                 answersItem.postValue(answers)
             }
@@ -245,14 +234,13 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     }
 
 
-    fun getUserSurveysIdFromLastRecord() : LiveData<Long>{
+    fun getUserSurveysIdFromLastRecord(): LiveData<Long> {
         val userSurveyID = MutableLiveData<Long>()
         viewModelScope.launch {
             userSurveyID.postValue(userSurveysRepository.getIdFromLastRecord())
         }
         return userSurveyID
     }
-
 
 
 }

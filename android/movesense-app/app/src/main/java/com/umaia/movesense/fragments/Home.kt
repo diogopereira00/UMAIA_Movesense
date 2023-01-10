@@ -174,30 +174,39 @@ class Home : Fragment() {
         }
         binding.buttonTest.setOnClickListener {
             gv.currentSurveyID = 3
-            getSurvey(3)
-            if(survey==null){
+            gv.currentSurvey = null
+            survey = com.umaia.movesense.data.responses.studies_response.Survey(
+                sections = mutableListOf(),
+                survey_description = "",
+                survey_expected_time = 0,
+                survey_title = "",
+                surveys_id = 0
+            )
+            if (gv.isServiceRunning) {
+                getSurvey(4)
+            } else {
+                getSurvey(3)
+            }
+            if (!isSurveyCompleted) {
                 binding.progressBar.visible(true)
             }
             val surveyChecker = Thread {
-                while (survey == null) {
+                while (!isSurveyCompleted) {
 
                     Thread.sleep(500)
-                    }
+                }
                 Thread.sleep(500)
 
                 (context as Activity).runOnUiThread {
                     binding.progressBar.visible(false)
-                    try{
-                        if (gv.currentSurvey == null) {
-                            gv.currentSurvey = survey
-                        }
+                    try {
+
                         val intent = Intent(context, SurveyActivity::class.java)
                         startActivity(intent)
                         if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                         }
-                    }
-                    catch (e : InterruptedException){
+                    } catch (e: InterruptedException) {
                         Timber.e(e.toString())
                     }
 
@@ -370,62 +379,46 @@ class Home : Fragment() {
     }
 
 
-
-
+    private var isSurveyCompleted = false
+    private val optionsByQuestionId =
+        mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
 
     private fun getSurvey(id: Long) {
+        isSurveyCompleted = false
+        optionsByQuestionId.clear()
         viewModelStudies.getSurveyByID(id)
-        viewModelStudies.surveyItem.observe(
-            viewLifecycleOwner,
-            Observer { surveyInfo ->
-//                Timber.e(surveyInfo.title)
-                survey = com.umaia.movesense.data.responses.studies_response.Survey(
-                    sections = mutableListOf<com.umaia.movesense.data.responses.studies_response.Section>(),
-                    survey_description = surveyInfo.description!!,
-                    survey_expected_time = surveyInfo.expected_time!!,
-                    survey_title = surveyInfo.title!!,
-                    surveys_id = surveyInfo.id.toInt()!!
-                )
-//                Timber.e(survey.survey_title)
-
-                //    val step1 = InitialStep(
-                //        title = survey.survey_title,
-                //        text = survey.survey_description,
-                //        expectedTime = survey.survey_expected_time,
-                //        buttonText = getString(R.string.start)
-                //    )
-                //    steps.add(step1)
-                viewModelStudies.getSectionsByID(surveyInfo.id)
-
-            })
+        viewModelStudies.surveyItem.observe(viewLifecycleOwner, Observer { surveyInfo ->
+            survey = null
+            survey = com.umaia.movesense.data.responses.studies_response.Survey(
+                sections = mutableListOf(),
+                survey_description = surveyInfo!!.description!!,
+                survey_expected_time = surveyInfo.expected_time!!,
+                survey_title = surveyInfo.title!!,
+                surveys_id = surveyInfo.id.toInt()!!
+            )
+            viewModelStudies.getSectionsByID(surveyInfo.id)
+        })
 
         viewModelStudies.sectionItem.observe(viewLifecycleOwner, Observer { sections ->
-//            Timber.e(sections[0].name)
             for (section in sections) {
-                survey!!.sections.add(
-                    com.umaia.movesense.data.responses.studies_response.Section(
-                        section_id = section.id.toInt(),
-                        section_name = section.name!!,
-                        questions = mutableListOf<com.umaia.movesense.data.responses.studies_response.Question>()
+                if (section.survey_id!!.toInt() == survey!!.surveys_id && !survey!!.sections.any { it.section_id == section.id.toInt() }) {
+                    survey!!.sections.add(
+                        com.umaia.movesense.data.responses.studies_response.Section(
+                            section_id = section.id.toInt(),
+                            section_name = section.name!!,
+                            questions = mutableListOf()
+                        )
                     )
-                )
-
-                viewModelStudies.getQuestionsBySectionID(section.id)
+                    viewModelStudies.getQuestionsBySectionID(section.id)
+                }
             }
-//            Timber.e(survey.sections[0].section_name)
-
         })
-// Declare optionsByQuestionId in a higher scope so that it can be accessed by both observers
-        val optionsByQuestionId =
-            mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
+
 
         viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
-//            Timber.e(questions[0].text)
-
-            // Add the questions to the survey
             for (section in survey!!.sections) {
                 for (question in questions) {
-                    if (section.section_id == question.section_id!!.toInt()) {
+                    if (section.section_id == question.section_id!!.toInt() && ! survey!!.sections[survey!!.sections.indexOf(section)].questions.any { it.question_id == question.id.toInt() }) {
                         val newQuestion =
                             com.umaia.movesense.data.responses.studies_response.Question(
                                 options = mutableListOf(),
@@ -436,30 +429,30 @@ class Home : Fragment() {
                         survey!!.sections[survey!!.sections.indexOf(section)].questions.add(
                             newQuestion
                         )
-
-                        // Store the options for this question in the map
                         optionsByQuestionId[question.id.toInt()] = newQuestion.options
                     }
                 }
             }
 
-            // Retrieve the options for each question
             for (question in questions) {
                 viewModelStudies.getQuestionOptions(question.id)
             }
         })
-
         viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
-//            Timber.e(options[0].option_id.toString())
-
-            // Add the options to the correct question using the map
             optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
                 com.umaia.movesense.data.responses.studies_response.Option(
                     option_id = it.option_id!!.toInt()
                 )
             })
-        })
+            // Check if all the options for all questions have been retrieved
+            if (optionsByQuestionId.size == survey!!.sections.flatMap { it.questions }.size) {
+                isSurveyCompleted = true
+                // Do something with the completed survey here, for example:
+                // showSurvey(survey)
+                gv.currentSurvey = survey
 
+            }
+        })
     }
 
 
@@ -527,11 +520,19 @@ class Home : Fragment() {
         if (isStarted) {
             binding.buttonStart.visibility = View.GONE
             binding.buttonStop.visibility = View.VISIBLE
+            binding.buttonTest.text = "TERMINAR TREINO"
+//            binding.buttonTest.visibility = View.GONE
+//            binding.buttonPosTreino.visibility = View.VISIBLE
+
             Timber.e("on")
 
         } else {
             binding.buttonStart.visibility = View.VISIBLE
             binding.buttonStop.visibility = View.GONE
+            binding.buttonTest.text = "COMEÇAR TREINO"
+
+//            binding.buttonTest.visibility = View.VISIBLE
+//            binding.buttonPosTreino.visibility = View.GONE
             Timber.e("off")
 
         }
