@@ -649,7 +649,7 @@ class MovesenseService : LifecycleService() {
                     addHr(teste)
 
 
-                    Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
+//                    Toast.makeText(this@MovesenseService, "Guardado.", Toast.LENGTH_LONG).show()
 
                     if (hrResponse != null) {
                         gv.hrAvarage = hrResponse.body.average.toString()
