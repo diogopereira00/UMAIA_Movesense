@@ -80,9 +80,7 @@ module.exports.addECGData = (req, res, next) => {
 }
 
 module.exports.addHRData = (req, res, next) => {
-    console.log(req.headers)
     let hrs = JSON.parse(req.body.jsonString);
-
     db.query(`INSERT IGNORE INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?`,
         [hrs.map(hr => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created).toISOString().slice(0, 19).replace('T', ' ')])],
         (err, ress) => {

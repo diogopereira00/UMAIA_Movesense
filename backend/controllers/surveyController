@@ -125,7 +125,7 @@ module.exports.questionTypes = (req, res, next) => {
 
 module.exports.studiesAllInfoUser = (req, res, next) => {
     var userID = req.params.user_id;
-    var studie = db.query(`SELECT studies.id as 'studies_id', studies.name as 'studies_name', studies.description as 'studies_description',studies.start_date as 'studies_startdate', studies.end_date as 'studies_enddate', studies.version as 'studies_version',
+    var studie = db.query(`SELECT studies.id as 'studies_id', studies.name as 'studies_name', studies.description as 'studies_description',studies.adminPassword as 'studies_adminPassword',studies.start_date as 'studies_startdate', studies.end_date as 'studies_enddate', studies.version as 'studies_version',
 	surveys.id as 'surveys_id', surveys.title as 'surveys_title', surveys.description as 'surveys_description', surveys.expected_time as 'surveys_expected_time', surveys.created_at as 'surveys_created_at', surveys.updated_at as 'surveys_updated_at',
 	sections.id as 'sections_id', sections.name as 'sections_name', 
 	questions.id as 'questions_id', questions.text as 'questions_text', questions.question_type_id as 'questions_type_id', 
@@ -156,7 +156,7 @@ module.exports.studiesAllInfoUser = (req, res, next) => {
         const optionsMap = new Map();
 
         for (const row of result) {
-            const { studies_id, studies_name, studies_description, studies_startdate, studies_enddate, studies_version, surveys_id, surveys_title, surveys_description, surveys_expected_time, surveys_created_at, surveys_updated_at, name,
+            const { studies_id, studies_name, studies_description, studies_adminPassword, studies_startdate, studies_enddate, studies_version, surveys_id, surveys_title, surveys_description, surveys_expected_time, surveys_created_at, surveys_updated_at, name,
                 sections_id, sections_name, questions_id, questions_text, questions_type_id, start_time, end_time, version, title, expected_time, created_at, updated_at, text, question_type_id, section_name, option_id } = row;
 
             if (!studies.has(studies_id)) {
@@ -164,6 +164,7 @@ module.exports.studiesAllInfoUser = (req, res, next) => {
                     study_id: studies_id,
                     study_name: studies_name,
                     study_description: studies_description,
+                    study_adminPassword: studies_adminPassword,
                     study_startdate: studies_startdate,
                     study_enddate: studies_enddate,
                     study_version: studies_version,
@@ -266,4 +267,93 @@ module.exports.surveysUser = (req, res, next) => {
         return res.status(200).send({ surveys: result });
     })
 
+}
+
+module.exports.addUserSurvey = (req, res, next) => {
+    console.log(req.headers)
+    let userSurveys = JSON.parse(req.body.jsonString);
+    console.log(userSurveys)
+
+    db.query(`INSERT INTO user_surveys (user_id, survey_id, start_time, end_time, isCompleted) VALUES ?`,
+        [userSurveys.map(us => [us.user_id, us.survey_id, new Date(us.start_time).toISOString().slice(0, 19).replace('T', ' '), new Date(us.end_time).toISOString().slice(0, 19).replace('T', ' '), us.isCompleted])],
+        (err, ress) => {
+            if (err) {
+                throw err;
+                return res.status(401).send({
+                    msg: "Erro",
+                });
+            }
+            return res.status(200).send({
+                msg: "Dados adicionados",
+            });
+        }
+    );
+}
+
+module.exports.addUserSurvey = (req, res, next) => {
+    console.log(req.headers)
+    let userSurveys = JSON.parse(req.body.jsonString);
+    console.log(userSurveys)
+
+    db.query(`INSERT IGNORE INTO user_surveys (user_id, survey_id, start_time, end_time, isCompleted) VALUES ?`,
+        [userSurveys.map(us => [us.user_id, us.survey_id, new Date(us.start_time).toISOString().slice(0, 19).replace('T', ' '), new Date(us.end_time).toISOString().slice(0, 19).replace('T', ' '), us.isCompleted])],
+        (err, ress) => {
+            if (err) {
+                throw err;
+                return res.status(401).send({
+                    msg: "Erro",
+                });
+            }
+            return res.status(200).send({
+                msg: "Dados adicionados",
+            });
+        }
+    );
+}
+
+module.exports.teste = (req, res, next) => {
+    const data = JSON.parse(req.body.jsonString);
+    console.log(data)
+    // Iterate over the array of user surveys
+    data.forEach((userSurveyData) => {
+        const answersData = userSurveyData.answers;
+
+        // Insert the user survey data into the user_surveys table
+        db.query(
+            'INSERT INTO user_surveys SET ?',
+            {
+                user_id: userSurveyData.user_id,
+                survey_id: userSurveyData.survey_id,
+                start_time: new Date(userSurveyData.start_time).toISOString().slice(0, 19).replace('T', ' '),
+                end_time: new Date(userSurveyData.end_time).toISOString().slice(0, 19).replace('T', ' '),
+                isCompleted: userSurveyData.isCompleted
+            },
+            (error, results) => {
+                if (error) {
+                    console.error(error);
+                    res.status(500).json({ message: 'Error inserting user survey data' });
+                } else {
+                    // Insert the answers data into the answers table
+                    answersData.forEach((answer) => {
+                        db.query(
+                            'INSERT INTO answers SET ?',
+                            {
+                                question_id: answer.question_id,
+                                user_survey_id: results.insertId,
+                                text: answer.text
+                            },
+                            (error, results) => {
+                                if (error) {
+                                    console.error(error);
+                                    res.status(500).json({ message: 'Error inserting answer data' });
+                                }
+                            }
+                        );
+                    });
+                }
+            }
+        );
+    });
+
+    res.status(200).json({ message: 'Data inserted successfully' });
 }
