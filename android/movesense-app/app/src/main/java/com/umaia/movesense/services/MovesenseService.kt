@@ -706,23 +706,6 @@ class MovesenseService : LifecycleService() {
                         addECG(teste)
 
 
-                        for (sample in ecgResponse.body.data) {
-                            try {
-
-//                                    mSeriesECG.appendData(
-//                                        DataPoint(mDataPointsAppended, sample), true,
-//                                        GRAPH_WINDOW_WIDTH
-//                                    )
-                            } catch (e: IllegalArgumentException) {
-                                Timber.e("Erro $e")
-//                                    Log.e(
-//                                        com.movesense.samples.ecgsample.ECGActivity.LOG_TAG,
-//                                        "GraphView error ",
-//                                        e
-//                                    )
-                            }
-//                                mDataPointsAppended++
-                        }
                     }
                 }
 
@@ -1199,7 +1182,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1232,7 +1215,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroGYRO", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1263,7 +1246,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroMAGN", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1294,7 +1277,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroECG", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1325,7 +1308,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroHR", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1357,7 +1340,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "Erro", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MovesenseService, "ErroTEMP", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }

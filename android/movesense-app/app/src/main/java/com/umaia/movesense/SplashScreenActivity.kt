@@ -51,7 +51,7 @@ private lateinit var viewModel: ApiViewModel
 private lateinit var viewModelStudies: StudiesViewmodel
 private lateinit var survey: com.umaia.movesense.data.responses.studies_response.Survey
 
-class SplashScreenActivity : AppCompatActivity() {
+class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissListener, DialogInternet.OnDialogInternetismissListener {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,18 +86,9 @@ class SplashScreenActivity : AppCompatActivity() {
             val activity =
                 if (token.isNullOrEmpty()) {
                     startNewActivityFromSplash(LoginActivity::class.java)
-                } else if (!gv.consent) {
-                    checkForUpdates()
-                    startNewActivityFromSplash(ConsentActivity::class.java)
+                } else{
                     gv.authToken = token
-                } else if (!gv.connected) {
                     checkForUpdates()
-                    startNewActivityFromSplash(ScanActivity::class.java)
-                    gv.authToken = token
-                } else {
-                    checkForUpdates()
-                    startNewActivityFromSplash(MainActivity::class.java)
-                    gv.authToken = token
                 }
             Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
         }
@@ -292,7 +283,7 @@ class SplashScreenActivity : AppCompatActivity() {
                     }
                     //Houveram alterações então o current survey é alterado.
                     if (gv.currentSurvey == null) {
-                       getSurvey(4)
+                        getSurvey(4)
                     }
 
                 }
@@ -304,18 +295,26 @@ class SplashScreenActivity : AppCompatActivity() {
         }
 
 
+    }
 
+    private fun changeActivity(){
+        if (!gv.consent) {
+            startNewActivityFromSplash(ConsentActivity::class.java)
+        } else if (!gv.connected) {
+            startNewActivityFromSplash(ScanActivity::class.java)
+        } else {
+            startNewActivityFromSplash(MainActivity::class.java)
+        }
     }
 
     private fun checkForUpdates() {
 
         var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()
         checkCurrentUserSurveys.observe(this, Observer { userStudyID ->
-            if(userStudyID == null){
+            if (userStudyID == null) {
                 gv.lastUserSurveyID = 0
 
-            }
-            else{
+            } else {
                 gv.lastUserSurveyID = userStudyID
             }
         })
@@ -348,10 +347,7 @@ class SplashScreenActivity : AppCompatActivity() {
                                     }
                                     //Os estudos nao foram alterados, então uso a base de dados local e guardo o current survey.
                                     else {
-                                        if (gv.currentSurvey == null) {
-//                                                        getSurvey(4)
-
-                                        }
+                                        changeActivity()
                                     }
                                     Timber.e("api: " + it.value.version.toString())
                                     Timber.e("db: " + studyVersion)
@@ -363,6 +359,9 @@ class SplashScreenActivity : AppCompatActivity() {
                                 }
                             }
                         })
+                }
+                else{
+                    changeActivity()
                 }
             }
 
@@ -446,23 +445,27 @@ class SplashScreenActivity : AppCompatActivity() {
         })
 
     }
+
     private fun checkInternetAndGetStudies() {
         //se tiver internet
         if (networkChecker.hasInternet()) {
             //verifico se tem wifi,ou se optou por usar dados moveis.
             if (networkChecker.hasInternetWifi() || gv.useMobileDataThisTime) {
                 //se tiver vou buscar todos os dados
+                changeActivity()
                 viewModel.getQuestionTypes(gv.authToken)
             }
             //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
             else {
                 var dialog = DialogWifi(viewModel, (this))
+                dialog.setOnDialogDismissListener(this)
                 dialog.show((this).supportFragmentManager, ContentValues.TAG)
             }
         }
         //se nao tiver internet, mostro um dialog que pede para ligar a internet.
         else {
             var dialog = DialogInternet(viewModel, (this))
+            dialog.setOnDialogDismissListener(this)
             dialog.show(
                 (this as FragmentActivity).supportFragmentManager,
                 ContentValues.TAG
@@ -471,4 +474,13 @@ class SplashScreenActivity : AppCompatActivity() {
 //            checkInternetAndGetStudies()
         }
     }
+
+    override fun onDialogWifiDismiss() {
+        checkInternetAndGetStudies()
+    }
+
+    override fun onDialogInternetDismiss() {
+        checkInternetAndGetStudies()
+    }
+
 }

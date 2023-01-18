@@ -17,6 +17,7 @@ import com.umaia.movesense.databinding.DialogLogoutBinding
 import com.umaia.movesense.databinding.DialogWifiBinding
 import com.umaia.movesense.ui.auth.LoginActivity
 import com.umaia.movesense.ui.home.startNewActivity
+import timber.log.Timber
 
 class DialogWifi(
     var viewmodel: ApiViewModel,
@@ -34,12 +35,28 @@ class DialogWifi(
             val networkInfo = connectivityManager.activeNetworkInfo
             if (networkInfo != null && networkInfo.type == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected) {
                 // WiFi is connected
-                dismiss() // Dismiss the dialog
-                activity.startNewActivity(MainActivity::class.java)
+                Timber.e("Asasds")
+                activity.startNewActivity(activity::class.java)
+
+//                dismiss() // Dismiss the dialog
+
             }
         }
     }
 
+    interface OnDialogWifiDismissListener {
+        fun onDialogWifiDismiss()
+    }
+    private var listener: OnDialogWifiDismissListener? = null
+
+    fun setOnDialogDismissListener(listener: OnDialogWifiDismissListener) {
+        this.listener = listener
+    }
+
+    override fun dismiss() {
+        super.dismiss()
+        listener?.onDialogWifiDismiss()
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,8 +98,7 @@ class DialogWifi(
         }
         binding.redesMoveis.setOnClickListener {
             gv.useMobileDataThisTime  = true
-            dismiss()
-            activity.startNewActivity(MainActivity::class.java)
+            activity.startNewActivity(activity::class.java)
         }
     }
 }

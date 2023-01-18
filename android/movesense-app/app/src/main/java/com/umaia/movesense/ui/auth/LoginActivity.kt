@@ -32,7 +32,7 @@ import com.umaia.movesense.ui.home.visible
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
-open class LoginActivity : AppCompatActivity() {
+open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissListener, DialogInternet.OnDialogInternetismissListener {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: ApiViewModel
     private val remoteDataSource = RemoteDataSource()
@@ -64,6 +64,11 @@ open class LoginActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
+
+        if(gv.isLogged){
+            checkForUpdates()
+        }
+
 
         //Vai buscar o tipo de perguntas
         viewModel.getQuestionTypes.observe(this) {
@@ -237,12 +242,9 @@ open class LoginActivity : AppCompatActivity() {
                     viewModel.saveUserID(it.value.user.id)
                     gv.userID = it.value.user.id
                     gv.authToken = it.value.user.access_token
+                    gv.isLogged  =true
                     checkForUpdates()
-                    if (gv.consent) {
-                        this@LoginActivity.startNewActivity(ScanActivity::class.java)
-                    } else {
-                        this@LoginActivity.startNewActivity(ConsentActivity::class.java)
-                    }
+
 
 
                 }
@@ -303,6 +305,13 @@ open class LoginActivity : AppCompatActivity() {
                                         gv.foundNewStudyVersion = true
                                         checkInternetAndGetStudies()
                                     }
+                                    else{
+                                        if (gv.consent) {
+                                            this@LoginActivity.startNewActivity(ScanActivity::class.java)
+                                        } else {
+                                            this@LoginActivity.startNewActivity(ConsentActivity::class.java)
+                                        }
+                                    }
                                     //Os estudos nao foram alterados, então uso a base de dados local e guardo o current survey.
                                     Timber.e("api: " + it.value.version.toString())
                                     Timber.e("db: " + studyVersion)
@@ -327,16 +336,24 @@ open class LoginActivity : AppCompatActivity() {
             if (networkChecker.hasInternetWifi() || gv.useMobileDataThisTime) {
                 //se tiver vou buscar todos os dados
                 viewModel.getQuestionTypes(gv.authToken)
+
+                if (gv.consent) {
+                    this@LoginActivity.startNewActivity(ScanActivity::class.java)
+                } else {
+                    this@LoginActivity.startNewActivity(ConsentActivity::class.java)
+                }
             }
             //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
             else {
                 var dialog = DialogWifi(viewModel, (this))
+                dialog.setOnDialogDismissListener(this)
                 dialog.show((this).supportFragmentManager, ContentValues.TAG)
             }
         }
         //se nao tiver internet, mostro um dialog que pede para ligar a internet.
         else {
             var dialog = DialogInternet(viewModel, (this))
+            dialog.setOnDialogDismissListener(this)
             dialog.show(
                 (this as FragmentActivity).supportFragmentManager,
                 ContentValues.TAG
@@ -344,6 +361,14 @@ open class LoginActivity : AppCompatActivity() {
 
 //            checkInternetAndGetStudies()
         }
+    }
+
+    override fun onDialogWifiDismiss() {
+        checkInternetAndGetStudies()
+    }
+
+    override fun onDialogInternetDismiss() {
+        checkInternetAndGetStudies()
     }
 
 }

@@ -28,7 +28,19 @@ class DialogInternet(
         super.onCreate(savedInstanceState)
 
     }
+    interface OnDialogInternetismissListener {
+        fun onDialogInternetDismiss()
+    }
+    private var listener: OnDialogInternetismissListener? = null
 
+    fun setOnDialogDismissListener(listener: OnDialogInternetismissListener) {
+        this.listener = listener
+    }
+
+    override fun dismiss() {
+        super.dismiss()
+        listener?.onDialogInternetDismiss()
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,7 +62,7 @@ class DialogInternet(
         binding.ok.setOnClickListener {
             if(networkChecker.hasInternet()){
                 dismiss()
-                requireActivity().startNewActivity(MainActivity::class.java)
+                requireActivity().startNewActivity(requireActivity()::class.java)
             }
         }
     }

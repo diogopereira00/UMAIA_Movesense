@@ -30,7 +30,7 @@ class GlobalClass : Application() {
     var isTempActivated: Boolean = false
     var isImuActivated: Boolean = false
     var isLiveDataActivated: Boolean = false
-
+    var isLogged : Boolean = false
     var userID = ""
     var authToken = ""
     var consent : Boolean = false
