@@ -9,6 +9,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
@@ -46,6 +47,9 @@ import com.umaia.movesense.model.MovesenseInternet
 import com.umaia.movesense.model.MovesenseTimerEvent
 import com.umaia.movesense.ui.home.observeOnce
 import kotlinx.coroutines.Runnable
+import androidx.datastore.preferences.core.edit
+
+import kotlinx.coroutines.withContext
 
 class MovesenseService : LifecycleService() {
 
@@ -123,7 +127,8 @@ class MovesenseService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
-        val datastore = UserPreferences(this)
+        //aqui
+        val userPreferences = UserPreferences(this)
         networkChecker = NetworkChecker(this)
 
 
@@ -181,7 +186,10 @@ class MovesenseService : LifecycleService() {
                 }
                 Constants.ACTION_STOP_SERVICE -> {
                     Timber.d("Stop service")
-                    stopService()
+                    if (gv.isServiceRunning) {
+                        stopService()
+
+                    }
                 }
                 Constants.ACTION_BLUETOOTH_CONNECTED -> {
                     initMds()
@@ -257,7 +265,19 @@ class MovesenseService : LifecycleService() {
 
     private fun verificarSensoresAtivados() {
         if (gv.isLiveDataActivated) {
-            sendDataToServer()
+            if (networkChecker.hasInternetWifi()) {
+                userPreferences.isDataSynced.asLiveData().observe(this) { isActivated ->
+                    if (isActivated == false) {
+                        sendDataToServer()
+                    }
+                }
+                movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+
+
+            } else {
+                movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+
+            }
         }
         if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
             enableImu9()
@@ -320,6 +340,13 @@ class MovesenseService : LifecycleService() {
                 mainHandler.postDelayed(this, 300000)
             }
         })
+    }
+
+    private fun sendCommandToServiceUpload(action: String) {
+        startService(Intent(this@MovesenseService, UploadService::class.java).apply {
+            this.action = action
+        })
+        stopSelf()
     }
 
     //Envia as informações para o servidor.
@@ -410,7 +437,7 @@ class MovesenseService : LifecycleService() {
                 if (!isServiceStopped) {
                     startForegroundService()
                 } else {
-                    stopService()
+//                    stopService()
                 }
             }
 
@@ -612,13 +639,32 @@ class MovesenseService : LifecycleService() {
         isServiceStopped = true
         gv.isServiceRunning = false
         stopTimer()
+        lifecycleScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[UserPreferences.KEY_IS_SYNCKED] = true
+            }
+        }
+
+
+        if (networkChecker.hasInternetWifi()) {
+            movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+            Thread {
+                Thread.sleep(5000)
+                stopSelf()
+            }.start()
+
+        } else {
+            movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+
+            Timber.e("Nao há wifi")
+            stopSelf()
+        }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
             Constants.NOTIFICATION_ID
         )
         stopForeground(true)
         unsubscribeAll()
-//        stopSelf()
-
     }
 
 

@@ -40,7 +40,7 @@ import timber.log.Timber
 
 
 private lateinit var binding: ActivitySplashScreenBinding
-private lateinit var userPreferences: UserPreferences
+internal lateinit var userPreferences: UserPreferences
 lateinit var gv: GlobalClass
 private var studyVersionDB: Double? = null
 private var studyVersionAPI: Double? = null
@@ -356,6 +356,8 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
                                 }
                                 is Resource.Failure -> {
                                     Timber.e("Erro")
+                                    changeActivity()
+
                                 }
                             }
                         })

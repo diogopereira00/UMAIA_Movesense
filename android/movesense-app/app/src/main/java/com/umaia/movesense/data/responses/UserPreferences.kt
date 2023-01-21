@@ -9,7 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore("settings")
+internal val Context.dataStore by preferencesDataStore("settings")
 
 class UserPreferences(
     context: Context
@@ -28,7 +28,16 @@ class UserPreferences(
         }
     }
 
+    val isDataSynced : Flow<Boolean?>
+        get() = applicationContext.dataStore.data.map { preferences ->
+            preferences[KEY_IS_SYNCKED]
+        }
 
+    suspend fun saveSyncedStatus(isActivated: Boolean){
+        applicationContext.dataStore.edit { preferences ->
+            preferences[KEY_IS_SYNCKED] = isActivated
+        }
+    }
 
     //Auth Token
     val token: Flow<String?>
@@ -162,6 +171,7 @@ class UserPreferences(
         private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_AUTH = stringPreferencesKey("key_auth")
         private val KEY_CONSENT = booleanPreferencesKey("key_consent")
+        val KEY_IS_SYNCKED = booleanPreferencesKey("key_is_syncked")
         private val KEY_LIVE_DATA = booleanPreferencesKey("key_live_data")
         private val KEY_ACC_STATUS = booleanPreferencesKey("key_acc_status")
         private val KEY_GYRO_STATUS = booleanPreferencesKey("key_gyro_status")
