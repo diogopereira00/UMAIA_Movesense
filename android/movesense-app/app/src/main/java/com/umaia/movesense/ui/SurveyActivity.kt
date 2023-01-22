@@ -33,8 +33,8 @@ import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.databinding.ActivitySurveyBinding
 import com.umaia.movesense.services.MovesenseService
-import com.umaia.movesense.ui.home.observeOnce
-import com.umaia.movesense.ui.home.visible
+import com.umaia.movesense.data.suveys.home.observeOnce
+import com.umaia.movesense.data.suveys.home.visible
 import com.umaia.movesense.ui.surveys.InitialStep
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
@@ -107,7 +107,7 @@ class SurveyActivity : AppCompatActivity() {
                             options.add(
                                 TextChoice(
                                     text = optionText,
-                                    value = option.option_id.toString()
+                                    value = optionText
                                 )
                             )
                         })

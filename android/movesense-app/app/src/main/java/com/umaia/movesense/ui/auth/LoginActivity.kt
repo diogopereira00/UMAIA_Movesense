@@ -25,10 +25,10 @@ import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.surveys.Survey
 import com.umaia.movesense.data.suveys.user_studies.UserStudies
 import com.umaia.movesense.ui.ConsentActivity
-import com.umaia.movesense.ui.home.checkIntBoolean
-import com.umaia.movesense.ui.home.convertDate
-import com.umaia.movesense.ui.home.startNewActivity
-import com.umaia.movesense.ui.home.visible
+import com.umaia.movesense.data.suveys.home.checkIntBoolean
+import com.umaia.movesense.data.suveys.home.convertDate
+import com.umaia.movesense.data.suveys.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.visible
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 

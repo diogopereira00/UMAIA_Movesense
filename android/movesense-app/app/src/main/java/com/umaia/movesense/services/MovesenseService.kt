@@ -45,11 +45,16 @@ import com.umaia.movesense.data.temp.TEMP
 import com.umaia.movesense.data.temp.TEMPRepository
 import com.umaia.movesense.model.MovesenseInternet
 import com.umaia.movesense.model.MovesenseTimerEvent
-import com.umaia.movesense.ui.home.observeOnce
+import com.umaia.movesense.data.suveys.home.observeOnce
 import kotlinx.coroutines.Runnable
 import androidx.datastore.preferences.core.edit
+import com.umaia.movesense.data.suveys.answers.Answer
+import com.umaia.movesense.data.suveys.answers.AnswerRepository
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
+import com.umaia.movesense.data.suveys.user_surveys.responses.UserSurveyAnswers
+import com.umaia.movesense.data.suveys.user_surveys.responses.UserSurveyAnswersItem
 
-import kotlinx.coroutines.withContext
 
 class MovesenseService : LifecycleService() {
 
@@ -71,6 +76,8 @@ class MovesenseService : LifecycleService() {
     private lateinit var magnRepository: MAGNRepository
     private lateinit var tempRepository: TEMPRepository
     private lateinit var apiRepository: ApiRepository
+    private lateinit var userSurveysRepository: UserSurveysRepository
+    private lateinit var answersRepository: AnswerRepository
 
     private var isServiceStopped = true
 
@@ -101,6 +108,9 @@ class MovesenseService : LifecycleService() {
     private var listHr: MutableList<Hr> = mutableListOf()
     private var listECG: MutableList<ECG> = mutableListOf()
     private var listTemp: MutableList<TEMP> = mutableListOf()
+    private var listUserSurveys: MutableList<UserSurveys> = mutableListOf()
+    private var listAnswers : MutableList<Answer> = mutableListOf()
+    private var listUserSurveysAnswers : MutableList<UserSurveyAnswers> = mutableListOf()
 
     private lateinit var jsonStringAcc: String
     private lateinit var jsonStringGyro: String
@@ -142,6 +152,8 @@ class MovesenseService : LifecycleService() {
         val gyroDao = AppDataBase.getDatabase(this).gyroDao()
         val magnDao = AppDataBase.getDatabase(this).magnDao()
         val tempDao = AppDataBase.getDatabase(this).tempDao()
+        val userSurveysDao = AppDataBase.getDatabase(this).userSurveysDao()
+        val answerDao = AppDataBase.getDatabase(this).answerDao()
 
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
@@ -149,6 +161,8 @@ class MovesenseService : LifecycleService() {
         gyroRepository = GYRORepository(gyroDao)
         magnRepository = MAGNRepository(magnDao)
         tempRepository = TEMPRepository(tempDao)
+        userSurveysRepository = UserSurveysRepository(userSurveysDao)
+        answersRepository = AnswerRepository(answerDao)
         apiRepository = ApiRepository(api = remoteDataSource.buildApi(ServerApi::class.java), null)
         readAllData = hrRepository.readAllData
 
@@ -222,33 +236,30 @@ class MovesenseService : LifecycleService() {
         if (!timerRunning) {
             startTime = SystemClock.uptimeMillis()
             timerThread = Thread(
-                object : Runnable {
-                    override fun run() {
-                        while (timerRunning) {
-                            timeInMilliseconds = SystemClock.uptimeMillis() - startTime
-                            updatedTime = timeSwapBuff + timeInMilliseconds
-                            val secs = (updatedTime / 1000).toInt()
-                            val mins = secs / 60
-                            val hrs = mins / 60
-                            val secsRemaining = secs % 60
-                            val minsRemaining = mins % 60
-                            val formattedTime = "${String.format("%02d", hrs)}:${
-                                String.format(
-                                    "%02d",
-                                    minsRemaining
-                                )
-                            }:${String.format("%02d", secsRemaining)}"
-                            // update LiveData object
-                            movesenseTimer.postValue(formattedTime)
-                            try {
-                                Thread.sleep(1000)
-                            } catch (e: InterruptedException) {
-                                // thread was interrupted, exit loop
-                                break
-                            }
+                Runnable {
+                    while (timerRunning) {
+                        timeInMilliseconds = SystemClock.uptimeMillis() - startTime
+                        updatedTime = timeSwapBuff + timeInMilliseconds
+                        val secs = (updatedTime / 1000).toInt()
+                        val mins = secs / 60
+                        val hrs = mins / 60
+                        val secsRemaining = secs % 60
+                        val minsRemaining = mins % 60
+                        val formattedTime = "${String.format("%02d", hrs)}:${
+                            String.format(
+                                "%02d",
+                                minsRemaining
+                            )
+                        }:${String.format("%02d", secsRemaining)}"
+                        // update LiveData object
+                        movesenseTimer.postValue(formattedTime)
+                        try {
+                            Thread.sleep(1000)
+                        } catch (e: InterruptedException) {
+                            // thread was interrupted, exit loop
+                            break
                         }
                     }
-
                 })
             timerThread?.start()
             timerRunning = true
@@ -337,7 +348,7 @@ class MovesenseService : LifecycleService() {
 
 
 
-                mainHandler.postDelayed(this, 300000)
+                mainHandler.postDelayed(this, 120000)
             }
         })
     }
@@ -400,6 +411,50 @@ class MovesenseService : LifecycleService() {
                 listTemp = it.toMutableList()
                 jsonStringTemp = Gson().toJson(listTemp)
                 addTempData(jsonString = jsonStringTemp, authToken = gv.authToken)
+            }
+        }
+
+        var userSurveys = userSurveysRepository.getAllUserSurveys
+        userSurveys.observeOnce(this@MovesenseService) { userSurveys ->
+            if (userSurveys.isNotEmpty()) {
+                listUserSurveys = userSurveys.toMutableList()
+                var answers = answersRepository.getAllAnswers
+                answers.observeOnce(this@MovesenseService){ answers->
+                    if(answers.isNotEmpty()){
+                        listAnswers = answers.toMutableList()
+
+                        val userSurveyAnswers = ArrayList<UserSurveyAnswersItem>()
+                        for (userSurvey in listUserSurveys) {
+                            val answers = listAnswers.filter { it.user_survey_id == userSurvey.id }
+                            val mappedAnswers = answers.map {
+                                com.umaia.movesense.data.suveys.user_surveys.responses.Answer(
+                                    created_at = it.created_at!!,
+                                    id = it.id,
+                                    question_id = it.question_id!!,
+                                    text = it.text!!,
+                                    user_survey_id = it.user_survey_id!!
+                                )
+                            }
+                            val userSurveyAnswersItem = UserSurveyAnswersItem(
+                                answers = mappedAnswers,
+                                end_time = userSurvey.end_time!!,
+                                id = userSurvey.id!!,
+                                isCompleted = userSurvey.isCompleted!!,
+                                start_time = userSurvey.start_time!!,
+                                survey_id = userSurvey.survey_id!!,
+                                user_id = userSurvey.user_id!!
+                            )
+                            userSurveyAnswers.add(userSurveyAnswersItem)
+
+
+                        }
+                        val userSurveysAnswerJSON = Gson().toJson(userSurveyAnswers)
+                        Timber.e(userSurveysAnswerJSON)
+                        addUserSurveyData(jsonString =  userSurveysAnswerJSON, authToken = gv.authToken)
+
+
+                    }
+                }
             }
         }
     }
@@ -651,6 +706,7 @@ class MovesenseService : LifecycleService() {
             sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
             Thread {
                 Thread.sleep(5000)
+                unsubscribeAll()
                 stopSelf()
             }.start()
 
@@ -658,6 +714,7 @@ class MovesenseService : LifecycleService() {
             movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
 
             Timber.e("Nao há wifi")
+            unsubscribeAll()
             stopSelf()
         }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
@@ -1200,6 +1257,43 @@ class MovesenseService : LifecycleService() {
             })
         }
     }
+
+    private val _uploadDataUserSurveysResponses: MutableLiveData<Resource<UploadUserSurveysResponse>> =
+        MutableLiveData()
+    val uploadDataUserSurveysResponses: LiveData<Resource<UploadUserSurveysResponse>>
+        get() = uploadDataUserSurveysResponses
+    fun addUserSurveyData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        //Efetua o post request atraves do apiRepository e guarda a resposta.
+        _uploadDataUserSurveysResponses.value =
+            apiRepository.addUserSurvey(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataUserSurveysResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    synchronized(listUserSurveys) {
+
+                        if (!listUserSurveys.isNullOrEmpty()) {
+                            for (acc in listUserSurveys) {
+                                userSurveysRepository.deleteByID(acc.id)
+                            }
+                            for(answer in listAnswers){
+                                answersRepository.deleteByID(answer.id)
+                            }
+                            listUserSurveys.clear()
+                            listAnswers.clear()
+                        }
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
 
     private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> =
         MutableLiveData()

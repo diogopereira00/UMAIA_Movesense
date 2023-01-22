@@ -31,10 +31,10 @@ import com.umaia.movesense.databinding.ActivityMainBinding
 import com.umaia.movesense.databinding.ActivitySplashScreenBinding
 import com.umaia.movesense.ui.ConsentActivity
 import com.umaia.movesense.ui.auth.LoginActivity
-import com.umaia.movesense.ui.home.checkIntBoolean
-import com.umaia.movesense.ui.home.convertDate
-import com.umaia.movesense.ui.home.startNewActivity
-import com.umaia.movesense.ui.home.startNewActivityFromSplash
+import com.umaia.movesense.data.suveys.home.checkIntBoolean
+import com.umaia.movesense.data.suveys.home.convertDate
+import com.umaia.movesense.data.suveys.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivityFromSplash
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
@@ -104,36 +104,58 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
             if (isActivated != null) {
                 gv.isLiveDataActivated = isActivated
             }
+            else{
+                gv.isAccActivated = false
+            }
+
         }
 
         userPreferences.accStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isAccActivated = isActivated
             }
+            else{
+                gv.isAccActivated = true
+            }
         }
         userPreferences.gyroStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isGyroActivated = isActivated
+            }
+            else{
+                gv.isGyroActivated = true
             }
         }
         userPreferences.magnStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isMagnActivated = isActivated
             }
+            else{
+                gv.isMagnActivated = true
+            }
         }
         userPreferences.ecgStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isECGActivated = isActivated
+            }
+            else{
+                gv.isECGActivated = true
             }
         }
         userPreferences.hrStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isHRActivated = isActivated
             }
+            else{
+                gv.isHRActivated = true
+            }
         }
         userPreferences.tempStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isTempActivated = isActivated
+            }
+            else{
+                gv.isTempActivated = true
             }
         }
 

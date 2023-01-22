@@ -12,7 +12,7 @@ import com.google.android.material.tabs.TabLayout
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.ActivityMainBinding
 import com.umaia.movesense.ui.auth.LoginActivity
-import com.umaia.movesense.ui.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivity
 
 
 private lateinit var binding: ActivityMainBinding

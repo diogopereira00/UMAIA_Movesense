@@ -10,7 +10,7 @@ import com.umaia.movesense.R
 import com.umaia.movesense.ScanActivity
 import com.umaia.movesense.data.responses.UserPreferences
 import com.umaia.movesense.databinding.ActivityConsentBinding
-import com.umaia.movesense.ui.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivity
 
 class ConsentActivity : AppCompatActivity() {
 

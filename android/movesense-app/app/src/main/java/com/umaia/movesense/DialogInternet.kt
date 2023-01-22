@@ -13,7 +13,7 @@ import com.umaia.movesense.databinding.DialogInternetBinding
 import com.umaia.movesense.databinding.DialogLogoutBinding
 import com.umaia.movesense.databinding.DialogWifiBinding
 import com.umaia.movesense.ui.auth.LoginActivity
-import com.umaia.movesense.ui.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivity
 
 class DialogInternet(
     var viewmodel: ApiViewModel,

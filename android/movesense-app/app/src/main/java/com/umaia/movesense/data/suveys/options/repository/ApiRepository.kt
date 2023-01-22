@@ -46,6 +46,9 @@ class ApiRepository(
     suspend fun addTempData(jsonString: String, authToken : String) = safeApiCall{
         api.addTempData(jsonString, authToken)
     }
+    suspend fun addUserSurvey(jsonString: String, authToken : String) = safeApiCall{
+        api.addUserSurveysData(jsonString, authToken)
+    }
     suspend fun login(
         username: String,
         password: String

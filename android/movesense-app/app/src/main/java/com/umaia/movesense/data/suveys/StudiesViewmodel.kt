@@ -9,6 +9,7 @@ import com.umaia.movesense.data.suveys.studies.StudyRepository
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.answers.AnswerRepository
@@ -28,7 +29,7 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudies
 import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
-import com.umaia.movesense.ui.home.SingleLiveData
+import com.umaia.movesense.data.suveys.home.SingleLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -220,18 +221,9 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         }
     }
 
-    val answersItem = MutableLiveData<List<Answer>>()
+    var getAllAnswers = answersRepository.getAllAnswers
 
-    fun getAllAnswers(): MutableList<Answer> {
-        val answers = mutableListOf<Answer>()
-        viewModelScope.launch {
-            answersRepository.getAllAnswers().collect() { item ->
-                answers.addAll(item)
-                answersItem.postValue(answers)
-            }
-        }
-        return answers
-    }
+
 
 
     fun getUserSurveysIdFromLastRecord(): LiveData<Long> {

@@ -24,6 +24,7 @@ import com.umaia.movesense.data.network.Resource
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.suveys.options.repository.ApiRepository
 import com.umaia.movesense.data.suveys.StudiesViewmodel
+import com.umaia.movesense.data.suveys.home.visible
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.questions.Question
 import com.umaia.movesense.data.suveys.questions_options.QuestionOption
@@ -38,7 +39,6 @@ import com.umaia.movesense.model.MoveSenseEvent
 import com.umaia.movesense.model.MovesenseWifi
 import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.ui.SurveyActivity
-import com.umaia.movesense.ui.home.*
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
@@ -519,7 +519,7 @@ class Home : Fragment() {
     private fun switchService(isStarted: Boolean) {
         if (isStarted) {
             binding.buttonStart.visibility = View.GONE
-            binding.buttonStop.visibility = View.VISIBLE
+            binding.buttonStop.visibility = View.GONE
             binding.buttonTest.text = "TERMINAR TREINO"
 //            binding.buttonTest.visibility = View.GONE
 //            binding.buttonPosTreino.visibility = View.VISIBLE
@@ -527,7 +527,7 @@ class Home : Fragment() {
             Timber.e("on")
 
         } else {
-            binding.buttonStart.visibility = View.VISIBLE
+            binding.buttonStart.visibility = View.GONE
             binding.buttonStop.visibility = View.GONE
             binding.buttonTest.text = "COMEÇAR TREINO"
 
