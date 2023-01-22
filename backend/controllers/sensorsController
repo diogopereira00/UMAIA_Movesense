@@ -1,119 +1,237 @@
 const db = require("../lib/db.js");
+const async = require("async");
+const _ = require("lodash");
 
+const chunkSize = 1000;
 module.exports.addAccData = (req, res, next) => {
-    console.log(req.headers)
-    let accs = JSON.parse(req.body.jsonString);
-    db.query(`INSERT IGNORE INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
-        [accs.map(acc => [acc.id, acc.userID, acc.x, acc.y, acc.z, acc.timestamp, new Date(acc.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
+	let accs = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(accs, chunkSize);
+	async.eachSeries(
+		chunks,
+		(accChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+				[
+					accChunk.map((acc) => [
+						acc.id,
+						acc.userID,
+						acc.x,
+						acc.y,
+						acc.z,
+						acc.timestamp,
+						new Date(acc.created).toISOString().slice(0, 19).replace("T", " "),
+					]),
+				],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};
 
 module.exports.addGyroData = (req, res, next) => {
-    console.log(req.headers)
-    let gyros = JSON.parse(req.body.jsonString);
-
-    db.query(`INSERT IGNORE INTO gyro_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
-        [gyros.map(gyro => [gyro.id, gyro.userID, gyro.x, gyro.y, gyro.z, gyro.timestamp, new Date(gyro.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
+	let gyros = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(gyros, chunkSize);
+	async.eachSeries(
+		chunks,
+		(gyroChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO gyro_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+				[
+					gyroChunk.map((gyro) => [
+						gyro.id,
+						gyro.userID,
+						gyro.x,
+						gyro.y,
+						gyro.z,
+						gyro.timestamp,
+						new Date(gyro.created).toISOString().slice(0, 19).replace("T", " "),
+					]),
+				],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};
 
 module.exports.addMagnData = (req, res, next) => {
-    console.log(req.headers)
-    let magns = JSON.parse(req.body.jsonString);
-
-    db.query(`INSERT IGNORE INTO magn_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
-        [magns.map(magn => [magn.id, magn.userID, magn.x, magn.y, magn.z, magn.timestamp, new Date(magn.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
+	let magns = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(magns, chunkSize);
+	async.eachSeries(
+		chunks,
+		(magnChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO magn_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?`,
+				[
+					magnChunk.map((magn) => [
+						magn.id,
+						magn.userID,
+						magn.x,
+						magn.y,
+						magn.z,
+						magn.timestamp,
+						new Date(magn.created).toISOString().slice(0, 19).replace("T", " "),
+					]),
+				],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};
 
 module.exports.addECGData = (req, res, next) => {
-    console.log(req.headers)
-    let ecgs = JSON.parse(req.body.jsonString);
-
-    db.query(`INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?`,
-        [ecgs.map(ecg => [ecg.id, ecg.userID, ecg.data, ecg.timestamp, new Date(ecg.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
+	let ecgs = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(ecgs, chunkSize);
+	async.eachSeries(
+		chunks,
+		(ecgChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?`,
+				[
+					ecgChunk.map((ecg) => [
+						ecg.id,
+						ecg.userID,
+						ecg.data,
+						ecg.timestamp,
+						new Date(ecg.created).toISOString().slice(0, 19).replace("T", " "),
+					]),
+				],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};
 
 module.exports.addHRData = (req, res, next) => {
-    let hrs = JSON.parse(req.body.jsonString);
-    db.query(`INSERT IGNORE INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?`,
-        [hrs.map(hr => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
-
+	let hrs = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(hrs, chunkSize);
+	async.eachSeries(
+		chunks,
+		(hrsChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?`,
+				[hrsChunk.map((hr) => [hr.id, hr.userID, hr.average, hr.rrData, new Date(hr.created).toISOString().slice(0, 19).replace("T", " ")])],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};
 
 module.exports.addTempData = (req, res, next) => {
-    console.log(req.headers)
-    let temps = JSON.parse(req.body.jsonString);
-
-    db.query(`INSERT IGNORE INTO temp_table (id_on_phone, user_id, measurement, timestamp, created_at) VALUES ?`,
-        [temps.map(temp => [temp.id, temp.userID, temp.measurement, temp.timestamp, new Date(temp.created).toISOString().slice(0, 19).replace('T', ' ')])],
-        (err, ress) => {
-            if (err) {
-                throw err;
-                return res.status(401).send({
-                    msg: "Erro",
-                });
-            }
-            return res.status(200).send({
-                msg: "Dados adicionados",
-            });
-        }
-    );
-}
+	console.log(req.headers);
+	let temps = JSON.parse(req.body.jsonString);
+	let chunks = _.chunk(temps, chunkSize);
+	async.eachSeries(
+		chunks,
+		(tempsChunk, callback) => {
+			db.query(
+				`INSERT IGNORE INTO temp_table (id_on_phone, user_id, measurement, timestamp, created_at) VALUES ?`,
+				[
+					tempsChunk.map((temp) => [
+						temp.id,
+						temp.userID,
+						temp.measurement,
+						temp.timestamp,
+						new Date(temp.created).toISOString().slice(0, 19).replace("T", " "),
+					]),
+				],
+				(err, ress) => {
+					if (err) {
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		},
+		(err) => {
+			if (err) {
+				return res.status(401).send({
+					msg: "Erro",
+				});
+			}
+			return res.status(200).send({
+				msg: "Dados adicionados",
+			});
+		}
+	);
+};

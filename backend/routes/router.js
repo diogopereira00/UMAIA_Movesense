@@ -20,8 +20,8 @@ router.get('/questionsTypes', userMiddleware.isLoggedIn, questionTypes)
 router.get('/studies/allInfo/:user_id', userMiddleware.isLoggedIn, studiesAllInfoUser)
 router.get('/surveys/:user_id', userMiddleware.isLoggedIn, surveysUser)
 router.get('/studies/:study_id/version', userMiddleware.isLoggedIn, studyVersion)
-router.post("/studies/add/userSurveys", userMiddleware.isLoggedIn, addUserSurvey)
-router.post("/teste", userMiddleware.isLoggedIn, teste)
+// router.post("/studies/add/userSurveys", userMiddleware.isLoggedIn, addUserSurvey)
+router.post("/studies/add/userSurveys", userMiddleware.isLoggedIn, teste)
 
 
 router.post("/addAccData", userMiddleware.isLoggedIn, addAccData)
