@@ -16,8 +16,8 @@ class TabPageAdapter(activity: FragmentActivity, private val tabCount: Int) : Fr
         return when (position)
         {
             0 -> Home()
-            1 -> Surveys()
-            2 -> Settings()
+//            1 -> Surveys()
+            1 -> Settings()
             else -> Home()
         }
     }
