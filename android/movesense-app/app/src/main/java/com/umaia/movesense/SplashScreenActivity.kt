@@ -90,7 +90,7 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
                     gv.authToken = token
                     checkForUpdates()
                 }
-            Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
         }
 
 

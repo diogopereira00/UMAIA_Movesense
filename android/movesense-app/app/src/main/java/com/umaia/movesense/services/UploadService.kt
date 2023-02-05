@@ -343,7 +343,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroACC", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -376,7 +376,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroGYRO", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroGYRO", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -407,7 +407,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroMAGN", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroMAGN", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -438,7 +438,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroECG", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroECG", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -469,7 +469,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroHR", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroHR", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -507,7 +507,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroTEMP", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroTEMP", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }

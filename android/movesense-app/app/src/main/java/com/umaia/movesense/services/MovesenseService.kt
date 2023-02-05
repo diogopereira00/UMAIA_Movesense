@@ -506,8 +506,8 @@ class MovesenseService : LifecycleService() {
                 Timber.e("onDisconnect: $bleAddress")
                 gv.connected = false
                 createNotification()
-                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
-                    .show()
+//                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
+//                    .show()
 
                 for (sr in bluetoothList) {
                     if (bleAddress == sr.macAddress) {
@@ -1288,7 +1288,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1322,7 +1322,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1355,7 +1355,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroGYRO", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroGYRO", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1386,7 +1386,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroMAGN", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroMAGN", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1417,7 +1417,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroECG", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroECG", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1448,7 +1448,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroHR", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroHR", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1480,7 +1480,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroTEMP", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroTEMP", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
