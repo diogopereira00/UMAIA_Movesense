@@ -2,6 +2,7 @@ package com.umaia.movesense
 
 import android.app.Activity
 import android.content.ContentValues
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -35,6 +36,8 @@ import com.umaia.movesense.data.suveys.home.checkIntBoolean
 import com.umaia.movesense.data.suveys.home.convertDate
 import com.umaia.movesense.data.suveys.home.startNewActivity
 import com.umaia.movesense.data.suveys.home.startNewActivityFromSplash
+import com.umaia.movesense.services.UploadService
+import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
@@ -324,11 +327,19 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
             startNewActivityFromSplash(ConsentActivity::class.java)
         } else if (!gv.connected) {
             startNewActivityFromSplash(ScanActivity::class.java)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+
         } else {
             startNewActivityFromSplash(MainActivity::class.java)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+
         }
     }
-
+    private fun sendCommandToServiceUpload(action: String) {
+        startService(Intent(this@SplashScreenActivity, UploadService::class.java).apply {
+            this.action = action
+        })
+    }
     private fun checkForUpdates() {
 
         var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()

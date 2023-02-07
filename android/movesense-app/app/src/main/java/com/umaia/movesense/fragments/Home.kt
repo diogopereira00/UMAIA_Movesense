@@ -69,6 +69,7 @@ class Home : Fragment() {
 
     private var survey: com.umaia.movesense.data.responses.studies_response.Survey? = null
 
+    private var isRunning = false
     companion object Foo {
         var s_INSTANCE: Home? = null
     }
@@ -184,19 +185,27 @@ class Home : Fragment() {
             )
             if (gv.isServiceRunning) {
                 getSurvey(4)
+                binding.buttonTest.text == "A GUARDAR RESULTADOS..."
+                binding.buttonStop.text == "A GUARDAR RESULTADOS..."
+                binding.timer.text == "00:00:00"
+
             } else {
                 getSurvey(3)
             }
-            if (!isSurveyCompleted) {
+//            if (!isSurveyCompleted) {
                 binding.progressBar.visible(true)
-            }
+                binding.buttonTest.isClickable = false
+                binding.buttonTest.isActivated = false
+
+//            }
             val surveyChecker = Thread {
                 while (!isSurveyCompleted) {
 
                     Thread.sleep(500)
                 }
                 Thread.sleep(500)
-
+                binding.buttonTest.isClickable = true
+                binding.buttonTest.isActivated = true
                 (context as Activity).runOnUiThread {
                     binding.progressBar.visible(false)
                     try {
@@ -439,17 +448,20 @@ class Home : Fragment() {
             }
         })
         viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
+            optionsByQuestionId[options[0].question_id!!.toInt()]?.clear()
             optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
                 com.umaia.movesense.data.responses.studies_response.Option(
                     option_id = it.option_id!!.toInt()
                 )
             })
             // Check if all the options for all questions have been retrieved
+
+            isSurveyCompleted = true
+            gv.currentSurvey = survey
+
             if (optionsByQuestionId.size == survey!!.sections.flatMap { it.questions }.size) {
-                isSurveyCompleted = true
                 // Do something with the completed survey here, for example:
                 // showSurvey(survey)
-                gv.currentSurvey = survey
 
             }
         })
@@ -493,6 +505,7 @@ class Home : Fragment() {
             }
             is MoveSenseEvent.STOP -> {
                 switchService(false)
+                binding.timer.text="00:00:00"
             }
         }
     }

@@ -20,7 +20,7 @@ class ApiRepository(
         api.getOptions(authToken)
     }
 
-    suspend fun getAllQuestionsOptions(authToken: String)  =safeApiCall {
+    suspend fun getAllQuestionsOptions(authToken: String)  = safeApiCall {
         api.getQuestionsOptions(authToken)
     }
 

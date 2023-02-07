@@ -310,7 +310,7 @@ class UploadService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@UploadService, "ErroACC", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@UploadService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }

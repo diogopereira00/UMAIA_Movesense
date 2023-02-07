@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class RemoteDataSource {
     companion object {
@@ -20,6 +21,9 @@ class RemoteDataSource {
             .baseUrl(BASE_URL)
             .client(
                 OkHttpClient.Builder().also { client ->
+                    client.readTimeout(10, TimeUnit.SECONDS)
+                    client.connectTimeout(10, TimeUnit.SECONDS)
+
                     if (BuildConfig.DEBUG) {
                         val logging = HttpLoggingInterceptor()
                         logging.setLevel(HttpLoggingInterceptor.Level.BODY)

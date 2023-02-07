@@ -101,6 +101,7 @@ class SurveyActivity : AppCompatActivity() {
 
 
                     for (option in question.options) {
+
                         val optionTextLiveData =
                             viewModelStudies.getOptionTextById(option.option_id.toLong())
                         optionTextLiveData.observeOnce(this@SurveyActivity, Observer { optionText ->

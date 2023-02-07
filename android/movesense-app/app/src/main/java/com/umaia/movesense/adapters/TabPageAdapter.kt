@@ -1,4 +1,4 @@
-package com.umaia.movesense
+package com.umaia.movesense.adapters
 
 import android.view.View
 import androidx.fragment.app.Fragment

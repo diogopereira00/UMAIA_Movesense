@@ -271,6 +271,8 @@ class MovesenseService : LifecycleService() {
             timerRunning = false
             timerThread?.interrupt()
             timerThread = null
+
+            movesenseTimer.postValue("00:00:00")
         }
     }
 

@@ -32,13 +32,14 @@ import com.umaia.movesense.data.suveys.home.visible
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
-open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissListener, DialogInternet.OnDialogInternetismissListener {
+open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissListener,
+    DialogInternet.OnDialogInternetismissListener {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: ApiViewModel
     private val remoteDataSource = RemoteDataSource()
     private lateinit var userPreferences: UserPreferences
     lateinit var gv: GlobalClass
-
+    private var isCompleted = false
     private var studyVersionDB: Double? = null
     private var studyVersionAPI: Double? = null
     private lateinit var networkChecker: NetworkChecker
@@ -64,10 +65,6 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
 
         viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
-
-        if(gv.isLogged){
-            checkForUpdates()
-        }
 
 
         //Vai buscar o tipo de perguntas
@@ -193,9 +190,6 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
                     viewModel.getQuestionOptions(com.umaia.movesense.gv.authToken)
 
 
-
-                    Toast.makeText(this, "Dados adicionados", Toast.LENGTH_LONG).show()
-
                 }
                 is Resource.Failure -> {
                     Toast.makeText(this, "Erro", Toast.LENGTH_LONG).show()
@@ -217,6 +211,8 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
                             )
                         )
                     }
+                    isCompleted = true
+                    Toast.makeText(this, "Dados adicionados", Toast.LENGTH_LONG).show()
 
                 }
                 is Resource.Failure -> {
@@ -224,6 +220,10 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
 
                 }
             }
+        }
+
+        if (gv.isLogged) {
+            checkForUpdates()
         }
 
         binding.progressBar.visible(false)
@@ -237,14 +237,13 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
             binding.progressBar.visible(false)
             when (it) {
                 is Resource.Success -> {
-                    Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
+//                    Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
                     viewModel.saveAuthToken(it.value.user.access_token)
                     viewModel.saveUserID(it.value.user.id)
                     gv.userID = it.value.user.id
                     gv.authToken = it.value.user.access_token
-                    gv.isLogged  =true
+                    gv.isLogged = true
                     checkForUpdates()
-
 
 
                 }
@@ -269,11 +268,10 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
 
         var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()
         checkCurrentUserSurveys.observe(this, Observer { userStudyID ->
-            if(userStudyID == null){
+            if (userStudyID == null) {
                 gv.lastUserSurveyID = 0
 
-            }
-            else{
+            } else {
                 gv.lastUserSurveyID = userStudyID
             }
         })
@@ -287,10 +285,13 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
             if (studyVersion == null) {
                 //vou buscar estudos a api
                 checkInternetAndGetStudies()
+                Timber.e("ola")
+
 
             } else {
                 //se ja houver estudos, verifico a versão se é igual a do servidor
                 if (networkChecker.hasInternet()) {
+                    Timber.e("ola2")
 
                     viewModel.getStudyVersion(studyID = "3", authToken = gv.authToken)
                     viewModel.getStudyVersionResponse.observe(
@@ -304,8 +305,7 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
                                     if (studyVersionAPI != studyVersionDB) {
                                         gv.foundNewStudyVersion = true
                                         checkInternetAndGetStudies()
-                                    }
-                                    else{
+                                    } else {
                                         if (gv.consent) {
                                             this@LoginActivity.startNewActivity(ScanActivity::class.java)
                                         } else {
@@ -333,34 +333,51 @@ open class LoginActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismissLi
         //se tiver internet
         if (networkChecker.hasInternet()) {
             //verifico se tem wifi,ou se optou por usar dados moveis.
-            if (networkChecker.hasInternetWifi() || gv.useMobileDataThisTime) {
-                //se tiver vou buscar todos os dados
-                viewModel.getQuestionTypes(gv.authToken)
+//            if (networkChecker.hasInternetWifi() || gv.useMobileDataThisTime) {
+            //se tiver vou buscar todos os dados
+            viewModel.getQuestionTypes(gv.authToken)
+            try {
+                val surveyChecker = Thread {
+                    while (!isCompleted) {
+                        Thread.sleep(500)
+                    }
+                    Thread.sleep(500)
 
-                if (gv.consent) {
-                    this@LoginActivity.startNewActivity(ScanActivity::class.java)
-                } else {
-                    this@LoginActivity.startNewActivity(ConsentActivity::class.java)
+                    this.runOnUiThread {
+                        if (gv.consent) {
+                            this@LoginActivity.startNewActivity(ScanActivity::class.java)
+                        } else {
+                            this@LoginActivity.startNewActivity(ConsentActivity::class.java)
+                        }
+
+                    }
                 }
+//                        viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                surveyChecker.start()
+
+            } catch (e: InterruptedException) {
+                Timber.e(e.toString())
             }
-            //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
-            else {
-                var dialog = DialogWifi(viewModel, (this))
-                dialog.setOnDialogDismissListener(this)
-                dialog.show((this).supportFragmentManager, ContentValues.TAG)
-            }
+
         }
-        //se nao tiver internet, mostro um dialog que pede para ligar a internet.
-        else {
-            var dialog = DialogInternet(viewModel, (this))
-            dialog.setOnDialogDismissListener(this)
-            dialog.show(
-                (this as FragmentActivity).supportFragmentManager,
-                ContentValues.TAG
-            )
+        //caso contrario, mostro um dialog que informa que tem internet mas nao ta com wifi.
+//            else {
+//                var dialog = DialogWifi(viewModel, (this))
+//                dialog.setOnDialogDismissListener(this)
+//                dialog.show((this).supportFragmentManager, ContentValues.TAG)
+//            }
+//        }
+//        //se nao tiver internet, mostro um dialog que pede para ligar a internet.
+//        else {
+//            var dialog = DialogInternet(viewModel, (this))
+//            dialog.setOnDialogDismissListener(this)
+//            dialog.show(
+//                (this as FragmentActivity).supportFragmentManager,
+//                ContentValues.TAG
+//            )
 
 //            checkInternetAndGetStudies()
-        }
+
     }
 
     override fun onDialogWifiDismiss() {
