@@ -68,7 +68,16 @@ class SurveyActivity : AppCompatActivity() {
         val factoryStudies = ViewModelFactory(context = this, repository = null)
 
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
+        Timber.e("teste -> " + gv.listOfOptions.size.toString())
+//        viewModelStudies.options.observe(this, Observer { options ->
+//
+//            val map = options.associateBy { it.id }
+//
+//            gv.listOfOptions = map
+//            Timber.e("qwerty +++" + gv.listOfOptions.size)
+//        })
 
+        Timber.e("aqui + " + gv.currentSurvey!!.sections[0].questions.size.toString())
 
         var surveyView: SurveyView = binding.surveyView
         val step1 = InitialStep(
@@ -86,6 +95,7 @@ class SurveyActivity : AppCompatActivity() {
         steps.add(step1)
 
         val sections = gv.currentSurvey!!.sections
+        Timber.e("asad" + gv.currentSurvey!!.sections[0].questions.size.toString())
         for (section in sections) {
             val step = InstructionStep(
                 title = section.section_name,
@@ -93,25 +103,34 @@ class SurveyActivity : AppCompatActivity() {
             )
 //            steps.add(step)
 
+
             for (question in section.questions) {
 
                 if (question.question_type_id === 1) {
 
                     val options: MutableList<TextChoice> = mutableListOf()
 
+                    question.options.sortBy { option -> option.option_id }
 
                     for (option in question.options) {
 
-                        val optionTextLiveData =
-                            viewModelStudies.getOptionTextById(option.option_id.toLong())
-                        optionTextLiveData.observeOnce(this@SurveyActivity, Observer { optionText ->
-                            options.add(
-                                TextChoice(
-                                    text = optionText,
-                                    value = optionText
-                                )
+                        options.add(
+                            TextChoice(
+                                text = gv.listOfOptions[option.option_id.toLong()]!!.text.toString(),
+                                value = gv.listOfOptions[option.option_id.toLong()]!!.text.toString()
                             )
-                        })
+                        )
+
+//                        val optionTextLiveData =
+//                            viewModelStudies.getOptionTextById(option.option_id.toLong())
+//                        optionTextLiveData.observeOnce(this@SurveyActivity, Observer { optionText ->
+//                            options.add(
+//                                TextChoice(
+//                                    text = optionText,
+//                                    value = optionText
+//                                )
+//                            )
+//                        })
                     }
                     val stepq = QuestionStep(
                         id = StepIdentifier(question.question_id.toString()),
@@ -137,19 +156,40 @@ class SurveyActivity : AppCompatActivity() {
                     steps.add(freeStep)
 
 
-                } else if (question.question_type_id == 3) {
+                }
+                else if (question.question_type_id == 3) {
                     // Check if the question type is a Likert scale
+
 
 
                     // Get the option data for the question
                     try {
                         val surveyChecker = Thread {
-                            while (question.options.size == 0) {
+                            while (question.options.size == 0 || gv.listOfOptions.isEmpty()) {
                                 Thread.sleep(500)
+                                Timber.e("tou a dormir")
                             }
+                            Thread.sleep(500)
 
                             this.runOnUiThread {
-                                viewModelStudies.getOptionByID(question.options[0].option_id.toLong())
+                                Timber.e(question.question_text + " ->")
+
+                                val likertStep = QuestionStep(
+                                    id = StepIdentifier(question.question_id.toString()),
+                                    title = question.question_text,
+                                    text = gv.listOfOptions[question.options[0].option_id.toLong()]!!.text.toString(),
+                                    answerFormat = AnswerFormat.ScaleAnswerFormat(
+                                        minimumValue = 1,
+                                        maximumValue = gv.listOfOptions[question.options[0].option_id.toLong()]!!.likertScale!!.toInt(),
+                                        minimumValueDescription = "1",
+                                        maximumValueDescription = gv.listOfOptions[question.options[0].option_id.toLong()]!!.likertScale.toString(),
+                                        // minimumValueDescription = getLikertScale(optionData.text!!, 0),
+                                        //maximumValueDescription = getLikertScale(optionData.text!!, 1),
+                                        step = 1f
+                                    )
+                                )
+                                // Add the step to the list of steps
+                                steps.add(likertStep)
 
 
                             }
@@ -161,35 +201,6 @@ class SurveyActivity : AppCompatActivity() {
                         Timber.e(e.toString())
                     }
 
-
-                    // Observe the option data and assign it to the option variable when it is available
-                    viewModelStudies.optionsItem.observeOnce(
-                        this@SurveyActivity,
-                        Observer { optionData ->
-
-                            // Check if the option text is not null or empty
-                            if (!optionData.text.toString().isNullOrEmpty()) {
-                                // Create a Likert scale step using the option data
-                                val likertStep = QuestionStep(
-                                    id = StepIdentifier(question.question_id.toString()),
-                                    title = question.question_text,
-                                    text = "Tenha em atenção que " + optionData.text,
-                                    answerFormat = AnswerFormat.ScaleAnswerFormat(
-                                        minimumValue = 1,
-                                        maximumValue = optionData.likertScale!!.toInt(),
-                                        defaultValue = optionData.likertScale!! / 2,
-                                        minimumValueDescription = "1",
-                                        maximumValueDescription = optionData.likertScale.toString(),
-                                        // minimumValueDescription = getLikertScale(optionData.text!!, 0),
-                                        //maximumValueDescription = getLikertScale(optionData.text!!, 1),
-                                        step = 1f
-                                    )
-                                )
-                                // Add the step to the list of steps
-                                steps.add(likertStep)
-
-                            }
-                        })
                 }
 
 
@@ -244,7 +255,7 @@ class SurveyActivity : AppCompatActivity() {
                     }
 
 //                    gv.lastUserSurveyID = gv.lastUserSurveyID!! +1L
-0
+                    0
                     this.runOnUiThread {
                         if (gv.currentSurvey!!.surveys_id == 3) {
                             sendCommandToService(Constants.ACTION_START_SERVICE)
@@ -286,7 +297,7 @@ class SurveyActivity : AppCompatActivity() {
             Runnable
             {
                 steps.add(complete)
-            }, 1000
+            }, 1500
         ) //5 seconds
 
         val task = OrderedTask(steps = steps)

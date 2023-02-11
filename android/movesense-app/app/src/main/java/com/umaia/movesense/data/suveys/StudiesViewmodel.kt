@@ -122,6 +122,9 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
     val surveyItem = SingleLiveData<Survey>()
 
+    val options: LiveData<List<Option>> = optionRepository.getAllOptions
+
+
     fun getSurveyByID(surveyID: Long) {
 //        val option = MutableLiveData<Survey>()
 

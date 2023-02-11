@@ -233,6 +233,7 @@ class MovesenseService : LifecycleService() {
     }
 
     private fun startTimer() {
+        gv.more30Minutes = false
         if (!timerRunning) {
             startTime = SystemClock.uptimeMillis()
             timerThread = Thread(
@@ -240,6 +241,9 @@ class MovesenseService : LifecycleService() {
                     while (timerRunning) {
                         timeInMilliseconds = SystemClock.uptimeMillis() - startTime
                         updatedTime = timeSwapBuff + timeInMilliseconds
+                        if(updatedTime>= 1800000L ){
+                                gv.more30Minutes = true
+                        }
                         val secs = (updatedTime / 1000).toInt()
                         val mins = secs / 60
                         val hrs = mins / 60
@@ -1220,7 +1224,7 @@ class MovesenseService : LifecycleService() {
             moveSenseEvent.observe(this, Observer {
                 when (it) {
                     is MoveSenseEvent.START -> {
-                        Timber.e("estou aquiiiiii")
+//                        Timber.e("estou aquiiiiii")
                         var intent1 = Intent(this, MainActivity::class.java)
                         var title = "Sensor conectado"
                         var description = "Recolhendo dados..."

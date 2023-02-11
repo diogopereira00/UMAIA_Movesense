@@ -32,6 +32,13 @@
         android:theme="@style/Theme.Movesense"
         tools:targetApi="31">
         <activity
+            android:name=".DialogStopActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".ui.ConsentActivity"
             android:exported="false">
             <meta-data

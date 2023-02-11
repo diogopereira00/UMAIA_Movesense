@@ -1,6 +1,7 @@
 package com.umaia.movesense.fragments
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
@@ -70,9 +71,16 @@ class Home : Fragment() {
     private var survey: com.umaia.movesense.data.responses.studies_response.Survey? = null
 
     private var isRunning = false
+
     companion object Foo {
         var s_INSTANCE: Home? = null
     }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
 
 
     override fun onResume() {
@@ -114,115 +122,47 @@ class Home : Fragment() {
 
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
 
+        viewModelStudies.options.observe(viewLifecycleOwner, Observer { options ->
 
+            val map = options.associateBy { it.id }
+
+            gv.listOfOptions = map
+            Timber.e("qwerty +++" + gv.listOfOptions.size)
+        })
 
         setObservers()
 
-        //TODO : mover isto para o splashscree se o login tiver efetuado, se nao faz login e faz pedido tambem
-//        var checkForStudies = viewModelStudies.getStudyVersionById(studyID = "3")
-//        checkForStudies.observe(viewLifecycleOwner, Observer { studyVersion ->
-//            studyVersionDB = studyVersion
-//
-//            //se nao houver versao na base de dados, significa que nao há estudos
-//            if (studyVersion == null) {
-//                //vou buscar estudos a api
-//                checkInternetAndGetStudies()
-//
-//            } else {
-//                //se ja houver estudos, verifico a versão se é igual a do servidor
-//                if (networkChecker.hasInternet()) {
-//
-//                    viewModel.getStudyVersion(studyID = "3", authToken = gv.authToken)
-//                    viewModel.getStudyVersionResponse.observe(viewLifecycleOwner, Observer {
-////                        binding.progressBar.visible(false)
-//                        when (it) {
-//                            is Resource.Success -> {
-//                                //todo exprimentar quando tiver no servidor
-//                                studyVersionAPI = it.value.version
-//                                if (studyVersionAPI != studyVersionDB) {
-//                                    gv.foundNewStudyVersion = true
-//                                    checkInternetAndGetStudies()
-//                                }
-//                                //Os estudos nao foram alterados, então uso a base de dados local e guardo o current survey.
-//                                else {
-//                                    if (gv.currentSurvey == null) {
-//                                        getSurvey(4)
-//
-//                                    }
-//                                }
-//                                Timber.e("api: " + it.value.version.toString())
-//                                Timber.e("db: " + studyVersion)
-//
-//
-//                            }
-//                            is Resource.Failure -> {
-//                                Timber.e("Erro")
-//                            }
-//                        }
-//                    })
-//                }
-//            }
-//
-//        })
+
         s_INSTANCE = this
 //        updateHR()
 
         binding.buttonStart.setOnClickListener {
             sendCommandToService(Constants.ACTION_START_SERVICE)
         }
-        binding.buttonStop.setOnClickListener {
-            sendCommandToService(Constants.ACTION_STOP_SERVICE)
-        }
+
         binding.buttonTest.setOnClickListener {
-            gv.currentSurveyID = 3
-            gv.currentSurvey = null
-            survey = com.umaia.movesense.data.responses.studies_response.Survey(
-                sections = mutableListOf(),
-                survey_description = "",
-                survey_expected_time = 0,
-                survey_title = "",
-                surveys_id = 0
-            )
             if (gv.isServiceRunning) {
-                getSurvey(4)
-                binding.buttonTest.text == "A GUARDAR RESULTADOS..."
-                binding.buttonStop.text == "A GUARDAR RESULTADOS..."
-                binding.timer.text == "00:00:00"
+                if (!gv.more30Minutes) {
+                    val builder = AlertDialog.Builder(activity)
 
-            } else {
-                getSurvey(3)
-            }
-//            if (!isSurveyCompleted) {
-                binding.progressBar.visible(true)
-                binding.buttonTest.isClickable = false
-                binding.buttonTest.isActivated = false
+                    builder.setTitle("Ainda não completou os 30 minutos de treino recomendados")
+                    builder.setMessage("Tem a certeza que pretende terminar a sessão de treino?")
+                    builder.setPositiveButton("Sim, tenho a certeza") { _, _ ->
 
-//            }
-            val surveyChecker = Thread {
-                while (!isSurveyCompleted) {
+                        continueWithOperation()
 
-                    Thread.sleep(500)
-                }
-                Thread.sleep(500)
-                binding.buttonTest.isClickable = true
-                binding.buttonTest.isActivated = true
-                (context as Activity).runOnUiThread {
-                    binding.progressBar.visible(false)
-                    try {
-
-                        val intent = Intent(context, SurveyActivity::class.java)
-                        startActivity(intent)
-                        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                        }
-                    } catch (e: InterruptedException) {
-                        Timber.e(e.toString())
                     }
-
+                    builder.setNegativeButton("Não") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    builder.show()
+                } else {
+                    continueWithOperation()
                 }
-
             }
-            surveyChecker.start()
+            else{
+                continueWithOperation()
+            }
 
 
         }
@@ -387,6 +327,58 @@ class Home : Fragment() {
         return binding.root
     }
 
+    private fun continueWithOperation() {
+        gv.currentSurveyID = 3
+        gv.currentSurvey = null
+        survey = com.umaia.movesense.data.responses.studies_response.Survey(
+            sections = mutableListOf(),
+            survey_description = "",
+            survey_expected_time = 0,
+            survey_title = "",
+            surveys_id = 0
+        )
+        if (gv.isServiceRunning) {
+            getSurvey(4)
+            binding.buttonTest.text == "A GUARDAR RESULTADOS..."
+            binding.buttonStop.text == "A GUARDAR RESULTADOS..."
+            binding.timer.text == "00:00:00"
+
+        } else {
+            getSurvey(3)
+        }
+//            if (!isSurveyCompleted) {
+        binding.progressBar.visible(true)
+        binding.buttonTest.isClickable = false
+        binding.buttonTest.isActivated = false
+
+//            }
+        val surveyChecker = Thread {
+            while (!isSurveyCompleted) {
+
+                Thread.sleep(500)
+            }
+            Thread.sleep(500)
+            binding.buttonTest.isClickable = true
+            binding.buttonTest.isActivated = true
+            (context as Activity).runOnUiThread {
+                binding.progressBar.visible(false)
+                try {
+
+                    val intent = Intent(context, SurveyActivity::class.java)
+                    startActivity(intent)
+                    if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                    }
+                } catch (e: InterruptedException) {
+                    Timber.e(e.toString())
+                }
+
+            }
+
+        }
+        surveyChecker.start()
+    }
+
 
     private var isSurveyCompleted = false
     private val optionsByQuestionId =
@@ -427,7 +419,10 @@ class Home : Fragment() {
         viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
             for (section in survey!!.sections) {
                 for (question in questions) {
-                    if (section.section_id == question.section_id!!.toInt() && ! survey!!.sections[survey!!.sections.indexOf(section)].questions.any { it.question_id == question.id.toInt() }) {
+                    if (section.section_id == question.section_id!!.toInt() && !survey!!.sections[survey!!.sections.indexOf(
+                            section
+                        )].questions.any { it.question_id == question.id.toInt() }
+                    ) {
                         val newQuestion =
                             com.umaia.movesense.data.responses.studies_response.Question(
                                 options = mutableListOf(),
@@ -505,7 +500,7 @@ class Home : Fragment() {
             }
             is MoveSenseEvent.STOP -> {
                 switchService(false)
-                binding.timer.text="00:00:00"
+                binding.timer.text = "00:00:00"
             }
         }
     }
@@ -517,6 +512,8 @@ class Home : Fragment() {
 
     fun onStopClicked(view: View?) {
 //        switchService(false)
+        Timber.e("teste2")
+
         sendCommandToService(Constants.ACTION_STOP_SERVICE)
 
     }
