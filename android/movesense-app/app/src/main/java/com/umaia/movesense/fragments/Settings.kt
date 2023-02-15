@@ -76,7 +76,7 @@ class Settings : Fragment() {
 
     private fun gerarLista() {
         settingsList.clear()
-        settingsList.add(SettingsClass(id = "Conta", name = "Sua conta", description = "Veja a segurança da sua conta, baixe um arquivo com seus dados ou saiba mais sobre as opções de desativação da conta", icon = R.drawable.ic_baseline_account_circle_24))
+//        settingsList.add(SettingsClass(id = "Conta", name = "Sua conta", description = "Veja a segurança da sua conta, baixe um arquivo com seus dados ou saiba mais sobre as opções de desativação da conta", icon = R.drawable.ic_baseline_account_circle_24))
         settingsList.add(SettingsClass(id = Constants.SETTINGS_SENSORS, name = "Os seus sensores", description = "Ative ou desative a recolha de determinados dados, ou altere a frequência da sua recolha.", icon = R.drawable.ic_baseline_sensors_24))
 
 //        settingsList.add(SettingsClass(id = "Segurança",name = "Segurança e acesso à conta", description = "Gira a segurança da sua conta e monitorize o uso dela, inclusive os aplicativos conectados.", icon = R.drawable.ic_baseline_lock_24))

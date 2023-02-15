@@ -8,13 +8,6 @@ import com.umaia.movesense.data.suveys.surveys.Survey
 
 @Entity(
     tableName = "sections_table"
-    //,
-//    foreignKeys = [ForeignKey(
-//        entity = Survey::class,
-//        parentColumns = ["id"],
-//        childColumns = ["survey_id"],
-//        onDelete = ForeignKey.CASCADE
-//    )]
 )
 data class Section(
     @PrimaryKey(autoGenerate = true)

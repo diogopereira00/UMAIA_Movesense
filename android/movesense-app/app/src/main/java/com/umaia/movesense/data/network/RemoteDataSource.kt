@@ -21,8 +21,9 @@ class RemoteDataSource {
             .baseUrl(BASE_URL)
             .client(
                 OkHttpClient.Builder().also { client ->
-                    client.readTimeout(10, TimeUnit.SECONDS)
-                    client.connectTimeout(10, TimeUnit.SECONDS)
+                    client.connectTimeout(2, TimeUnit.MINUTES); // connect timeout
+                    client.writeTimeout(2,TimeUnit.MINUTES)
+                    client.readTimeout(2, TimeUnit.MINUTES)
 
                     if (BuildConfig.DEBUG) {
                         val logging = HttpLoggingInterceptor()

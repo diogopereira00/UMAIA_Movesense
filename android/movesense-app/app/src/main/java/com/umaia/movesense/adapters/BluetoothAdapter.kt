@@ -73,6 +73,7 @@ class BluetoothAdapter // construtor
         init {
             itemView.setOnClickListener {
                 listener.onItemClick(adapterPosition)
+                itemView.isClickable = false
             }
         }
     }

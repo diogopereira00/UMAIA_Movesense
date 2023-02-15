@@ -79,8 +79,9 @@ class Home : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-    }
 
+
+    }
 
 
     override fun onResume() {
@@ -121,14 +122,29 @@ class Home : Fragment() {
         viewModel = ViewModelProvider(this, factory)[ApiViewModel::class.java]
 
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
+        binding.progressBar.visible(true)
 
-        viewModelStudies.options.observe(viewLifecycleOwner, Observer { options ->
+        viewModelStudies.fullSurveys.observe(viewLifecycleOwner, Observer { fullSurveys ->
+            Timber.e("Surveys = " + fullSurveys.size.toString())
+//            Toast.makeText(
+//                requireContext(),
+//                "Surveys = ${fullSurveys.size.toString()}",
+//                Toast.LENGTH_SHORT
+//            ).show()
+            binding.progressBar.visible(false)
+            binding.buttonTest.isClickable = true
+            binding.buttonTest.isEnabled = true
+            gv.preSurvey = fullSurveys[0]
+            gv.posSurvey = fullSurveys[1]
 
-            val map = options.associateBy { it.id }
-
-            gv.listOfOptions = map
-            Timber.e("qwerty +++" + gv.listOfOptions.size)
         })
+//        viewModelStudies.options.observe(viewLifecycleOwner, Observer { options ->
+//
+//            val map = options.associateBy { it.id }
+//
+//            gv.listOfOptions = map
+//            Timber.e("qwerty +++" + gv.listOfOptions.size)
+//        })
 
         setObservers()
 
@@ -159,8 +175,7 @@ class Home : Fragment() {
                 } else {
                     continueWithOperation()
                 }
-            }
-            else{
+            } else {
                 continueWithOperation()
             }
 
@@ -328,55 +343,88 @@ class Home : Fragment() {
     }
 
     private fun continueWithOperation() {
-        gv.currentSurveyID = 3
-        gv.currentSurvey = null
-        survey = com.umaia.movesense.data.responses.studies_response.Survey(
-            sections = mutableListOf(),
-            survey_description = "",
-            survey_expected_time = 0,
-            survey_title = "",
-            surveys_id = 0
-        )
+//        gv.currentSurveyID = 3
+//        gv.currentSurvey = null
+//        survey = com.umaia.movesense.data.responses.studies_response.Survey(
+//            sections = mutableListOf(),
+//            survey_description = "",
+//            survey_expected_time = 0,
+//            survey_title = "",
+//            surveys_id = 0
+//        )
         if (gv.isServiceRunning) {
-            getSurvey(4)
-            binding.buttonTest.text == "A GUARDAR RESULTADOS..."
-            binding.buttonStop.text == "A GUARDAR RESULTADOS..."
+//            getSurvey(4)
+//            binding.buttonTest.text == "A GUARDAR RESULTADOS..."
+//            binding.buttonStop.text == "A GUARDAR RESULTADOS..."
+            gv.currentSurvey = gv.posSurvey
             binding.timer.text == "00:00:00"
 
         } else {
-            getSurvey(3)
+//            getSurvey(3)
+            gv.currentSurvey = gv.preSurvey
+
         }
 //            if (!isSurveyCompleted) {
-        binding.progressBar.visible(true)
         binding.buttonTest.isClickable = false
         binding.buttonTest.isActivated = false
 
-//            }
-        val surveyChecker = Thread {
-            while (!isSurveyCompleted) {
 
-                Thread.sleep(500)
+
+        binding.buttonTest.isClickable = true
+        binding.buttonTest.isActivated = true
+
+
+        try {
+            val intent = Intent(context, SurveyActivity::class.java)
+            startActivity(intent)
+            if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
-            Thread.sleep(500)
-            binding.buttonTest.isClickable = true
-            binding.buttonTest.isActivated = true
-            (context as Activity).runOnUiThread {
-                binding.progressBar.visible(false)
-                try {
-
-                    val intent = Intent(context, SurveyActivity::class.java)
-                    startActivity(intent)
-                    if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                    }
-                } catch (e: InterruptedException) {
-                    Timber.e(e.toString())
-                }
-
-            }
-
+        } catch (e: InterruptedException) {
+            Timber.e(e.toString())
         }
-        surveyChecker.start()
+
+////            }
+//        val surveyChecker = Thread {
+////            while (!isSurveyCompleted) {
+////
+////                Thread.sleep(500)
+////            }
+//            while (gv.currentSurvey == null) {
+////                Thread.sleep(500)
+//            }
+//            while (!isSurveyCompleted) {
+////                Thread.sleep(500)
+//            }
+//            if (gv.currentSurvey!!.sections.isNotEmpty()) {
+//                for (section in gv.currentSurvey!!.sections) {
+//                    for (question in section.questions) {
+//                        while (question.options.isEmpty()) {
+//                            Thread.sleep(500)
+//                        }
+//                    }
+//                }
+//            }
+////            Thread.sleep(500)
+//            binding.buttonTest.isClickable = true
+//            binding.buttonTest.isActivated = true
+//            (context as Activity).runOnUiThread {
+//                binding.progressBar.visible(false)
+////                try {
+////
+////                    val intent = Intent(context, SurveyActivity::class.java)
+////                    startActivity(intent)
+////                    if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+////                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+////                    }
+////                } catch (e: InterruptedException) {
+////                    Timber.e(e.toString())
+////                }
+//
+//            }
+//
+//        }
+//        surveyChecker.start()
     }
 
 
@@ -384,83 +432,88 @@ class Home : Fragment() {
     private val optionsByQuestionId =
         mutableMapOf<Int, MutableList<com.umaia.movesense.data.responses.studies_response.Option>>()
 
-    private fun getSurvey(id: Long) {
-        isSurveyCompleted = false
-        optionsByQuestionId.clear()
-        viewModelStudies.getSurveyByID(id)
-        viewModelStudies.surveyItem.observe(viewLifecycleOwner, Observer { surveyInfo ->
-            survey = null
-            survey = com.umaia.movesense.data.responses.studies_response.Survey(
-                sections = mutableListOf(),
-                survey_description = surveyInfo!!.description!!,
-                survey_expected_time = surveyInfo.expected_time!!,
-                survey_title = surveyInfo.title!!,
-                surveys_id = surveyInfo.id.toInt()!!
-            )
-            viewModelStudies.getSectionsByID(surveyInfo.id)
-        })
-
-        viewModelStudies.sectionItem.observe(viewLifecycleOwner, Observer { sections ->
-            for (section in sections) {
-                if (section.survey_id!!.toInt() == survey!!.surveys_id && !survey!!.sections.any { it.section_id == section.id.toInt() }) {
-                    survey!!.sections.add(
-                        com.umaia.movesense.data.responses.studies_response.Section(
-                            section_id = section.id.toInt(),
-                            section_name = section.name!!,
-                            questions = mutableListOf()
-                        )
-                    )
-                    viewModelStudies.getQuestionsBySectionID(section.id)
-                }
-            }
-        })
-
-
-        viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
-            for (section in survey!!.sections) {
-                for (question in questions) {
-                    if (section.section_id == question.section_id!!.toInt() && !survey!!.sections[survey!!.sections.indexOf(
-                            section
-                        )].questions.any { it.question_id == question.id.toInt() }
-                    ) {
-                        val newQuestion =
-                            com.umaia.movesense.data.responses.studies_response.Question(
-                                options = mutableListOf(),
-                                question_id = question.id.toInt(),
-                                question_text = question.text!!,
-                                question_type_id = question.question_type_id!!.toInt()
-                            )
-                        survey!!.sections[survey!!.sections.indexOf(section)].questions.add(
-                            newQuestion
-                        )
-                        optionsByQuestionId[question.id.toInt()] = newQuestion.options
-                    }
-                }
-            }
-
-            for (question in questions) {
-                viewModelStudies.getQuestionOptions(question.id)
-            }
-        })
-        viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
-            optionsByQuestionId[options[0].question_id!!.toInt()]?.clear()
-            optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
-                com.umaia.movesense.data.responses.studies_response.Option(
-                    option_id = it.option_id!!.toInt()
-                )
-            })
-            // Check if all the options for all questions have been retrieved
-
-            isSurveyCompleted = true
-            gv.currentSurvey = survey
-
-            if (optionsByQuestionId.size == survey!!.sections.flatMap { it.questions }.size) {
-                // Do something with the completed survey here, for example:
-                // showSurvey(survey)
-
-            }
-        })
-    }
+//    private fun getSurvey(id: Long) {
+//        isSurveyCompleted = false
+//        optionsByQuestionId.clear()
+//        viewModelStudies.getSurveyByID(id)
+//        viewModelStudies.surveyItem.observe(viewLifecycleOwner, Observer { surveyInfo ->
+//            survey = null
+//            survey = com.umaia.movesense.data.responses.studies_response.Survey(
+//                sections = mutableListOf(),
+//                survey_description = surveyInfo!!.description!!,
+//                survey_expected_time = surveyInfo.expected_time!!,
+//                survey_title = surveyInfo.title!!,
+//                surveys_id = surveyInfo.id.toInt()!!
+//            )
+//            viewModelStudies.getSectionsByID(surveyInfo.id)
+//        })
+//
+//        viewModelStudies.sectionItem.observe(viewLifecycleOwner, Observer { sections ->
+//            for (section in sections) {
+//                if (section.survey_id!!.toInt() == survey!!.surveys_id && !survey!!.sections.any { it.section_id == section.id.toInt() }) {
+//                    survey!!.sections.add(
+//                        com.umaia.movesense.data.responses.studies_response.Section(
+//                            section_id = section.id.toInt(),
+//                            section_name = section.name!!,
+//                            questions = mutableListOf()
+//                        )
+//                    )
+//                    Timber.e("c-> O survey ${section.survey_id} tem ${sections.size.toString()} secçoes")
+//                    viewModelStudies.getQuestionsBySectionID(section.id)
+//                }
+//            }
+//        })
+//
+//
+//        viewModelStudies.questionsItem.observe(viewLifecycleOwner, Observer { questions ->
+//            for (section in survey!!.sections) {
+//                for (question in questions) {
+//                    if (section.section_id == question.section_id!!.toInt() && !survey!!.sections[survey!!.sections.indexOf(
+//                            section
+//                        )].questions.any { it.question_id == question.id.toInt() }
+//                    ) {
+//                        val newQuestion =
+//                            com.umaia.movesense.data.responses.studies_response.Question(
+//                                options = mutableListOf(),
+//                                question_id = question.id.toInt(),
+//                                question_text = question.text!!,
+//                                question_type_id = question.question_type_id!!.toInt()
+//                            )
+//                        survey!!.sections[survey!!.sections.indexOf(section)].questions.add(
+//                            newQuestion
+//                        )
+//                        optionsByQuestionId[question.id.toInt()] = newQuestion.options
+//                    }
+//                }
+//            }
+//
+//            for (question in questions) {
+//                viewModelStudies.getQuestionOptions(question.id)
+//            }
+//        })
+//        viewModelStudies.questionOptionItem.observe(viewLifecycleOwner, Observer { options ->
+//            if (options.isNotEmpty()) {
+//                optionsByQuestionId[options[0].question_id!!.toInt()]?.clear()
+//                optionsByQuestionId[options[0].question_id!!.toInt()]?.addAll(options.map {
+//                    com.umaia.movesense.data.responses.studies_response.Option(
+//                        option_id = it.option_id!!.toInt()
+//                    )
+//                })
+//                // Check if all the options for all questions have been retrieved
+//
+//                isSurveyCompleted = true
+//                gv.currentSurvey = survey
+//
+//                if (optionsByQuestionId.size == survey!!.sections.flatMap { it.questions }.size) {
+//
+//                    // Do something with the completed survey here, for example:
+//                    // showSurvey(survey)
+//
+//                }
+//            }
+//
+//        })
+//    }
 
 
     private fun setObservers() {

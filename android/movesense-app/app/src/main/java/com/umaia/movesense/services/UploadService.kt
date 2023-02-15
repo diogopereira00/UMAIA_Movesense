@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.edit
@@ -157,48 +158,64 @@ class UploadService : LifecycleService() {
 
     //Envia as informações para o servidor.
     fun sendDataToServer() {
-        accTable = accRepository.getAllACC
-        accTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listAcc = it.toMutableList()
-                jsonStringAcc = Gson().toJson(listAcc)
-                addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+//        accTable = accRepository.getAllACC
+//        accTable.observeOnce(this@UploadService) {
+//            if (it.size >= 2) {
+//                listAcc = it.toMutableList()
+//                jsonStringAcc = Gson().toJson(listAcc)
+//                addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+//
+//
+//            }
+//        }
 
-            }
-        }
-        var ecgTable = ecgRepository.getAllECG
-        ecgTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listECG = it.toMutableList()
-                jsonStringECG = Gson().toJson(listECG)
-                addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
+//        val handler = Handler()
+//        handler.postDelayed({
+//            var ecgTable = ecgRepository.getAllECG
+//            ecgTable.observeOnce(this@UploadService) {
+//                if (it.size >= 2) {
+//                    listECG = it.toMutableList()
+//                    jsonStringECG = Gson().toJson(listECG)
+//                    addECGData(jsonString = jsonStringECG, authToken = gv.authToken)
+//
+//                }
+//            }
+//        }, 10000) // 10 seconds
 
-            }
-        }
-        var gyroTable = gyroRepository.getAllGYRO
-        gyroTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listGyro = it.toMutableList()
-                jsonStringGyro = Gson().toJson(listGyro)
-                addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
-            }
-        }
-        var magnTable = magnRepository.getAllMagn
-        magnTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listMagn = it.toMutableList()
-                jsonStringMagn = Gson().toJson(listMagn)
-                addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
-            }
-        }
-        var hrTable = hrRepository.getAllHr
-        hrTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listHr = it.toMutableList()
-                jsonStringHr = Gson().toJson(listHr)
-                addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
-            }
-        }
+//        handler.postDelayed({
+//            var gyroTable = gyroRepository.getAllGYRO
+//            gyroTable.observeOnce(this@UploadService) {
+//                if (it.size >= 2) {
+//                    listGyro = it.toMutableList()
+//                    jsonStringGyro = Gson().toJson(listGyro)
+//                    addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+//                }
+//            }
+//        }, 10000) // 10 seconds
+
+//        handler.postDelayed({
+//            var magnTable = magnRepository.getAllMagn
+//            magnTable.observeOnce(this@UploadService) {
+//                if (it.size >= 2) {
+//                    listMagn = it.toMutableList()
+//                    jsonStringMagn = Gson().toJson(listMagn)
+//                    addMagnData(jsonString = jsonStringMagn, authToken = gv.authToken)
+//                }
+//            }
+//        }, 20000) // 10 seconds
+
+
+//        handler.postDelayed({
+//            var hrTable = hrRepository.getAllHr
+//            hrTable.observeOnce(this@UploadService) {
+//                if (it.size >= 2) {
+//                    listHr = it.toMutableList()
+//                    jsonStringHr = Gson().toJson(listHr)
+//                    addHrData(jsonString = jsonStringHr, authToken = gv.authToken)
+//                }
+//            }
+//        }, 30000) // 10 seconds
+
 
         var userSurveys = userSurveysRepository.getAllUserSurveys
         userSurveys.observeOnce(this@UploadService) { userSurveys ->
@@ -211,7 +228,8 @@ class UploadService : LifecycleService() {
 
                         val userSurveyAnswers = ArrayList<UserSurveyAnswersItem>()
                         for (userSurvey in listUserSurveys) {
-                            val answers = listAnswers.filter { it.user_survey_id == userSurvey.id }
+                            val answers =
+                                listAnswers.filter { it.user_survey_id == userSurvey.id }
                             val mappedAnswers = answers.map {
                                 com.umaia.movesense.data.suveys.user_surveys.responses.Answer(
                                     created_at = it.created_at!!,
@@ -244,31 +262,110 @@ class UploadService : LifecycleService() {
 
                     }
                 }
+            } else {
+                accTable = accRepository.getAllACC
+                accTable.observeOnce(this@UploadService) { acc ->
+                    if (acc.size >= 2) {
+                        listAcc = acc.toMutableList()
+                        jsonStringAcc = Gson().toJson(listAcc)
+                        addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+
+
+                    } else {
+                        var gyroTable = gyroRepository.getAllGYRO
+                        gyroTable.observeOnce(this@UploadService) { gyro ->
+                            if (gyro.size >= 2) {
+                                listGyro = gyro.toMutableList()
+                                jsonStringGyro = Gson().toJson(listGyro)
+                                addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+                            } else {
+                                var magnTable = magnRepository.getAllMagn
+                                magnTable.observeOnce(this@UploadService) { magn ->
+                                    if (magn.size >= 2) {
+                                        listMagn = magn.toMutableList()
+                                        jsonStringMagn = Gson().toJson(listMagn)
+                                        addMagnData(
+                                            jsonString = jsonStringMagn,
+                                            authToken = gv.authToken
+                                        )
+                                    } else {
+                                        var ecgTable = ecgRepository.getAllECG
+                                        ecgTable.observeOnce(this@UploadService) { ecg ->
+                                            if (ecg.size >= 2) {
+                                                listECG = ecg.toMutableList()
+                                                jsonStringECG = Gson().toJson(listECG)
+                                                addECGData(
+                                                    jsonString = jsonStringECG,
+                                                    authToken = gv.authToken
+                                                )
+                                            } else {
+                                                var hrTable = hrRepository.getAllHr
+                                                hrTable.observeOnce(this@UploadService) { hr ->
+                                                    if (hr.size >= 2) {
+                                                        listHr = hr.toMutableList()
+                                                        jsonStringHr = Gson().toJson(listHr)
+                                                        addHrData(
+                                                            jsonString = jsonStringHr,
+                                                            authToken = gv.authToken
+                                                        )
+                                                    } else {
+                                                        var tempTable = tempRepository.getAllTemp
+                                                        tempTable.observeOnce(this@UploadService) {
+                                                            if (it.size >= 2) {
+                                                                listTemp = it.toMutableList()
+                                                                jsonStringTemp =
+                                                                    Gson().toJson(listTemp)
+                                                                addTempData(
+                                                                    jsonString = jsonStringTemp,
+                                                                    authToken = gv.authToken
+                                                                )
+
+                                                            } else {
+                                                                stopSelf()
+                                                                stopService()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+
+                    }
+                }
             }
+            val handler = Handler()
+
+//            handler.postDelayed({
+//                stopSelf()
+//                stopService()
+//            }, 20000) // 10 seconds
+//        handler.postDelayed({
+//            var tempTable = tempRepository.getAllTemp
+//            tempTable.observeOnce(this@UploadService) {
+//                if (it.size >= 2) {
+//                    listTemp = it.toMutableList()
+//                    jsonStringTemp = Gson().toJson(listTemp)
+//                    addTempData(jsonString = jsonStringTemp, authToken = gv.authToken)
+//
+////                    handler.postDelayed({
+////                        stopSelf()
+////                        stopService()
+////                    }, 20000) // 10 seconds
+//
+//
+//                }
+//            }
+//        }, 50000) // 10 seconds
+//
+//
         }
-
-        var tempTable = tempRepository.getAllTemp
-        tempTable.observeOnce(this@UploadService) {
-            if (it.size >= 2) {
-                listTemp = it.toMutableList()
-                jsonStringTemp = Gson().toJson(listTemp)
-                addTempData(jsonString = jsonStringTemp, authToken = gv.authToken)
-
-
-                Thread {
-                    Thread.sleep(5000)
-                    stopSelf()
-                    stopService()
-
-                }.start()
-
-
-            }
-        }
-
-
     }
-
 
     private fun stopService() {
         uploadEvent.postValue(MoveSenseEvent.STOP)
@@ -291,6 +388,18 @@ class UploadService : LifecycleService() {
         when (_uploadDataUserSurveysResponses.value) {
             //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
             is Resource.Success -> {
+
+                accTable = accRepository.getAllACC
+                accTable.observeOnce(this@UploadService) {
+                    if (it.size >= 2) {
+                        listAcc = it.toMutableList()
+                        jsonStringAcc = Gson().toJson(listAcc)
+                        addACCData(jsonString = jsonStringAcc, authToken = gv.authToken)
+
+
+                    }
+                }
+
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listUserSurveys) {
 
@@ -328,6 +437,67 @@ class UploadService : LifecycleService() {
         when (_uploadDataAccResponses.value) {
             //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
             is Resource.Success -> {
+                var gyroTable = gyroRepository.getAllGYRO
+                gyroTable.observeOnce(this@UploadService) { gyro ->
+                    if (gyro.size >= 2) {
+                        listGyro = gyro.toMutableList()
+                        jsonStringGyro = Gson().toJson(listGyro)
+                        addGyroData(jsonString = jsonStringGyro, authToken = gv.authToken)
+                    } else {
+                        var magnTable = magnRepository.getAllMagn
+                        magnTable.observeOnce(this@UploadService) { magn ->
+                            if (magn.size >= 2) {
+                                listMagn = magn.toMutableList()
+                                jsonStringMagn = Gson().toJson(listMagn)
+                                addMagnData(
+                                    jsonString = jsonStringMagn,
+                                    authToken = gv.authToken
+                                )
+                            } else {
+                                var ecgTable = ecgRepository.getAllECG
+                                ecgTable.observeOnce(this@UploadService) { ecg ->
+                                    if (ecg.size >= 2) {
+                                        listECG = ecg.toMutableList()
+                                        jsonStringECG = Gson().toJson(listECG)
+                                        addECGData(
+                                            jsonString = jsonStringECG,
+                                            authToken = gv.authToken
+                                        )
+                                    } else {
+                                        var hrTable = hrRepository.getAllHr
+                                        hrTable.observeOnce(this@UploadService) { hr ->
+                                            if (hr.size >= 2) {
+                                                listHr = hr.toMutableList()
+                                                jsonStringHr = Gson().toJson(listHr)
+                                                addHrData(
+                                                    jsonString = jsonStringHr,
+                                                    authToken = gv.authToken
+                                                )
+                                            } else {
+                                                var tempTable = tempRepository.getAllTemp
+                                                tempTable.observeOnce(this@UploadService) {
+                                                    if (it.size >= 2) {
+                                                        listTemp = it.toMutableList()
+                                                        jsonStringTemp =
+                                                            Gson().toJson(listTemp)
+                                                        addTempData(
+                                                            jsonString = jsonStringTemp,
+                                                            authToken = gv.authToken
+                                                        )
+
+                                                    } else {
+                                                        stopSelf()
+                                                        stopService()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listAcc) {
 
@@ -360,6 +530,58 @@ class UploadService : LifecycleService() {
         when (_uploadDataGyroResponses.value) {
             //Se a resposta for ok, então vai percorrer a listaGyro e vai remover todos os dados da room table.
             is Resource.Success -> {
+                var magnTable = magnRepository.getAllMagn
+                magnTable.observeOnce(this@UploadService) { magn ->
+                    if (magn.size >= 2) {
+                        listMagn = magn.toMutableList()
+                        jsonStringMagn = Gson().toJson(listMagn)
+                        addMagnData(
+                            jsonString = jsonStringMagn,
+                            authToken = gv.authToken
+                        )
+                    } else {
+                        var ecgTable = ecgRepository.getAllECG
+                        ecgTable.observeOnce(this@UploadService) { ecg ->
+                            if (ecg.size >= 2) {
+                                listECG = ecg.toMutableList()
+                                jsonStringECG = Gson().toJson(listECG)
+                                addECGData(
+                                    jsonString = jsonStringECG,
+                                    authToken = gv.authToken
+                                )
+                            } else {
+                                var hrTable = hrRepository.getAllHr
+                                hrTable.observeOnce(this@UploadService) { hr ->
+                                    if (hr.size >= 2) {
+                                        listHr = hr.toMutableList()
+                                        jsonStringHr = Gson().toJson(listHr)
+                                        addHrData(
+                                            jsonString = jsonStringHr,
+                                            authToken = gv.authToken
+                                        )
+                                    } else {
+                                        var tempTable = tempRepository.getAllTemp
+                                        tempTable.observeOnce(this@UploadService) {
+                                            if (it.size >= 2) {
+                                                listTemp = it.toMutableList()
+                                                jsonStringTemp =
+                                                    Gson().toJson(listTemp)
+                                                addTempData(
+                                                    jsonString = jsonStringTemp,
+                                                    authToken = gv.authToken
+                                                )
+
+                                            } else {
+                                                stopSelf()
+                                                stopService()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listGyro) {
                         if (!listGyro.isNullOrEmpty()) {
@@ -392,6 +614,47 @@ class UploadService : LifecycleService() {
             apiRepository.addMagnData(jsonString = jsonString, authToken = "Bearer $authToken")
         when (_uploadDataMagnResponses.value) {
             is Resource.Success -> {
+                var ecgTable = ecgRepository.getAllECG
+                ecgTable.observeOnce(this@UploadService) { ecg ->
+                    if (ecg.size >= 2) {
+                        listECG = ecg.toMutableList()
+                        jsonStringECG = Gson().toJson(listECG)
+                        addECGData(
+                            jsonString = jsonStringECG,
+                            authToken = gv.authToken
+                        )
+                    } else {
+                        var hrTable = hrRepository.getAllHr
+                        hrTable.observeOnce(this@UploadService) { hr ->
+                            if (hr.size >= 2) {
+                                listHr = hr.toMutableList()
+                                jsonStringHr = Gson().toJson(listHr)
+                                addHrData(
+                                    jsonString = jsonStringHr,
+                                    authToken = gv.authToken
+                                )
+                            } else {
+                                var tempTable = tempRepository.getAllTemp
+                                tempTable.observeOnce(this@UploadService) {
+                                    if (it.size >= 2) {
+                                        listTemp = it.toMutableList()
+                                        jsonStringTemp =
+                                            Gson().toJson(listTemp)
+                                        addTempData(
+                                            jsonString = jsonStringTemp,
+                                            authToken = gv.authToken
+                                        )
+
+                                    } else {
+                                        stopSelf()
+                                        stopService()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listMagn) {
 
@@ -423,6 +686,35 @@ class UploadService : LifecycleService() {
             apiRepository.addEcgData(jsonString = jsonString, authToken = "Bearer $authToken")
         when (_uploadDataAccResponses.value) {
             is Resource.Success -> {
+                var hrTable = hrRepository.getAllHr
+                hrTable.observeOnce(this@UploadService) { hr ->
+                    if (hr.size >= 2) {
+                        listHr = hr.toMutableList()
+                        jsonStringHr = Gson().toJson(listHr)
+                        addHrData(
+                            jsonString = jsonStringHr,
+                            authToken = gv.authToken
+                        )
+                    } else {
+                        var tempTable = tempRepository.getAllTemp
+                        tempTable.observeOnce(this@UploadService) {
+                            if (it.size >= 2) {
+                                listTemp = it.toMutableList()
+                                jsonStringTemp =
+                                    Gson().toJson(listTemp)
+                                addTempData(
+                                    jsonString = jsonStringTemp,
+                                    authToken = gv.authToken
+                                )
+
+                            } else {
+                                stopSelf()
+                                stopService()
+                            }
+                        }
+                    }
+                }
+
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listECG) {
 
@@ -454,6 +746,24 @@ class UploadService : LifecycleService() {
             apiRepository.addHrData(jsonString = jsonString, authToken = "Bearer $authToken")
         when (_uploadDataHRResponses.value) {
             is Resource.Success -> {
+
+                var tempTable = tempRepository.getAllTemp
+                tempTable.observeOnce(this@UploadService) {
+                    if (it.size >= 2) {
+                        listTemp = it.toMutableList()
+                        jsonStringTemp =
+                            Gson().toJson(listTemp)
+                        addTempData(
+                            jsonString = jsonStringTemp,
+                            authToken = gv.authToken
+                        )
+
+                    } else {
+                        stopSelf()
+                        stopService()
+                    }
+                }
+
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listHr) {
 
@@ -492,6 +802,7 @@ class UploadService : LifecycleService() {
                         preferences[UserPreferences.KEY_IS_SYNCKED] = true
                     }
                 }
+
                 lifecycleScope.launch(Dispatchers.IO) {
                     synchronized(listTemp) {
 
@@ -503,6 +814,8 @@ class UploadService : LifecycleService() {
                         }
                     }
                 }
+                stopSelf()
+                stopService()
 //                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
 
             }

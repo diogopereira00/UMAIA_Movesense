@@ -1,5 +1,7 @@
 package com.umaia.movesense.data.suveys.surveys
 
+import androidx.lifecycle.LiveData
+import com.umaia.movesense.data.suveys.relations.FullSurvey
 import com.umaia.movesense.data.suveys.studies.Study
 import com.umaia.movesense.data.suveys.studies.StudyDao
 
@@ -22,4 +24,9 @@ class SurveyRepository(private val surveyDao: SurveyDao) {
     fun getSurveyByID(id: String) : Flow<Survey> {
         return surveyDao.getSurveyByID(id)
     }
+
+    fun getFullSurvey(): LiveData<List<FullSurvey>> {
+        return surveyDao.getSurveysWithSections()
+    }
+
 }

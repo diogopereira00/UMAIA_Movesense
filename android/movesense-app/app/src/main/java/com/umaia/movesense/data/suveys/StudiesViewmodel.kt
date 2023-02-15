@@ -30,6 +30,7 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import com.umaia.movesense.data.suveys.home.SingleLiveData
+import com.umaia.movesense.data.suveys.relations.FullSurvey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -120,7 +121,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         return option
     }
 
-    val surveyItem = SingleLiveData<Survey>()
+    val surveyItem = SingleLiveData<Survey?>()
 
     val options: LiveData<List<Option>> = optionRepository.getAllOptions
 
@@ -129,6 +130,8 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 //        val option = MutableLiveData<Survey>()
 
         viewModelScope.launch {
+            surveyItem.value = null
+
             var survey = surveyRepository.getSurveyByID(surveyID.toString()).collect { item ->
                 surveyItem.postValue(item)
 
@@ -142,6 +145,8 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
     fun getSectionsByID(surveyID: Long) {
         viewModelScope.launch {
+            sectionItem.value = emptyList()
+
             sectionRepository.getSectionsByID(surveyID.toString()).collect { item ->
                 sectionItem.postValue(item)
             }
@@ -153,6 +158,7 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
     fun getQuestionsBySectionID(sectionID: Long) {
         val questions = mutableListOf<Question>()
         viewModelScope.launch {
+            questionsItem.value = emptyList()
             questionRepository.getQuestionsBySectionID(sectionID.toString()).collect { item ->
                 questionsItem.postValue(item)
             }
@@ -165,7 +171,10 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
     fun getQuestionOptions(questionID: Long): MutableList<QuestionOption> {
         val questionOptions = mutableListOf<QuestionOption>()
+
         viewModelScope.launch {
+            questionOptionItem.value = emptyList()
+
             questionOptions.clear()
             questionOptionRepository.getOptionsFromQuestions(questionID.toString())
                 .collect { item ->
@@ -237,5 +246,6 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
         return userSurveyID
     }
 
+    val fullSurveys: LiveData<List<FullSurvey>> = surveyRepository.getFullSurvey()
 
 }

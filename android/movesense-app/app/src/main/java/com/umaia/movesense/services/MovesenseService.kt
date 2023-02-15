@@ -48,6 +48,7 @@ import com.umaia.movesense.model.MovesenseTimerEvent
 import com.umaia.movesense.data.suveys.home.observeOnce
 import kotlinx.coroutines.Runnable
 import androidx.datastore.preferences.core.edit
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.answers.AnswerRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
@@ -368,6 +369,7 @@ class MovesenseService : LifecycleService() {
 
     //Envia as informações para o servidor.
     fun sendDataToServer() {
+//        sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
         accTable = accRepository.getAllACC
         accTable.observeOnce(this@MovesenseService) {
             if (it.size >= 2) {
@@ -505,6 +507,9 @@ class MovesenseService : LifecycleService() {
             override fun onError(e: MdsException) {
                 Timber.e("onError:$e")
                 gv.connected = false
+                val intent = Intent("update_button")
+                intent.putExtra("action", "enable")
+                LocalBroadcastManager.getInstance(this@MovesenseService).sendBroadcast(intent)
                 showConnectionError(e)
             }
 
