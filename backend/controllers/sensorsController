@@ -235,3 +235,447 @@ module.exports.addTempData = (req, res, next) => {
 		}
 	);
 };
+
+// module.exports.addAllData = (req, res, next) => {
+// 	// console.log(req.body);
+
+// 	let accList = req.body.accList;
+// 	if (acc !== undefined) {
+// 		console.log(acc);
+// 	} else {
+// 		console.log("2");
+// 	}
+// 	// console.log(req.body.accList);
+// 	// let json = JSON.parse(req.body);
+// 	// console.log(json.accList);
+// 	// let temps = JSON.parse(req.body.jsonString);
+// 	// let chunks = _.chunk(temps, chunkSize);
+// 	// async.eachSeries(
+// 	// 	chunks,
+// 	// 	(tempsChunk, callback) => {
+// 	// 		db.query(
+// 	// 			`INSERT IGNORE INTO temp_table (id_on_phone, user_id, measurement, timestamp, created_at) VALUES ?`,
+// 	// 			[
+// 	// 				tempsChunk.map((temp) => [
+// 	// 					temp.id,
+// 	// 					temp.userID,
+// 	// 					temp.measurement,
+// 	// 					temp.timestamp,
+// 	// 					new Date(temp.created).toISOString().slice(0, 19).replace("T", " "),
+// 	// 				]),
+// 	// 			],
+// 	// 			(err, ress) => {
+// 	// 				if (err) {
+// 	// 					callback(err);
+// 	// 				} else {
+// 	// 					callback();
+// 	// 				}
+// 	// 			}
+// 	// 		);
+// 	// 	},
+// 	// 	(err) => {
+// 	// 		if (err) {
+// 	// 			return res.status(401).send({
+// 	// 				msg: "Erro",
+// 	// 			});
+// 	// 		}
+// 	// 		return res.status(200).send({
+// 	// 			msg: "Dados adicionados",
+// 	// 		});
+// 	// 	}
+// 	// );
+// };
+
+// module.exports.addAllData = (req, res, next) => {
+// 	const data = req.body;
+// 	const accList = data.accList;
+// 	const gyroList = data.gyroList;
+// 	const magnList = data.gyroList;
+// 	// const ecgList = data.ecgList;
+
+// 	// const hrList = data.hrList;
+
+// 	const insertAccQuery = "INSERT IGNORE INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 	const insertGyroQuery = "INSERT IGNORE INTO gyro_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 	const insertMagnQuery = "INSERT IGNORE INTO magn_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 	const insertEcgQuery = "INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?";
+// 	const insertHrQuery = "INSERT IGNORE INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?";
+
+// 	const accValues = accList.map((acc) => [
+// 		acc.id,
+// 		acc.userID,
+// 		acc.x,
+// 		acc.y,
+// 		acc.z,
+// 		acc.timestamp,
+// 		new Date(acc.created).toISOString().slice(0, 19).replace("T", " "),
+// 	]);
+
+// 	const gyroValues = gyroList.map((gyro) => [
+// 		gyro.id,
+// 		gyro.userID,
+// 		gyro.x,
+// 		gyro.y,
+// 		gyro.z,
+// 		gyro.timestamp,
+// 		new Date(gyro.created).toISOString().slice(0, 19).replace("T", " "),
+// 	]);
+
+// 	const magnValues = magnList.map((magn) => [
+// 		magn.id,
+// 		magn.userID,
+// 		magn.x,
+// 		magn.y,
+// 		magn.z,
+// 		magn.timestamp,
+// 		new Date(magn.created).toISOString().slice(0, 19).replace("T", " "),
+// 	]);
+
+// 	const uploadData = req.body;
+
+// 	// create array of promises to insert data into each table
+// 	const promises = [
+// 		insertData(insertAccQuery, accValues),
+// 		insertData(insertGyroQuery, gyroValues),
+// 		insertData(insertMagnQuery, magnValues),
+// 		// insertData(pool, "ecg_table", uploadData.ecgList),
+// 		// insertData(pool, "hr_table", uploadData.hrList),
+// 		// insertData(pool, "temp_table", uploadData.tempList),
+// 		// insertUserSurveysWithAnswers(pool, uploadData.usersSurveysWithAnswersList),
+// 	];
+
+// 	// execute all promises and return result to client
+// 	Promise.all(promises)
+// 		.then(() => {
+// 			res.status(200).send("Data uploaded successfully");
+// 		})
+// 		.catch((err) => {
+// 			res.status(500).send(`Error uploading data: ${err.message}`);
+// 		});
+// };
+
+// // function to insert data into a table
+// function insertData(query, values) {
+// 	return new Promise((resolve, reject) => {
+// 		// create array of values for insert query
+// 		// const values = data.map((item) => Object.values(item));
+
+// 		// create insert query
+// 		// const query = `INSERT INTO ${table} VALUES ?`;
+
+// 		// execute insert query
+// 		db.query(query, [values], (err, result) => {
+// 			if (err) {
+// 				reject(err);
+// 			} else {
+// 				resolve();
+// 			}
+// 		});
+// 	});
+// }
+
+module.exports.addTeste = (req, res, next) => {
+	console.log(req.body);
+};
+
+// module.exports.addAllData = (req, res, next) => {
+// 	// Get sensor data from request body
+
+// 	let accList = JSON.parse(req.body.accList);
+// 	let ecgList = JSON.parse(req.body.ecgList);
+// 	let gyroList = JSON.parse(req.body.gyroList);
+// 	let hrList = JSON.parse(req.body.hrList);
+// 	let magnList = JSON.parse(req.body.magnList);
+// 	let temp = JSON.parse(req.body.tempList);
+
+// 	db.getConnection((err, connection) => {
+// 		if (err) {
+// 			console.error("Error getting connection:", err);
+// 			return res.status(500).send("Internal Server Error");
+// 		}
+
+// 		// Start a new transaction
+// 		connection.beginTransaction(function (err) {
+// 			if (err) {
+// 				console.error("Error starting transaction:", err);
+// 				return res.status(500).send("Internal Server Error");
+// 			}
+
+// 			console.log(accList.count);
+
+// 			if (typeof accList !== "undefined" && accList.length > 0) {
+// 				console.log("entrei aqui.");
+// 				const accQuery = "INSERT IGNORE INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 				const accValues = accList.map((acc) => [
+// 					acc.id,
+// 					acc.userID,
+// 					acc.x,
+// 					acc.y,
+// 					acc.z,
+// 					acc.timestamp,
+// 					new Date(acc.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(accQuery, [accValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting accelerometer data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("Accelerometer data inserted:", result.affectedRows);
+// 				});
+// 			}
+// 			if (typeof ecgList !== "undefined" && ecgList.length > 0) {
+// 				console.log("entrei");
+// 				// Insert ECG data
+// 				const ecgQuery = "INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?";
+// 				const ecgValues = ecgList.map((ecg) => [
+// 					ecg.id,
+// 					ecg.userID,
+// 					ecg.data,
+// 					ecg.timestamp,
+// 					new Date(ecg.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(ecgQuery, [ecgValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting ECG data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("ECG data inserted:", result.affectedRows);
+// 				});
+// 			}
+// 			if (typeof gyroList !== "undefined" && gyroList.length > 0) {
+// 				// Insert gyroscope data
+// 				const gyroQuery = "INSERT IGNORE INTO gyro_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 				const gyroValues = gyroList.map((gyro) => [
+// 					gyro.id,
+// 					gyro.userID,
+// 					gyro.x,
+// 					gyro.y,
+// 					gyro.z,
+// 					gyro.timestamp,
+// 					new Date(gyro.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(gyroQuery, [gyroValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting gyroscope data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("Gyroscope data inserted:", result.affectedRows);
+// 				});
+// 			}
+
+// 			if (typeof hrList !== "undefined" && hrList.length > 0) {
+// 				// Insert heart rate data
+// 				const hrQuery = "INSERT IGNORE INTO hr_table (id_on_phone, user_id, average, rr_data, created_at) VALUES ?";
+// 				const hrValues = hrList.map((hr) => [
+// 					hr.id,
+// 					hr.userID,
+// 					hr.average,
+// 					hr.rrData,
+// 					new Date(hr.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(hrQuery, [hrValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting heart rate data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("Heart rate data inserted:", result.affectedRows);
+// 				});
+// 			}
+// 			if (typeof magnList !== "undefined" && magnList.length > 0) {
+// 				// Insert magnetometer data
+// 				const magnQuery = "INSERT IGNORE INTO magn_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+// 				const magnValues = magnList.map((magn) => [
+// 					magn.id,
+// 					magn.userID,
+// 					magn.x,
+// 					magn.y,
+// 					magn.z,
+// 					magn.timestamp,
+// 					new Date(magn.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(magnQuery, [magnValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting magnetometer data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("Magnetometer data inserted:", result.affectedRows);
+// 				});
+// 			}
+
+// 			if (typeof tempList !== "undefined" && tempList.length > 0) {
+// 				// Insert heart rate data
+// 				const tempQuery = "INSERT IGNORE INTO temp_table (id_on_phone, user_id, measurement, timestamp, created_at) VALUES ?";
+// 				const tempValues = tempList.map((temp) => [
+// 					temp.id,
+// 					temp.userID,
+// 					temp.measurement,
+// 					temp.timestamp,
+// 					new Date(temp.created).toISOString().slice(0, 19).replace("T", " "),
+// 				]);
+// 				connection.query(tempQuery, [tempValues], function (err, result) {
+// 					if (err) {
+// 						console.error("Error inserting temperature data:", err);
+// 						return connection.rollback(function () {
+// 							res.status(500).send("Internal Server Error");
+// 						});
+// 					}
+// 					console.log("Temperature data inserted:", result.affectedRows);
+// 				});
+// 			}
+
+// 			// // Insert survey data
+// 			// const surveyQuery = "INSERT INTO survey_table (created, user_id, answers) VALUES ?";
+// 			// const surveyValues = [[userSurvey.created, userSurvey.userID, answers]];
+// 			// connection.query(surveyQuery, [surveyValues], function (err, result) {
+// 			// 	if (err) {
+// 			// 		console.error("Error inserting survey data:", err);
+// 			// 		return connection.rollback(function () {
+// 			// 			res.status(500).send("Internal Server Error");
+// 			// 		});
+// 			// 	}
+// 			// 	console.log("Survey data inserted:", result.affectedRows);
+// 			// });
+
+// 			// Commit the transaction
+// 			connection.commit(function (err) {
+// 				if (err) {
+// 					console.error("Error committing transaction:", err);
+// 					return connection.rollback(function () {
+// 						res.status(500).send("Internal Server Error");
+// 					});
+// 				}
+// 				console.log("Transaction committed successfully.");
+// 				res.status(200).send("Data added successfully");
+// 			});
+// 		});
+// 	});
+// };
+
+module.exports.addAllData = (req, res, next) => {
+	// Get sensor data from request body
+	let accList = JSON.parse(req.body.accList);
+	let ecgList = JSON.parse(req.body.ecgList);
+	let gyroList = JSON.parse(req.body.gyroList);
+	let hrList = JSON.parse(req.body.hrList);
+	let magnList = JSON.parse(req.body.magnList);
+	let temp = JSON.parse(req.body.tempList);
+
+	console.log(ecgList);
+	db.getConnection((err, connection) => {
+		if (err) {
+			console.error("Error getting connection:", err);
+			return res.status(500).send("Internal Server Error");
+		}
+
+		// Start a new transaction
+		connection.beginTransaction(function (err) {
+			if (err) {
+				console.error("Error starting transaction:", err);
+				return res.status(500).send("Internal Server Error");
+			}
+
+			let batchSize = 100; // set the batch size
+
+			if (typeof accList !== "undefined" && accList.length > 0) {
+				let totalAcc = accList.length;
+				let batchesAcc = Math.ceil(totalAcc / batchSize);
+
+				// Insert accelerometer data in batches
+
+				_.chunk(accList, batchSize).forEach((accBatch) => {
+					const accQuery = "INSERT IGNORE INTO acc_table (id_on_phone, user_id, x, y, z, timestamp, created_at) VALUES ?";
+					const accValues = accBatch.map((acc) => [
+						acc.id,
+						acc.userID,
+						acc.x,
+						acc.y,
+						acc.z,
+						acc.timestamp,
+						new Date(acc.created).toISOString().slice(0, 19).replace("T", " "),
+					]);
+					connection.query(accQuery, [accValues], function (err, result) {
+						if (err) {
+							console.error("Error inserting accelerometer data:", err);
+							return connection.rollback(function () {
+								res.status(500).send("Internal Server Error");
+							});
+						}
+						console.log("Accelerometer data inserted:", result.affectedRows);
+					});
+				});
+			}
+			if (typeof ecgList !== "undefined" && ecgList.length > 0) {
+				let totalEcg = ecgList.length;
+				let batchesECG = Math.ceil(totalEcg / batchSize);
+
+				// Insert accelerometer data in batches
+
+				_.chunk(ecgList, batchSize).forEach((ecgBatch) => {
+					const ecgQuery = "INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?";
+					const ecgValues = ecgBatch.map((ecg) => [
+						ecg.id,
+						ecg.userID,
+						ecg.data,
+						ecg.timestamp,
+						new Date(ecg.created).toISOString().slice(0, 19).replace("T", " "),
+					]);
+
+					connection.query(ecgQuery, [ecgValues], function (err, result) {
+						if (err) {
+							console.error("Error inserting accelerometer data:", err);
+							return connection.rollback(function () {
+								res.status(500).send("Internal Server Error");
+							});
+						}
+						console.log("ECG Data Inserted:", result.affectedRows);
+					});
+				});
+			}
+			// 			if (typeof ecgList !== "undefined" && ecgList.length > 0) {
+			// 				console.log("entrei");
+			// 				// Insert ECG data
+			// 				const ecgQuery = "INSERT IGNORE INTO ecg_table (id_on_phone, user_id, data, timestamp, created_at) VALUES ?";
+			// 				const ecgValues = ecgList.map((ecg) => [
+			// 					ecg.id,
+			// 					ecg.userID,
+			// 					ecg.data,
+			// 					ecg.timestamp,
+			// 					new Date(ecg.created).toISOString().slice(0, 19).replace("T", " "),
+			// 				]);
+			// 				connection.query(ecgQuery, [ecgValues], function (err, result) {
+			// 					if (err) {
+			// 						console.error("Error inserting ECG data:", err);
+			// 						return connection.rollback(function () {
+			// 							res.status(500).send("Internal Server Error");
+			// 						});
+			// 					}
+			// 					console.log("ECG data inserted:", result.affectedRows);
+			// 				});
+			// 			}
+			// Commit the transaction
+			connection.commit(function (err) {
+				if (err) {
+					console.error("Error committing transaction:", err);
+					return connection.rollback(function () {
+						res.status(500).send("Internal Server Error");
+					});
+				}
+				console.log("Transaction committed successfully.");
+				return res.status(200).send("Data inserted successfully.");
+			});
+
+			// Release the connection
+			connection.release();
+		});
+	});
+};

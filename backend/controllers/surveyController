@@ -427,12 +427,14 @@ module.exports.teste = async (req, res, next) => {
 									answersData,
 									async (answer) => {
 										await new Promise((resolve, reject) => {
+											console.log(answer);
 											db.query(
 												"INSERT IGNORE INTO answers SET ?",
 												{
 													question_id: answer.question_id,
 													user_survey_id: results.insertId,
 													text: answer.text,
+													created_at: new Date(answer.created_at).toISOString().slice(0, 19).replace("T", " "),
 												},
 												(error, results) => {
 													if (error) {
