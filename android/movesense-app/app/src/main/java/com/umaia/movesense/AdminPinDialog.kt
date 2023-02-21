@@ -21,7 +21,7 @@ import com.umaia.movesense.data.suveys.StudiesViewmodel
 import com.umaia.movesense.databinding.DialogAdminPinBinding
 import com.umaia.movesense.databinding.DialogLogoutBinding
 import com.umaia.movesense.ui.auth.LoginActivity
-import com.umaia.movesense.ui.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivity
 import com.umaia.movesense.util.ViewModelFactory
 
 class AdminPinDialog(

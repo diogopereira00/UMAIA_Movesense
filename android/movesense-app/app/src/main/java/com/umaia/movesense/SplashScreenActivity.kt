@@ -2,6 +2,7 @@ package com.umaia.movesense
 
 import android.app.Activity
 import android.content.ContentValues
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -31,16 +32,18 @@ import com.umaia.movesense.databinding.ActivityMainBinding
 import com.umaia.movesense.databinding.ActivitySplashScreenBinding
 import com.umaia.movesense.ui.ConsentActivity
 import com.umaia.movesense.ui.auth.LoginActivity
-import com.umaia.movesense.ui.home.checkIntBoolean
-import com.umaia.movesense.ui.home.convertDate
-import com.umaia.movesense.ui.home.startNewActivity
-import com.umaia.movesense.ui.home.startNewActivityFromSplash
+import com.umaia.movesense.data.suveys.home.checkIntBoolean
+import com.umaia.movesense.data.suveys.home.convertDate
+import com.umaia.movesense.data.suveys.home.startNewActivity
+import com.umaia.movesense.data.suveys.home.startNewActivityFromSplash
+import com.umaia.movesense.services.UploadService
+import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
 
 
 private lateinit var binding: ActivitySplashScreenBinding
-private lateinit var userPreferences: UserPreferences
+internal lateinit var userPreferences: UserPreferences
 lateinit var gv: GlobalClass
 private var studyVersionDB: Double? = null
 private var studyVersionAPI: Double? = null
@@ -90,7 +93,7 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
                     gv.authToken = token
                     checkForUpdates()
                 }
-            Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(this, token ?: "Empty", Toast.LENGTH_SHORT).show()
         }
 
 
@@ -104,36 +107,58 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
             if (isActivated != null) {
                 gv.isLiveDataActivated = isActivated
             }
+            else{
+                gv.isAccActivated = false
+            }
+
         }
 
         userPreferences.accStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isAccActivated = isActivated
             }
+            else{
+                gv.isAccActivated = true
+            }
         }
         userPreferences.gyroStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isGyroActivated = isActivated
+            }
+            else{
+                gv.isGyroActivated = true
             }
         }
         userPreferences.magnStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isMagnActivated = isActivated
             }
+            else{
+                gv.isMagnActivated = true
+            }
         }
         userPreferences.ecgStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isECGActivated = isActivated
+            }
+            else{
+                gv.isECGActivated = true
             }
         }
         userPreferences.hrStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isHRActivated = isActivated
             }
+            else{
+                gv.isHRActivated = true
+            }
         }
         userPreferences.tempStatus.asLiveData().observe(this) { isActivated ->
             if (isActivated != null) {
                 gv.isTempActivated = isActivated
+            }
+            else{
+                gv.isTempActivated = true
             }
         }
 
@@ -302,11 +327,19 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
             startNewActivityFromSplash(ConsentActivity::class.java)
         } else if (!gv.connected) {
             startNewActivityFromSplash(ScanActivity::class.java)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+
         } else {
             startNewActivityFromSplash(MainActivity::class.java)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+
         }
     }
-
+    private fun sendCommandToServiceUpload(action: String) {
+        startService(Intent(this@SplashScreenActivity, UploadService::class.java).apply {
+            this.action = action
+        })
+    }
     private fun checkForUpdates() {
 
         var checkCurrentUserSurveys = viewModelStudies.getUserSurveysIdFromLastRecord()
@@ -356,6 +389,8 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
                                 }
                                 is Resource.Failure -> {
                                     Timber.e("Erro")
+                                    changeActivity()
+
                                 }
                             }
                         })

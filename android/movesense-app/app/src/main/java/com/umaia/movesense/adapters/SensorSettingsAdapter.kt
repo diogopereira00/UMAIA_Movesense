@@ -15,7 +15,7 @@ import com.umaia.movesense.*
 import com.umaia.movesense.databinding.ItemSensorSettingsBinding
 import com.umaia.movesense.model.SensorSettingsClass
 import com.umaia.movesense.services.MovesenseService
-import com.umaia.movesense.ui.home.visible
+import com.umaia.movesense.data.suveys.home.visible
 import com.umaia.movesense.util.Constants
 
 
@@ -145,7 +145,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
                 }
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
@@ -165,7 +165,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
                 }
                 holder.switchIsActive.setOnCheckedChangeListener { _, isChecked ->
@@ -183,7 +183,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
                 }
 
@@ -202,7 +202,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
 
                 }
@@ -222,7 +222,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
                 }
 
@@ -241,7 +241,7 @@ class SensorSettingsAdapter : RecyclerView.Adapter<SensorSettingsAdapter.HolderD
                     if (isActivated != null) {
                         holder.switchIsActive.isChecked = isActivated
                     } else {
-                        holder.switchIsActive.isChecked = false
+                        holder.switchIsActive.isChecked = true
                     }
 
                 }

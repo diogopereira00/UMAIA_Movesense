@@ -1,4 +1,4 @@
-package com.umaia.movesense.ui.home
+package com.umaia.movesense.data.suveys.home
 
 import android.app.Activity
 import android.content.Context

@@ -1,6 +1,9 @@
 package com.umaia.movesense
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.movesense.mds.MdsSubscription
@@ -41,6 +45,21 @@ class ScanActivity : AppCompatActivity() {
     private var mBleClient: RxBleClient? = null
     var mBluetoothSubscription: Disposable? = null
 
+    private val buttonUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.getStringExtra("action")
+            when (action) {
+                "enable" -> {
+                    binding.buttonScan.isEnabled = true
+                    binding.buttonScan.isClickable = true
+                }
+                "disable" -> {
+                    binding.buttonScan.isEnabled = false
+                    binding.buttonScan.isClickable = false
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,11 +74,16 @@ class ScanActivity : AppCompatActivity() {
             override fun onItemClick(position: Int) {
                 if (gv.bluetoothList.size < 0)
                     return
+                binding.recyclerView.isClickable = false
                 gv.currentDevice = gv.bluetoothList[position]
-
+                LocalBroadcastManager.getInstance(this@ScanActivity)
+                    .registerReceiver(buttonUpdateReceiver, IntentFilter("update_button"))
                 //Se não tiver conectado.
                 if (!gv.currentDevice.isConnected) {
                     // Stop scanning
+//                    binding.buttonScan.isEnabled = false
+                    binding.buttonScan.isClickable = false
+                    binding.buttonScan.text = "A conectar..."
                     Toast.makeText(
                         this@ScanActivity,
                         "A conectar a ${gv.currentDevice.name} ${gv.currentDevice.serial}",

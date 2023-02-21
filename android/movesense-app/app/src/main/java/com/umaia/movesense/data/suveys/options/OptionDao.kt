@@ -3,6 +3,7 @@ package com.umaia.movesense.data.suveys.options
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.umaia.movesense.data.acc.ACC
+import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.questions.Question
 import kotlinx.coroutines.flow.Flow
 
@@ -25,4 +26,13 @@ interface OptionDao {
             "INNER JOIN questions_options_table ON options_table.id = questions_options_table.option_id " +
             "WHERE questions_options_table.question_id = :questionId")
     fun getOptionByQuestionID(questionId: String): Flow<List<Option>>
+
+
+    @Transaction
+    @Query("SELECT * FROM options_table")
+    fun getAllOptions(): LiveData<List<Option>>
+
+
+
+
 }

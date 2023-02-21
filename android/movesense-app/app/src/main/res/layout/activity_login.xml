@@ -6,149 +6,124 @@
     android:layout_height="match_parent"
     tools:context="com.umaia.movesense.ui.auth.LoginActivity">
 
-    <TextView
-        android:id="@+id/loginText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Iniciar Sessão"
-        android:textSize="40sp"
-        android:textStyle="bold"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15" />
-
-
-    <EditText
-        android:id="@+id/editTextUsername"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
-        android:background="@drawable/edit_text_background"
-        android:drawableEnd="@drawable/user_icon"
-        app:drawableTint="?android:textColorPrimary"
-        android:fontFamily="@font/seg_ui_semibold"
-        android:hint="Introduza o seu username"
-        android:inputType="text"
-        android:paddingLeft="26dp"
-        android:paddingRight="26dp"
-        android:textColor="?android:textColorPrimary"
-        android:textColorHint="@color/colorPlaceholder"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.62"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginText"
-        app:layout_constraintVertical_bias="0.11"
-        tools:ignore="Autofill,UnusedAttribute" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="100dp"
 
-    <EditText
-        android:id="@+id/editTextPassword"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
-        android:background="@drawable/edit_text_background"
-        android:drawableEnd="@drawable/locker_icon"
-        android:drawableTint="?android:textColorPrimary"
-        android:fontFamily="@font/seg_ui_semibold"
-        android:hint="Introduza a sua password"
-        android:inputType="textPassword"
-        android:paddingLeft="26dp"
-        android:paddingRight="26dp"
-        android:textColor="?android:textColorPrimary"
-        android:textColorHint="@color/colorPlaceholder"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextUsername"
-        app:layout_constraintVertical_bias="0.071"
-        tools:ignore="Autofill"
-        tools:targetApi="m" />
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp">
 
-    <CheckBox
-        android:id="@+id/rememberMe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:buttonTint="@color/primary"
-        android:fontFamily="@font/seg_ui_semibold"
-        android:text="Mantenha-me conectado"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.115"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
-        app:layout_constraintVertical_bias="0.041" />
+        <TextView
+            android:id="@+id/loginText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="Iniciar Sessão"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+
+            android:fontFamily="@font/seg_ui_semibold"
+            android:text="Username"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/editTextUsername"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.069"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/loginText"
+            app:layout_constraintVertical_bias="1.0" />
 
 
-    <TextView
+        <EditText
+            android:id="@+id/editTextUsername"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/edit_text_background"
+            android:drawableEnd="@drawable/user_icon"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:hint="Introduza o seu username"
+            android:inputType="text"
+            android:paddingLeft="26dp"
+            android:paddingRight="26dp"
+            android:textColor="?android:textColorPrimary"
+            android:textColorHint="@color/colorPlaceholder"
+            app:drawableTint="?android:textColorPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.62"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/loginText"
+            app:layout_constraintVertical_bias="0.11"
+            tools:ignore="Autofill,UnusedAttribute" />
 
-        android:id="@+id/codBarrasText"
-        android:layout_width="wrap_content"
-        android:textColor="?android:textColorPrimary"
-        android:textSize="16sp"
+        <TextView
 
-        android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:fontFamily="@font/seg_ui_semibold"
-        android:text="Email"
-        app:layout_constraintBottom_toTopOf="@+id/editTextUsername"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.069"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginText"
-        app:layout_constraintVertical_bias="1.0" />
+            android:id="@+id/password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:text="Password"
+            android:paddingTop="5dp"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="16sp" />
 
-    <TextView
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/edit_text_background"
+            android:drawableEnd="@drawable/locker_icon"
+            android:drawableTint="?android:textColorPrimary"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:hint="Introduza a sua password"
+            android:inputType="textPassword"
+            android:paddingLeft="26dp"
+            android:paddingRight="26dp"
+            android:textColor="?android:textColorPrimary"
+            android:textColorHint="@color/colorPlaceholder"
+            tools:ignore="Autofill"
+            tools:targetApi="m" />
 
-        android:id="@+id/precoCompraText"
-        android:layout_width="wrap_content"
-        android:textColor="?android:textColorPrimary"
-        android:textSize="16sp"
+        <CheckBox
+            android:id="@+id/rememberMe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/primary"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:text="Mantenha-me conectado"
+            android:textSize="16sp" />
 
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/seg_ui_semibold"
-        android:text="Password"
-        app:layout_constraintBottom_toTopOf="@+id/editTextPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.075"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextUsername"
-        app:layout_constraintVertical_bias="1.0" />
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
 
-    <Button
-        android:id="@+id/loginButton"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:fontFamily="@font/seg_ui_semibold"
+            android:background="@drawable/button_primary_background"
 
-        android:background="@drawable/button_primary_background"
-        android:backgroundTint="@color/primary"
-        android:text="Iniciar Sessão"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.275"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPassword"
-        app:layout_constraintVertical_bias="0.27" />
+            android:backgroundTint="@color/primary"
+            android:fontFamily="@font/seg_ui_semibold"
+            android:text="Iniciar Sessão"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:layout_marginLeft="150dp"/>
+    </LinearLayout>
 
 
     <LinearLayout
@@ -164,23 +139,23 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.95">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:fontFamily="@font/seg_ui_semibold"
-            android:text="Ainda não tens uma conta?"
-            android:textSize="18sp" />
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="12dp"-->
+<!--            android:fontFamily="@font/seg_ui_semibold"-->
+<!--            android:text="Ainda não tens uma conta?"-->
+<!--            android:textSize="18sp" />-->
 
-        <TextView
-            android:id="@+id/registHereTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:fontFamily="@font/segoe_ui_bold"
-            android:text="Cria aqui"
-            android:textColor="@color/primary"
-            android:textSize="18sp" />
+<!--        <TextView-->
+<!--            android:id="@+id/registHereTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="12dp"-->
+<!--            android:fontFamily="@font/segoe_ui_bold"-->
+<!--            android:text="Cria aqui"-->
+<!--            android:textColor="@color/primary"-->
+<!--            android:textSize="18sp" />-->
     </LinearLayout>
 
 

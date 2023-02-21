@@ -9,6 +9,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.movesense.mds.*
@@ -44,8 +45,17 @@ import com.umaia.movesense.data.temp.TEMP
 import com.umaia.movesense.data.temp.TEMPRepository
 import com.umaia.movesense.model.MovesenseInternet
 import com.umaia.movesense.model.MovesenseTimerEvent
-import com.umaia.movesense.ui.home.observeOnce
+import com.umaia.movesense.data.suveys.home.observeOnce
 import kotlinx.coroutines.Runnable
+import androidx.datastore.preferences.core.edit
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.umaia.movesense.data.suveys.answers.Answer
+import com.umaia.movesense.data.suveys.answers.AnswerRepository
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
+import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
+import com.umaia.movesense.data.suveys.user_surveys.responses.UserSurveyAnswers
+import com.umaia.movesense.data.suveys.user_surveys.responses.UserSurveyAnswersItem
+
 
 class MovesenseService : LifecycleService() {
 
@@ -67,6 +77,8 @@ class MovesenseService : LifecycleService() {
     private lateinit var magnRepository: MAGNRepository
     private lateinit var tempRepository: TEMPRepository
     private lateinit var apiRepository: ApiRepository
+    private lateinit var userSurveysRepository: UserSurveysRepository
+    private lateinit var answersRepository: AnswerRepository
 
     private var isServiceStopped = true
 
@@ -97,6 +109,9 @@ class MovesenseService : LifecycleService() {
     private var listHr: MutableList<Hr> = mutableListOf()
     private var listECG: MutableList<ECG> = mutableListOf()
     private var listTemp: MutableList<TEMP> = mutableListOf()
+    private var listUserSurveys: MutableList<UserSurveys> = mutableListOf()
+    private var listAnswers : MutableList<Answer> = mutableListOf()
+    private var listUserSurveysAnswers : MutableList<UserSurveyAnswers> = mutableListOf()
 
     private lateinit var jsonStringAcc: String
     private lateinit var jsonStringGyro: String
@@ -123,7 +138,8 @@ class MovesenseService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
-        val datastore = UserPreferences(this)
+        //aqui
+        val userPreferences = UserPreferences(this)
         networkChecker = NetworkChecker(this)
 
 
@@ -137,6 +153,8 @@ class MovesenseService : LifecycleService() {
         val gyroDao = AppDataBase.getDatabase(this).gyroDao()
         val magnDao = AppDataBase.getDatabase(this).magnDao()
         val tempDao = AppDataBase.getDatabase(this).tempDao()
+        val userSurveysDao = AppDataBase.getDatabase(this).userSurveysDao()
+        val answerDao = AppDataBase.getDatabase(this).answerDao()
 
         hrRepository = HrRepository(hrDao)
         ecgRepository = ECGRepository(ecgDao)
@@ -144,6 +162,8 @@ class MovesenseService : LifecycleService() {
         gyroRepository = GYRORepository(gyroDao)
         magnRepository = MAGNRepository(magnDao)
         tempRepository = TEMPRepository(tempDao)
+        userSurveysRepository = UserSurveysRepository(userSurveysDao)
+        answersRepository = AnswerRepository(answerDao)
         apiRepository = ApiRepository(api = remoteDataSource.buildApi(ServerApi::class.java), null)
         readAllData = hrRepository.readAllData
 
@@ -181,7 +201,10 @@ class MovesenseService : LifecycleService() {
                 }
                 Constants.ACTION_STOP_SERVICE -> {
                     Timber.d("Stop service")
-                    stopService()
+                    if (gv.isServiceRunning) {
+                        stopService()
+
+                    }
                 }
                 Constants.ACTION_BLUETOOTH_CONNECTED -> {
                     initMds()
@@ -211,36 +234,37 @@ class MovesenseService : LifecycleService() {
     }
 
     private fun startTimer() {
+        gv.more30Minutes = false
         if (!timerRunning) {
             startTime = SystemClock.uptimeMillis()
             timerThread = Thread(
-                object : Runnable {
-                    override fun run() {
-                        while (timerRunning) {
-                            timeInMilliseconds = SystemClock.uptimeMillis() - startTime
-                            updatedTime = timeSwapBuff + timeInMilliseconds
-                            val secs = (updatedTime / 1000).toInt()
-                            val mins = secs / 60
-                            val hrs = mins / 60
-                            val secsRemaining = secs % 60
-                            val minsRemaining = mins % 60
-                            val formattedTime = "${String.format("%02d", hrs)}:${
-                                String.format(
-                                    "%02d",
-                                    minsRemaining
-                                )
-                            }:${String.format("%02d", secsRemaining)}"
-                            // update LiveData object
-                            movesenseTimer.postValue(formattedTime)
-                            try {
-                                Thread.sleep(1000)
-                            } catch (e: InterruptedException) {
-                                // thread was interrupted, exit loop
-                                break
-                            }
+                Runnable {
+                    while (timerRunning) {
+                        timeInMilliseconds = SystemClock.uptimeMillis() - startTime
+                        updatedTime = timeSwapBuff + timeInMilliseconds
+                        if(updatedTime>= 1800000L ){
+                                gv.more30Minutes = true
+                        }
+                        val secs = (updatedTime / 1000).toInt()
+                        val mins = secs / 60
+                        val hrs = mins / 60
+                        val secsRemaining = secs % 60
+                        val minsRemaining = mins % 60
+                        val formattedTime = "${String.format("%02d", hrs)}:${
+                            String.format(
+                                "%02d",
+                                minsRemaining
+                            )
+                        }:${String.format("%02d", secsRemaining)}"
+                        // update LiveData object
+                        movesenseTimer.postValue(formattedTime)
+                        try {
+                            Thread.sleep(1000)
+                        } catch (e: InterruptedException) {
+                            // thread was interrupted, exit loop
+                            break
                         }
                     }
-
                 })
             timerThread?.start()
             timerRunning = true
@@ -252,12 +276,26 @@ class MovesenseService : LifecycleService() {
             timerRunning = false
             timerThread?.interrupt()
             timerThread = null
+
+            movesenseTimer.postValue("00:00:00")
         }
     }
 
     private fun verificarSensoresAtivados() {
         if (gv.isLiveDataActivated) {
-            sendDataToServer()
+            if (networkChecker.hasInternetWifi()) {
+                userPreferences.isDataSynced.asLiveData().observe(this) { isActivated ->
+                    if (isActivated == false) {
+                        sendDataToServer()
+                    }
+                }
+                movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+
+
+            } else {
+                movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+
+            }
         }
         if (gv.isAccActivated && gv.isGyroActivated && gv.isMagnActivated) {
             enableImu9()
@@ -317,13 +355,21 @@ class MovesenseService : LifecycleService() {
 
 
 
-                mainHandler.postDelayed(this, 300000)
+                mainHandler.postDelayed(this, 120000)
             }
         })
     }
 
+    private fun sendCommandToServiceUpload(action: String) {
+        startService(Intent(this@MovesenseService, UploadService::class.java).apply {
+            this.action = action
+        })
+        stopSelf()
+    }
+
     //Envia as informações para o servidor.
     fun sendDataToServer() {
+//        sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
         accTable = accRepository.getAllACC
         accTable.observeOnce(this@MovesenseService) {
             if (it.size >= 2) {
@@ -375,6 +421,50 @@ class MovesenseService : LifecycleService() {
                 addTempData(jsonString = jsonStringTemp, authToken = gv.authToken)
             }
         }
+
+        var userSurveys = userSurveysRepository.getAllUserSurveys
+        userSurveys.observeOnce(this@MovesenseService) { userSurveys ->
+            if (userSurveys.isNotEmpty()) {
+                listUserSurveys = userSurveys.toMutableList()
+                var answers = answersRepository.getAllAnswers
+                answers.observeOnce(this@MovesenseService){ answers->
+                    if(answers.isNotEmpty()){
+                        listAnswers = answers.toMutableList()
+
+                        val userSurveyAnswers = ArrayList<UserSurveyAnswersItem>()
+                        for (userSurvey in listUserSurveys) {
+                            val answers = listAnswers.filter { it.user_survey_id == userSurvey.id }
+                            val mappedAnswers = answers.map {
+                                com.umaia.movesense.data.suveys.user_surveys.responses.Answer(
+                                    created_at = it.created_at!!,
+                                    id = it.id,
+                                    question_id = it.question_id!!,
+                                    text = it.text!!,
+                                    user_survey_id = it.user_survey_id!!
+                                )
+                            }
+                            val userSurveyAnswersItem = UserSurveyAnswersItem(
+                                answers = mappedAnswers,
+                                end_time = userSurvey.end_time!!,
+                                id = userSurvey.id!!,
+                                isCompleted = userSurvey.isCompleted!!,
+                                start_time = userSurvey.start_time!!,
+                                survey_id = userSurvey.survey_id!!,
+                                user_id = userSurvey.user_id!!
+                            )
+                            userSurveyAnswers.add(userSurveyAnswersItem)
+
+
+                        }
+                        val userSurveysAnswerJSON = Gson().toJson(userSurveyAnswers)
+                        Timber.e(userSurveysAnswerJSON)
+                        addUserSurveyData(jsonString =  userSurveysAnswerJSON, authToken = gv.authToken)
+
+
+                    }
+                }
+            }
+        }
     }
 
 
@@ -410,13 +500,16 @@ class MovesenseService : LifecycleService() {
                 if (!isServiceStopped) {
                     startForegroundService()
                 } else {
-                    stopService()
+//                    stopService()
                 }
             }
 
             override fun onError(e: MdsException) {
                 Timber.e("onError:$e")
                 gv.connected = false
+                val intent = Intent("update_button")
+                intent.putExtra("action", "enable")
+                LocalBroadcastManager.getInstance(this@MovesenseService).sendBroadcast(intent)
                 showConnectionError(e)
             }
 
@@ -424,8 +517,8 @@ class MovesenseService : LifecycleService() {
                 Timber.e("onDisconnect: $bleAddress")
                 gv.connected = false
                 createNotification()
-                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
-                    .show()
+//                Toast.makeText(this@MovesenseService, "DESCONECTADOz<x<z.", Toast.LENGTH_SHORT)
+//                    .show()
 
                 for (sr in bluetoothList) {
                     if (bleAddress == sr.macAddress) {
@@ -612,13 +705,34 @@ class MovesenseService : LifecycleService() {
         isServiceStopped = true
         gv.isServiceRunning = false
         stopTimer()
+        lifecycleScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[UserPreferences.KEY_IS_SYNCKED] = true
+            }
+        }
+
+
+        if (networkChecker.hasInternetWifi()) {
+            movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
+            sendCommandToServiceUpload(Constants.ACTION_START_SERVICE)
+            Thread {
+                Thread.sleep(5000)
+                unsubscribeAll()
+                stopSelf()
+            }.start()
+
+        } else {
+            movesenseWifi.postValue(MovesenseWifi.UNAVAILABLE)
+
+            Timber.e("Nao há wifi")
+            unsubscribeAll()
+            stopSelf()
+        }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
             Constants.NOTIFICATION_ID
         )
         stopForeground(true)
         unsubscribeAll()
-//        stopSelf()
-
     }
 
 
@@ -1115,7 +1229,7 @@ class MovesenseService : LifecycleService() {
             moveSenseEvent.observe(this, Observer {
                 when (it) {
                     is MoveSenseEvent.START -> {
-                        Timber.e("estou aquiiiiii")
+//                        Timber.e("estou aquiiiiii")
                         var intent1 = Intent(this, MainActivity::class.java)
                         var title = "Sensor conectado"
                         var description = "Recolhendo dados..."
@@ -1155,6 +1269,43 @@ class MovesenseService : LifecycleService() {
         }
     }
 
+    private val _uploadDataUserSurveysResponses: MutableLiveData<Resource<UploadUserSurveysResponse>> =
+        MutableLiveData()
+    val uploadDataUserSurveysResponses: LiveData<Resource<UploadUserSurveysResponse>>
+        get() = uploadDataUserSurveysResponses
+    fun addUserSurveyData(jsonString: String, authToken: String) = lifecycleScope.launch {
+        //Efetua o post request atraves do apiRepository e guarda a resposta.
+        _uploadDataUserSurveysResponses.value =
+            apiRepository.addUserSurvey(jsonString = jsonString, authToken = "Bearer $authToken")
+        when (_uploadDataUserSurveysResponses.value) {
+            //Se a resposta for ok, então vai percorrer a listaAcc e vai remover todos os dados da room table.
+            is Resource.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    synchronized(listUserSurveys) {
+
+                        if (!listUserSurveys.isNullOrEmpty()) {
+                            for (acc in listUserSurveys) {
+                                userSurveysRepository.deleteByID(acc.id)
+                            }
+                            for(answer in listAnswers){
+                                answersRepository.deleteByID(answer.id)
+                            }
+                            listUserSurveys.clear()
+                            listAnswers.clear()
+                        }
+                    }
+                }
+//                Toast.makeText(this@MovesenseService, "Dados adicionados", Toast.LENGTH_LONG).show()
+
+            }
+            is Resource.Failure -> {
+//                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+
     private val _uploadDataAccResponses: MutableLiveData<Resource<UploadAccRespose>> =
         MutableLiveData()
     val uploadDataAccResponses: LiveData<Resource<UploadAccRespose>>
@@ -1182,7 +1333,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroACC", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1215,7 +1366,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroGYRO", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroGYRO", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1246,7 +1397,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroMAGN", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroMAGN", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1277,7 +1428,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroECG", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroECG", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1308,7 +1459,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroHR", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroHR", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
@@ -1340,7 +1491,7 @@ class MovesenseService : LifecycleService() {
 
             }
             is Resource.Failure -> {
-                Toast.makeText(this@MovesenseService, "ErroTEMP", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this@MovesenseService, "ErroTEMP", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }

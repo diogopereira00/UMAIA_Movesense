@@ -20,7 +20,7 @@ class ApiRepository(
         api.getOptions(authToken)
     }
 
-    suspend fun getAllQuestionsOptions(authToken: String)  =safeApiCall {
+    suspend fun getAllQuestionsOptions(authToken: String)  = safeApiCall {
         api.getQuestionsOptions(authToken)
     }
 
@@ -45,6 +45,9 @@ class ApiRepository(
     }
     suspend fun addTempData(jsonString: String, authToken : String) = safeApiCall{
         api.addTempData(jsonString, authToken)
+    }
+    suspend fun addUserSurvey(jsonString: String, authToken : String) = safeApiCall{
+        api.addUserSurveysData(jsonString, authToken)
     }
     suspend fun login(
         username: String,

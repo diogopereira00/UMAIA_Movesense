@@ -7,6 +7,8 @@ import android.content.Context
 import android.os.Build
 import android.text.BoringLayout
 import com.umaia.movesense.data.responses.studies_response.Survey
+import com.umaia.movesense.data.suveys.options.Option
+import com.umaia.movesense.data.suveys.relations.FullSurvey
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
@@ -35,14 +37,19 @@ class GlobalClass : Application() {
     var authToken = ""
     var consent : Boolean = false
 
-    var currentSurvey: Survey? = null
+    var currentSurvey: FullSurvey? = null
     var currentSurveyID : Long? =null
     var lastUserSurveyID : Long? =null
 
+    var preSurvey : FullSurvey? = null
+    var posSurvey : FullSurvey? = null
 
     var useMobileDataThisTime = false
     var foundNewStudyVersion = false
 
+    var more30Minutes = false
+
+    var listOfOptions : Map<Long,Option> = mapOf()
     private var scannerECG: Boolean? = null
     fun getscannerECG(): Boolean? {
         return scannerECG

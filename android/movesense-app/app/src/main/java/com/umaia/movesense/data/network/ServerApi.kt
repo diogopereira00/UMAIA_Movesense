@@ -40,6 +40,13 @@ interface ServerApi {
     ): LoginResponse
 
     @FormUrlEncoded
+    @POST("studies/add/userSurveys")
+    suspend fun addUserSurveysData(
+        @Field("jsonString") jsonString: String,
+        @Header("Authorization") authToken: String
+    ): UploadUserSurveysResponse
+
+    @FormUrlEncoded
     @POST("addAccData")
     suspend fun addAccData(
         @Field("jsonString") jsonString: String,

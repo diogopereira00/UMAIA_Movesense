@@ -79,7 +79,7 @@ class ApiViewModel(
         _getQuestionTypes.value = repository.getAllQuestionTypes(authToken = "Bearer $authToken")
     }
 
-    //getQuestionTypes
+    //getQuestionOptions
     private val _getQuestionOptions: MutableLiveData<Resource<QuestionsOptionsResponses>> =
         MutableLiveData()
     val getQuestionOptions: LiveData<Resource<QuestionsOptionsResponses>>

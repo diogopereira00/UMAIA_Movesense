@@ -14,13 +14,14 @@ import com.umaia.movesense.databinding.DialogLogoutBinding
 import com.umaia.movesense.databinding.DialogWifiBinding
 import com.umaia.movesense.ui.auth.LoginActivity
 import com.umaia.movesense.data.suveys.home.startNewActivity
+import com.umaia.movesense.databinding.DialogStopBinding
+import com.umaia.movesense.services.MovesenseService
+import com.umaia.movesense.util.Constants
 
-class DialogInternet(
-    var viewmodel: ApiViewModel,
+class DialogStopActivity(
     var activity: Activity
 ) : DialogFragment() {
-    private lateinit var binding: DialogInternetBinding
-    private lateinit var networkChecker: NetworkChecker
+    private lateinit var binding: DialogStopBinding
 
 
 
@@ -28,26 +29,14 @@ class DialogInternet(
         super.onCreate(savedInstanceState)
 
     }
-    interface OnDialogInternetismissListener {
-        fun onDialogInternetDismiss()
-    }
-    private var listener: OnDialogInternetismissListener? = null
 
-    fun setOnDialogDismissListener(listener: OnDialogInternetismissListener) {
-        this.listener = listener
-    }
 
-    override fun dismiss() {
-        super.dismiss()
-        listener?.onDialogInternetDismiss()
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DialogInternetBinding.inflate(inflater, container, false)
-        networkChecker = NetworkChecker(requireContext())
+        binding = DialogStopBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -57,13 +46,24 @@ class DialogInternet(
         setupClickListeners(view)
 
     }
+    private fun sendCommandToService(action: String) {
+        requireActivity().startService(Intent(context, MovesenseService::class.java).apply {
+            this.action = action
+        })
+    }
+
+    private var listener: DialogInternet.OnDialogInternetismissListener? = null
+
+    fun setOnDialogDismissListener(listener: DialogInternet.OnDialogInternetismissListener) {
+        this.listener = listener
+    }
 
     private fun setupClickListeners(view: View) {
-        binding.ok.setOnClickListener {
-            if(networkChecker.hasInternet()){
-                dismiss()
-                requireActivity().startNewActivity(requireActivity()::class.java)
-            }
+        binding.sim.setOnClickListener {
+            sendCommandToService(Constants.ACTION_STOP_SERVICE)
+        }
+        binding.cancelar.setOnClickListener{
+            dismiss()
         }
     }
 
