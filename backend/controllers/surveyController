@@ -394,78 +394,169 @@ const chunkSize = 1000;
 // 	res.status(200).json({ message: "Data inserted successfully" });
 // };
 
+// module.exports.teste = async (req, res, next) => {
+// 	const data = JSON.parse(req.body.jsonString);
+
+// 	// Use _.chunk to break the data into smaller chunks
+// 	const chunks = _.chunk(data, 50);
+// 	for (const chunk of chunks) {
+// 		// Use async.map to process the data in chunks
+// 		await async.map(
+// 			chunk,
+// 			async (userSurveyData) => {
+// 				const answersData = userSurveyData.answers;
+// 				// Insert the user survey data into the user_surveys table
+// 				await new Promise((resolve, reject) => {
+// 					db.query(
+// 						"INSERT IGNORE INTO user_surveys SET ?",
+// 						{
+// 							user_id: userSurveyData.user_id,
+// 							survey_id: userSurveyData.survey_id,
+// 							start_time: new Date(userSurveyData.start_time).toISOString().slice(0, 19).replace("T", " "),
+// 							end_time: new Date(userSurveyData.end_time).toISOString().slice(0, 19).replace("T", " "),
+// 							isCompleted: userSurveyData.isCompleted,
+// 						},
+// 						(error, results) => {
+// 							if (error) {
+// 								console.error(error);
+// 								reject(error);
+// 							} else {
+// 								// Insert the answers data into the answers table
+// 								async.map(
+// 									answersData,
+// 									async (answer) => {
+// 										await new Promise((resolve, reject) => {
+// 											console.log(answer);
+// 											db.query(
+// 												"INSERT IGNORE INTO answers SET ?",
+// 												{
+// 													question_id: answer.question_id,
+// 													user_survey_id: results.insertId,
+// 													text: answer.text,
+// 													created_at: new Date(answer.created_at).toISOString().slice(0, 19).replace("T", " "),
+// 												},
+// 												(error, results) => {
+// 													if (error) {
+// 														console.error(error);
+// 														reject(error);
+// 													} else {
+// 														resolve();
+// 													}
+// 												}
+// 											);
+// 										});
+// 									},
+// 									(err) => {
+// 										if (err) {
+// 											reject(err);
+// 										} else {
+// 											resolve();
+// 										}
+// 									}
+// 								);
+// 							}
+// 						}
+// 					);
+// 				});
+// 			},
+// 			(err) => {
+// 				if (err) {
+// 					return res.status(500).json({ message: "Error inserting data" });
+// 				}
+// 			}
+// 		);
+// 	}
+// 	res.status(200).json({ message: "Data inserted successfully" });
+// };
 module.exports.teste = async (req, res, next) => {
 	const data = JSON.parse(req.body.jsonString);
-	console.log(data);
 
 	// Use _.chunk to break the data into smaller chunks
 	const chunks = _.chunk(data, 50);
-	for (const chunk of chunks) {
-		// Use async.map to process the data in chunks
-		await async.map(
-			chunk,
-			async (userSurveyData) => {
-				const answersData = userSurveyData.answers;
-				// Insert the user survey data into the user_surveys table
-				await new Promise((resolve, reject) => {
-					db.query(
-						"INSERT IGNORE INTO user_surveys SET ?",
-						{
-							user_id: userSurveyData.user_id,
-							survey_id: userSurveyData.survey_id,
-							start_time: new Date(userSurveyData.start_time).toISOString().slice(0, 19).replace("T", " "),
-							end_time: new Date(userSurveyData.end_time).toISOString().slice(0, 19).replace("T", " "),
-							isCompleted: userSurveyData.isCompleted,
-						},
-						(error, results) => {
-							if (error) {
-								console.error(error);
-								reject(error);
-							} else {
-								// Insert the answers data into the answers table
-								async.map(
-									answersData,
-									async (answer) => {
-										await new Promise((resolve, reject) => {
-											console.log(answer);
-											db.query(
+
+	// Use the pool's getConnection method to get a connection from the pool
+	db.getConnection((err, connection) => {
+		if (err) {
+			console.error("Error getting connection:", err);
+			return res.status(500).send("Internal Server Error");
+		}
+
+		// Use async.eachLimit to process the data in chunks with a limited concurrency
+		async.eachLimit(
+			chunks,
+			5, // Limit the number of concurrent operations to 5
+			(chunk, chunkCallback) => {
+				// Use async.each to process the data in the current chunk
+				async.each(
+					chunk,
+					(userSurveyData, userSurveyCallback) => {
+						const answersData = userSurveyData.answers;
+
+						// Use the connection's query method to execute the queries
+						connection.query(
+							"INSERT IGNORE INTO user_surveys SET ?",
+							{
+								user_id: userSurveyData.user_id,
+								survey_id: userSurveyData.survey_id,
+								start_time: new Date(userSurveyData.start_time).toISOString().slice(0, 19).replace("T", " "),
+								end_time: new Date(userSurveyData.end_time).toISOString().slice(0, 19).replace("T", " "),
+								isCompleted: userSurveyData.isCompleted,
+							},
+							(error, results) => {
+								if (error) {
+									console.error(error);
+									userSurveyCallback(error);
+								} else {
+									const userSurveyId = results.insertId;
+
+									// Use async.each to process the answers data
+									async.each(
+										answersData,
+										(answer, answerCallback) => {
+											connection.query(
 												"INSERT IGNORE INTO answers SET ?",
 												{
 													question_id: answer.question_id,
-													user_survey_id: results.insertId,
+													user_survey_id: userSurveyId,
 													text: answer.text,
 													created_at: new Date(answer.created_at).toISOString().slice(0, 19).replace("T", " "),
 												},
-												(error, results) => {
+												(error) => {
 													if (error) {
 														console.error(error);
-														reject(error);
+														answerCallback(error);
 													} else {
-														resolve();
+														answerCallback();
 													}
 												}
 											);
-										});
-									},
-									(err) => {
-										if (err) {
-											reject(err);
-										} else {
-											resolve();
+										},
+										(error) => {
+											if (error) {
+												userSurveyCallback(error);
+											} else {
+												userSurveyCallback();
+											}
 										}
-									}
-								);
+									);
+								}
 							}
-						}
-					);
-				});
+						);
+					},
+					chunkCallback
+				);
 			},
-			(err) => {
-				if (err) {
+			(error) => {
+				// Release the connection back to the pool
+				connection.release();
+
+				if (error) {
+					console.error("Error inserting data:", error);
 					return res.status(500).json({ message: "Error inserting data" });
+				} else {
+					res.status(200).json({ message: "Data inserted successfully" });
 				}
 			}
 		);
-	}
-	res.status(200).json({ message: "Data inserted successfully" });
+	});
 };
