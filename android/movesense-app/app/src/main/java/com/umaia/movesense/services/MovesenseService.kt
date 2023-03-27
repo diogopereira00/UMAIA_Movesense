@@ -340,7 +340,9 @@ class MovesenseService : LifecycleService() {
 
                     if (networkChecker.hasInternetWifi()) {
                         movesenseWifi.postValue(MovesenseWifi.AVAILABLE)
-                        sendDataToServer()
+                        if(!gv.isSyncing){
+                            sendDataToServer()
+                        }
 
 
                     } else {
@@ -361,7 +363,7 @@ class MovesenseService : LifecycleService() {
     }
 
     private fun sendCommandToServiceUpload(action: String) {
-        startService(Intent(this@MovesenseService, UploadService::class.java).apply {
+        startService(Intent(this@MovesenseService, UploadService2::class.java).apply {
             this.action = action
         })
         stopSelf()
@@ -1253,7 +1255,7 @@ class MovesenseService : LifecycleService() {
                         notification =
                             NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
                                 .setContentTitle(title).setContentText(description)
-                                .setSmallIcon(icon).setPriority(128).setContentIntent(pendingIntent)
+                                .setSmallIcon(icon).setPriority(2).setContentIntent(pendingIntent)
                                 .setOngoing(true)
                                 .build()
 

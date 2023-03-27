@@ -1,12 +1,8 @@
 package com.umaia.movesense.data.suveys.surveys
 
 import androidx.lifecycle.LiveData
-import com.umaia.movesense.data.suveys.relations.FullSurvey
-import com.umaia.movesense.data.suveys.studies.Study
-import com.umaia.movesense.data.suveys.studies.StudyDao
 
 
-import com.umaia.movesense.data.suveys.surveys.SurveyDao
 import kotlinx.coroutines.flow.Flow
 
 class SurveyRepository(private val surveyDao: SurveyDao) {

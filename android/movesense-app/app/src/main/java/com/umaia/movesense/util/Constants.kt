@@ -10,7 +10,13 @@ object Constants {
     const val PERMISSION_REQUEST_CODE = 1
     const val NOTIFICATION_CHANNEL_ID = "movesense_channel"
     const val NOTIFICATION_CHANNEL_NAME = "movesense_channel"
+
+    const val NOTIFICATION_CHANNEL_ID2 = "upload_channel"
+    const val NOTIFICATION_CHANNEL_NAME2 = "upload_channel"
+
     const val NOTIFICATION_ID = 143
+    const val NOTIFICATION_ID2 = 144
+
     const val URI_MEAS_ACC_13 = "/Meas/Acc/13"
     const val URI_EVENTLISTENER = "suunto://MDS/EventListener"
     const val URI_MEAS_HR = "/Meas/HR"

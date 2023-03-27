@@ -27,4 +27,7 @@ interface GYRODao {
 
     @Query("SELECT id from gyro_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long
+
+    @Query("SELECT * FROM GYRO_TABLE WHERE id !=(SELECT MAX(id) FROM GYRO_TABLE) ORDER BY ID")
+    suspend fun getAll(): List<GYRO>
 }

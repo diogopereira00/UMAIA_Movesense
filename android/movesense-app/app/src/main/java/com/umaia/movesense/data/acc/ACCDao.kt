@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.umaia.movesense.data.gyro.GYRO
 
 @Dao
 interface ACCDao {
@@ -26,5 +27,8 @@ interface ACCDao {
 
     @Query("SELECT id from acc_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long
+
+    @Query("SELECT * FROM acc_table WHERE id !=(SELECT MAX(id) FROM acc_table) ORDER BY ID")
+    suspend fun getAll(): List<ACC>
 
 }

@@ -27,4 +27,7 @@ interface TEMPDao {
 
     @Query("SELECT id from temp_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long
+
+    @Query("SELECT * FROM temp_table WHERE id !=(SELECT MAX(id) FROM temp_table) ORDER BY ID")
+    suspend fun getAll(): List<TEMP>
 }

@@ -2,6 +2,7 @@ package com.umaia.movesense.data.network
 
 import com.umaia.movesense.data.responses.*
 import com.umaia.movesense.data.responses.studies_response.*
+import com.umaia.movesense.data.uploadData.UploadData
 import retrofit2.http.*
 
 interface ServerApi {
@@ -46,10 +47,20 @@ interface ServerApi {
         @Header("Authorization") authToken: String
     ): UploadUserSurveysResponse
 
+    @POST("addAllData")
+    suspend fun addAllData(
+        @Body uploadData: UploadData,
+        @Header("Authorization") authToken: String
+
+    ): UploadDataResponse
+
+
+
     @FormUrlEncoded
     @POST("addAccData")
     suspend fun addAccData(
         @Field("jsonString") jsonString: String,
+
         @Header("Authorization") authToken: String
     ): UploadAccRespose
 

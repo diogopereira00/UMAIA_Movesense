@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.umaia.movesense.data.acc.ACC
 
 @Dao
 interface HrDao {
@@ -26,4 +27,7 @@ interface HrDao {
 
     @Query("SELECT id from hr_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long
+
+    @Query("SELECT * FROM HR_TABLE WHERE id !=(SELECT MAX(id) FROM HR_TABLE) ORDER BY ID")
+    suspend fun getAll(): List<Hr>
 }

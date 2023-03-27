@@ -2,8 +2,6 @@ package com.umaia.movesense.data.suveys.surveys
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.umaia.movesense.data.suveys.relations.FullSurvey
-import com.umaia.movesense.data.suveys.studies.Study
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -2,6 +2,7 @@ package com.umaia.movesense.data.suveys.options.repository
 
 import com.umaia.movesense.data.network.ServerApi
 import com.umaia.movesense.data.responses.UserPreferences
+import com.umaia.movesense.data.uploadData.UploadData
 
 class ApiRepository(
     private val api: ServerApi,
@@ -27,6 +28,11 @@ class ApiRepository(
     suspend fun getAllQuestionTypes(authToken: String) = safeApiCall {
         api.getQuestionTypes(authToken)
     }
+
+    suspend fun addAllData(uploadData: UploadData, authToken : String) = safeApiCall{
+        api.addAllData(uploadData,authToken)
+    }
+
 
     suspend fun addAccData(jsonString: String, authToken : String) = safeApiCall{
         api.addAccData(jsonString, authToken)

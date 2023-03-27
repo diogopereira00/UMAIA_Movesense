@@ -1,13 +1,12 @@
-package com.umaia.movesense.data.suveys.relations
+package com.umaia.movesense.data.suveys.surveys
 
 import androidx.room.Embedded
-import androidx.room.Entity
 import androidx.room.Relation
 import com.umaia.movesense.data.suveys.options.Option
 import com.umaia.movesense.data.suveys.questions.Question
 import com.umaia.movesense.data.suveys.questions_options.QuestionOption
 import com.umaia.movesense.data.suveys.sections.Section
-import com.umaia.movesense.data.suveys.surveys.Survey
+
 // Pojo for full survey
 data class FullSurvey(
     @Embedded

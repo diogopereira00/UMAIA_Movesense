@@ -5,10 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.text.BoringLayout
-import com.umaia.movesense.data.responses.studies_response.Survey
 import com.umaia.movesense.data.suveys.options.Option
-import com.umaia.movesense.data.suveys.relations.FullSurvey
+import com.umaia.movesense.data.suveys.surveys.FullSurvey
 import com.umaia.movesense.util.Constants
 import timber.log.Timber
 
@@ -49,6 +47,8 @@ class GlobalClass : Application() {
 
     var more30Minutes = false
 
+
+    var isSyncing = false
     var listOfOptions : Map<Long,Option> = mapOf()
     private var scannerECG: Boolean? = null
     fun getscannerECG(): Boolean? {
@@ -72,12 +72,26 @@ class GlobalClass : Application() {
         }
     }
 
+    private fun createNotificationChannel2() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                Constants.NOTIFICATION_CHANNEL_ID2,
+                Constants.NOTIFICATION_CHANNEL_NAME2,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
+            createNotificationChannel2()
         }
     }
 }

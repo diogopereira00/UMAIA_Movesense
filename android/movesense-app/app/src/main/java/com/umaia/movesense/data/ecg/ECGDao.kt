@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.umaia.movesense.data.acc.ACC
 
 @Dao
 interface ECGDao {
@@ -26,5 +27,8 @@ interface ECGDao {
 
     @Query("SELECT id from ecg_table ORDER BY id DESC LIMIT 1")
     suspend fun getIdFromLastRecord() : Long
+
+    @Query("SELECT * FROM ecg_table WHERE id !=(SELECT MAX(id) FROM ecg_table) ORDER BY ID")
+    suspend fun getAll(): List<ECG>
 
 }

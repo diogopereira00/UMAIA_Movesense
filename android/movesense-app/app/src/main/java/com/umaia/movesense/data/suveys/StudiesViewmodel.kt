@@ -9,7 +9,6 @@ import com.umaia.movesense.data.suveys.studies.StudyRepository
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.suveys.answers.Answer
 import com.umaia.movesense.data.suveys.answers.AnswerRepository
@@ -30,9 +29,12 @@ import com.umaia.movesense.data.suveys.user_studies.UserStudiesRepository
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveys
 import com.umaia.movesense.data.suveys.user_surveys.UserSurveysRepository
 import com.umaia.movesense.data.suveys.home.SingleLiveData
-import com.umaia.movesense.data.suveys.relations.FullSurvey
+import com.umaia.movesense.data.suveys.surveys.FullSurvey
+import com.umaia.movesense.data.uploadData.UploadData
+import com.umaia.movesense.data.uploadData.UserSurveysA
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class StudiesViewmodel(private val application: Application) : ViewModel() {
     private val studyRepository: StudyRepository
@@ -248,4 +250,32 @@ class StudiesViewmodel(private val application: Application) : ViewModel() {
 
     val fullSurveys: LiveData<List<FullSurvey>> = surveyRepository.getFullSurvey()
 
+
+
+    suspend fun getQueryResult(): UploadData {
+        return withContext(Dispatchers.IO) {
+            val accList =  AppDataBase.getDatabase(application).accDao().getAll()
+            val gyroList = AppDataBase.getDatabase(application).gyroDao().getAll()
+            val magnList = AppDataBase.getDatabase(application).magnDao().getAll()
+            val ecgList = AppDataBase.getDatabase(application).ecgDao().getAll()
+            val hrList = AppDataBase.getDatabase(application).hrDao().getAll()
+            val tempList = AppDataBase.getDatabase(application).tempDao().getAll()
+//            val usersSurveysWithAnswersList = AppDataBase.getDatabase(application).userSurveysDao().getAll()
+
+            val userSurveysWithAnswersList = AppDataBase.getDatabase(application).userSurveysDao().getAll()
+
+            val userSurveyList = mutableListOf<UserSurveysA>()
+
+            for (userSurveysWithAnswers in userSurveysWithAnswersList) {
+                val userSurvey = userSurveysWithAnswers.userSurvey
+                val answers = userSurveysWithAnswers.answers
+
+                userSurveyList.add(UserSurveysA(userSurvey.id,userSurvey.user_id,userSurvey.survey_id,userSurvey.start_time,userSurvey.end_time,userSurvey.isCompleted,answers))
+//                userSurvey.answers = answers
+            }
+
+
+            UploadData(accList, gyroList,magnList,ecgList,hrList,tempList, userSurveyList)
+        }
+    }
 }

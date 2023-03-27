@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.google.gson.Gson
 import com.umaia.movesense.*
 import com.umaia.movesense.data.AppDataBase
 import com.umaia.movesense.data.acc.ACCRepository
@@ -42,6 +44,7 @@ import com.umaia.movesense.services.MovesenseService
 import com.umaia.movesense.ui.SurveyActivity
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -124,6 +127,9 @@ class Home : Fragment() {
         viewModelStudies = ViewModelProvider(this, factoryStudies)[StudiesViewmodel::class.java]
         binding.progressBar.visible(true)
 
+
+
+
         viewModelStudies.fullSurveys.observe(viewLifecycleOwner, Observer { fullSurveys ->
             Timber.e("Surveys = " + fullSurveys.size.toString())
 //            Toast.makeText(
@@ -138,6 +144,21 @@ class Home : Fragment() {
             gv.posSurvey = fullSurveys[1]
 
         })
+
+        lifecycleScope.launch {
+            val queryResult = viewModelStudies.getQueryResult()
+            Timber.e(queryResult.accList.size.toString())
+            Timber.e(queryResult.magnList.size.toString())
+            Timber.e(queryResult.gyroList.size.toString())
+            Timber.e(queryResult.ecgList.size.toString())
+            Timber.e(queryResult.hrList.size.toString())
+            Timber.e(queryResult.tempList.size.toString())
+
+
+            val json = Gson().toJson(queryResult)
+            Timber.e(json)
+            // Update UI with queryResult.accList and queryResult.gyroList
+        }
 //        viewModelStudies.options.observe(viewLifecycleOwner, Observer { options ->
 //
 //            val map = options.associateBy { it.id }

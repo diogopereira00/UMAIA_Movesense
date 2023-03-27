@@ -37,6 +37,7 @@ import com.umaia.movesense.data.suveys.home.convertDate
 import com.umaia.movesense.data.suveys.home.startNewActivity
 import com.umaia.movesense.data.suveys.home.startNewActivityFromSplash
 import com.umaia.movesense.services.UploadService
+import com.umaia.movesense.services.UploadService2
 import com.umaia.movesense.util.Constants
 import com.umaia.movesense.util.ViewModelFactory
 import timber.log.Timber
@@ -336,7 +337,7 @@ class SplashScreenActivity : AppCompatActivity(), DialogWifi.OnDialogWifiDismiss
         }
     }
     private fun sendCommandToServiceUpload(action: String) {
-        startService(Intent(this@SplashScreenActivity, UploadService::class.java).apply {
+        startService(Intent(this@SplashScreenActivity, UploadService2::class.java).apply {
             this.action = action
         })
     }
