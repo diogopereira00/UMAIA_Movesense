@@ -19,10 +19,7 @@ module.exports = {
 		}
 
 		// password (repeat) does not match
-		if (
-			!req.body.password_repeat ||
-			req.body.password != req.body.password_repeat
-		) {
+		if (!req.body.password_repeat || req.body.password != req.body.password_repeat) {
 			return res.status(400).send({
 				msg: "Both passwords must match",
 			});
@@ -32,17 +29,15 @@ module.exports = {
 	},
 	isLoggedIn: (req, res, next) => {
 		try {
-		  const token = req.headers.authorization.split(' ')[1];
-		  const decoded = jwt.verify(
-			token,
-			'SECRETKEY'
-		  );
-		  req.userData = decoded;
-		  next();
+			console.log(req.headers.authorization);
+			const token = req.headers.authorization.split(" ")[1];
+			const decoded = jwt.verify(token, "SECRETKEY");
+			req.userData = decoded;
+			next();
 		} catch (err) {
-		  return res.status(401).send({
-			msg: 'Your session is not valid!'
-		  });
+			return res.status(401).send({
+				msg: "Your session is not valid!",
+			});
 		}
-	  },
+	},
 };
