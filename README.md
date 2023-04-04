@@ -11,7 +11,7 @@ Esta desenvolvida permite a recolha de dados através de sensores Movesense e pa
 
 
 ## Organização do repositorio
-* Pode encontrar a **apk** em [movesense.apk](https://github.com/diogopereira00/UMAIA_Movesense/blob/main/rackit.apk).
+* Pode encontrar a **apk** em [movesense.apk](https://github.com/diogopereira00/UMAIA_Movesense/blob/main/movesense.apk).
 * Pode encontrar o **código fonte** da aplicação em [android/movesense-app](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/android/movesense-app).
 * Pode encontrar o **código fonte** da API em [backend](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/backend).
 * Pode encontrar um   **video de demonstração** [aqui](https://www.youtube.com/watch?v=NMhC6SrpsIo&feature=youtu.be).
