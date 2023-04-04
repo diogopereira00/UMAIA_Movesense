@@ -16,7 +16,7 @@ Esta desenvolvida permite a recolha de dados através de sensores Movesense e pa
 * Pode encontrar o **código fonte** da API em [backend](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/backend).
 * Pode encontrar um   **video de demonstração** [aqui](https://www.youtube.com/watch?v=NMhC6SrpsIo&feature=youtu.be).
 * Pode encontrar todas **as interfaces da aplicação** em [docs/images/appImages/](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/docs/images/appImages).
-
+* Pode encontrar o **questionário dos testes** em [images/questionario](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/docs/images/questionario).
 
 
 
