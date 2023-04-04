@@ -22,7 +22,7 @@ Esta desenvolvida permite a recolha de dados através de sensores Movesense e pa
 
 ## Galeria
 | VIDEO DEMO | LAYOUT PREVIEW |
-:-: | :-: | :-: |
+:-: | :-: |
 [![Video_Preview](https://github.com/diogopereira00/UMAIA_Movesense/blob/main/docs/images/previewvideo.png)](https://www.youtube.com/watch?v=NMhC6SrpsIo&feature=youtu.be) | [![APP Layout](https://github.com/diogopereira00/UMAIA_Movesense/blob/main/docs/images/app.gif)](https://github.com/diogopereira00/UMAIA_Movesense/tree/main/docs/images/appImages) | 
 Video de demonstração da APP | Resultado final da UI desenvolvida | 
 
